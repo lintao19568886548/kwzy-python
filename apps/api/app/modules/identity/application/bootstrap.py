@@ -1,0 +1,151 @@
+"""Seed minimal tenant for step1.
+
+功能说明：
+    本地/测试环境幂等种子默认租户、权限字典、ADMIN 角色与管理员用户。
+
+业务职责：
+    infrastructure/bootstrap 边界内允许直接使用 ORM；
+    禁止固定明文密码；生产环境禁止自动种子。
+"""
+
+from __future__ import annotations
+
+import logging
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.core.config import get_settings
+from app.core.security import hash_password
+from app.infrastructure.database.models.identity import (
+    Permission,
+    Role,
+    RolePermission,
+    Tenant,
+    User,
+    UserRole,
+)
+
+logger = logging.getLogger(__name__)
+
+DEFAULT_PERMISSIONS = (
+    ("*", "全部权限", "system"),
+    ("park:read", "查看园区", "park"),
+    ("park:write", "维护园区", "park"),
+    ("unit:read", "查看单元", "unit"),
+    ("unit:write", "维护单元", "unit"),
+)
+
+
+def ensure_default_tenant(session: Session) -> Tenant | None:
+    """幂等创建本地默认租户、管理员及显式超级权限关系。
+
+    规则：
+    - production：禁止调用（抛错）。
+    - admin 已存在：不重置密码。
+    - admin 不存在：仅当 LOCAL_ADMIN_PASSWORD 非空时创建哈希。
+    - ADMIN 角色：动作权限 `*` + all_parks=True（园区范围与动作正交）。
+    """
+
+    settings = get_settings()
+    env = settings.app_env.lower()
+    if env == "production":
+        raise RuntimeError("production 禁止 ensure_default_tenant 自动种子")
+
+    tenant = session.scalars(select(Tenant).where(Tenant.code == "default")).first()
+    if tenant is None:
+        tenant = Tenant(
+            code="default",
+            name="默认租户",
+            status="ACTIVE",
+            db_strategy="SHARED",
+        )
+        session.add(tenant)
+        session.flush()
+
+    permissions: dict[str, Permission] = {}
+    for code, name, module in DEFAULT_PERMISSIONS:
+        permission = session.scalars(
+            select(Permission).where(Permission.code == code)
+        ).first()
+        if permission is None:
+            permission = Permission(code=code, name=name, module=module)
+            session.add(permission)
+            session.flush()
+        permissions[code] = permission
+
+    role = session.scalars(
+        select(Role).where(Role.tenant_id == tenant.id, Role.code == "ADMIN")
+    ).first()
+    if role is None:
+        role = Role(
+            tenant_id=tenant.id,
+            code="ADMIN",
+            name="系统管理员",
+            status="ACTIVE",
+            remark="本地 Step1 默认管理员角色",
+            all_parks=True,
+        )
+        session.add(role)
+        session.flush()
+    elif not bool(role.all_parks):
+        # 兼容旧库：ADMIN 历史依赖 * 兼全园，回填显式 all_parks
+        role.all_parks = True
+        session.add(role)
+        session.flush()
+
+    star = permissions["*"]
+    role_permission = session.scalars(
+        select(RolePermission).where(
+            RolePermission.role_id == role.id,
+            RolePermission.permission_id == star.id,
+        )
+    ).first()
+    if role_permission is None:
+        session.add(
+            RolePermission(
+                tenant_id=tenant.id,
+                role_id=role.id,
+                permission_id=star.id,
+            )
+        )
+
+    user = session.scalars(
+        select(User).where(User.tenant_id == tenant.id, User.username == "admin")
+    ).first()
+    if user is None:
+        password = (settings.local_admin_password or "").strip()
+        if not password:
+            msg = (
+                "LOCAL_ADMIN_PASSWORD 未设置，跳过创建默认 admin 用户；"
+                "本地首次启动请在环境变量中提供密码后重启。"
+            )
+            logger.error(msg)
+            if settings.local_admin_password_required:
+                session.rollback()
+                raise RuntimeError(msg)
+            session.commit()
+            session.refresh(tenant)
+            return tenant
+
+        user = User(
+            tenant_id=tenant.id,
+            username="admin",
+            password_hash=hash_password(password),
+            real_name="管理员",
+            status="ACTIVE",
+            all_parks=False,  # 园区范围来自 ADMIN 角色 all_parks
+        )
+        session.add(user)
+        session.flush()
+    # 已存在 admin：幂等跳过，绝不重置 password_hash
+
+    user_role = session.scalars(
+        select(UserRole).where(UserRole.user_id == user.id, UserRole.role_id == role.id)
+    ).first()
+    if user_role is None:
+        session.add(UserRole(tenant_id=tenant.id, user_id=user.id, role_id=role.id))
+
+    session.commit()
+    session.refresh(tenant)
+    return tenant

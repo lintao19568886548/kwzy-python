@@ -1,0 +1,111 @@
+"""FastAPI dependencies."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+
+from fastapi import Depends, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.orm import Session
+
+from app.core.config import get_settings
+from app.core.errors import AppError
+from app.core.security import TokenError, safe_decode
+from app.infrastructure.database.session import get_db
+from app.shared.tenant_context import ParkScopeMode, TenantContext
+
+_bearer = HTTPBearer(auto_error=False)
+
+
+def _mode_from_claims(
+    raw_mode: object,
+    park_ids: list[int],
+) -> ParkScopeMode:
+    """从 JWT 解析园区模式；兼容缺省 claim 的旧令牌（不把 * 当全园）。"""
+
+    if raw_mode:
+        try:
+            return ParkScopeMode(str(raw_mode))
+        except ValueError:
+            pass
+    if park_ids:
+        return ParkScopeMode.LIST
+    return ParkScopeMode.NONE
+
+
+def get_tenant_context(
+    request: Request,
+    creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
+) -> TenantContext:
+    """
+    Resolve tenant context from JWT.
+    Local/dev without token: tenant_id=1 with full park access (for step1).
+    Production: requires valid JWT.
+    """
+    settings = get_settings()
+    if creds is None or not creds.credentials:
+        if settings.app_env == "production":
+            raise AppError("未登录", code="UNAUTHORIZED", status_code=401)
+        return TenantContext(
+            tenant_id=1,
+            user_id=1,
+            username="dev",
+            park_ids=[],
+            permissions=["*"],
+            park_scope_mode=ParkScopeMode.ALL,
+            is_platform_admin=False,
+            request_id=getattr(request.state, "request_id", ""),
+            client_ip=request.client.host if request.client else None,
+        )
+    try:
+        payload = safe_decode(creds.credentials)
+    except TokenError as exc:
+        raise AppError("未登录或令牌无效", code="UNAUTHORIZED", status_code=401) from exc
+
+    tenant_id = int(payload.get("tenant_id") or 0)
+    if tenant_id <= 0:
+        raise AppError("令牌缺少有效 tenant_id", code="UNAUTHORIZED", status_code=401)
+
+    park_ids = [int(x) for x in (payload.get("park_ids") or [])]
+    permissions = list(payload.get("permissions") or [])
+    park_scope_mode = _mode_from_claims(payload.get("park_scope_mode"), park_ids)
+    return TenantContext(
+        tenant_id=tenant_id,
+        user_id=int(payload.get("uid") or 0),
+        username=str(payload.get("sub") or ""),
+        park_ids=park_ids,
+        permissions=permissions,
+        park_scope_mode=park_scope_mode,
+        is_platform_admin=bool(payload.get("is_platform_admin", False)),
+        request_id=getattr(request.state, "request_id", ""),
+        client_ip=request.client.host if request.client else None,
+    )
+
+
+# legacy alias used by old stubs
+def get_current_user(ctx: TenantContext = Depends(get_tenant_context)) -> TenantContext:
+    return ctx
+
+
+def require_permissions(*permission_codes: str) -> Callable[..., TenantContext]:
+    """生成权限依赖；所有指定权限码都必须满足。"""
+
+    def _check(ctx: TenantContext = Depends(get_tenant_context)) -> TenantContext:
+        missing = [code for code in permission_codes if not ctx.has_permission(code)]
+        if missing:
+            raise AppError(
+                "无操作权限",
+                code="PERMISSION_DENIED",
+                status_code=403,
+            )
+        return ctx
+
+    return _check
+
+
+# re-export for tests / services
+CurrentUser = TenantContext
+
+
+def get_tenant_db(db: Session = Depends(get_db)) -> Session:
+    return db

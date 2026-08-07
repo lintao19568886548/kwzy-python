@@ -1,0 +1,1801 @@
+openapi: 3.1.0
+info:
+  title: KWZY AI Smart Park API
+  version: 1.1.0
+  description: |
+    AI 智慧园区平台核心主链 OpenAPI v1.1（05.1 修订）。
+    统一 snake_case；统一响应 envelope；Payment=收款登记；Bill 无 OVERDUE 主状态。
+    覆盖：认证、园区/单元、合同、账单、收款催缴、线索转化。
+    响应约定：成功/失败均为 {code, message, data}；错误见 ErrorResponse。
+    路径与字段一律 snake_case。
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local
+tags:
+  - name: Auth
+  - name: Parks
+  - name: Units
+  - name: Parties
+  - name: Leases
+  - name: Bills
+  - name: Payments
+  - name: Collection
+  - name: Leads
+  - name: AI
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: 密码登录
+      operationId: authLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+  /auth/sms/send:
+    post:
+      tags: [Auth]
+      summary: 发送登录短信验证码
+      operationId: authSmsSend
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
+
+  /auth/sms/login:
+    post:
+      tags: [Auth]
+      summary: 短信验证码登录
+      operationId: authSmsLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, code]
+              properties:
+                phone: { type: string }
+                code: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: 刷新访问令牌
+      operationId: authRefresh
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: 当前用户信息
+      operationId: authMe
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+
+
+  /auth/page-access/send:
+    post:
+      tags: [Auth]
+      summary: 发送高敏页面验证码（如催缴）
+      operationId: authPageAccessSend
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [purpose]
+              properties:
+                purpose:
+                  type: string
+                  description: COLLECTION_SMS
+                  example: COLLECTION_SMS
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiEnvelopeOk'
+
+  /auth/page-access/verify:
+    post:
+      tags: [Auth]
+      summary: 校验验证码并签发 page_access_proof
+      operationId: authPageAccessVerify
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [purpose, code]
+              properties:
+                purpose: { type: string }
+                code: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageAccessProofResponse'
+
+  /auth/codes:
+    get:
+      tags: [Auth]
+      summary: 当前用户权限码列表
+      operationId: authCodes
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionCodesResponse'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: 登出（作废 refresh）
+      operationId: authLogout
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiEnvelopeOk'
+
+  /parks:
+    get:
+      tags: [Parks]
+      summary: 园区列表
+      operationId: listParks
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParkPage'
+    post:
+      tags: [Parks]
+      summary: 创建园区
+      operationId: createPark
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParkCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Park'
+
+  /parks/{park_id}:
+    get:
+      tags: [Parks]
+      summary: 园区详情
+      operationId: getPark
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ParkIdPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Park'
+    patch:
+      tags: [Parks]
+      summary: 更新园区
+      operationId: updatePark
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ParkIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParkUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Park'
+
+  /parks/{park_id}/buildings:
+    get:
+      tags: [Parks]
+      summary: 楼栋列表
+      operationId: listBuildings
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ParkIdPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Building'
+    post:
+      tags: [Parks]
+      summary: 创建楼栋
+      operationId: createBuilding
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ParkIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BuildingCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Building'
+
+
+  /buildings/{building_id}:
+    get:
+      tags: [Parks]
+      summary: 楼栋详情
+      operationId: getBuilding
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: building_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuildingEnvelope'
+    patch:
+      tags: [Parks]
+      summary: 更新楼栋
+      operationId: updateBuilding
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: building_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BuildingUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuildingEnvelope'
+    delete:
+      tags: [Parks]
+      summary: 删除楼栋（软删）
+      operationId: deleteBuilding
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: building_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiEnvelopeOk'
+
+  /units:
+    get:
+      tags: [Units]
+      summary: 可租单元列表
+      operationId: listUnits
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: park_id
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: status
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitPage'
+    post:
+      tags: [Units]
+      summary: 创建可租单元
+      operationId: createUnit
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+
+  /units/{unit_id}:
+    get:
+      tags: [Units]
+      summary: 单元详情
+      operationId: getUnit
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UnitIdPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+    patch:
+      tags: [Units]
+      summary: 更新单元
+      operationId: updateUnit
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UnitIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+
+  /parties:
+    get:
+      tags: [Parties]
+      summary: 入驻方列表
+      operationId: listParties
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: park_id
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: keyword
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyPage'
+    post:
+      tags: [Parties]
+      summary: 创建入驻方
+      operationId: createParty
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Party'
+
+
+  /parties/{party_id}:
+    get:
+      tags: [Parties]
+      summary: 入驻方详情
+      operationId: getParty
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyEnvelope'
+    patch:
+      tags: [Parties]
+      summary: 更新入驻方
+      operationId: updateParty
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyEnvelope'
+
+  /leases:
+    get:
+      tags: [Leases]
+      summary: 合同列表
+      operationId: listLeases
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: park_id
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: expiring_within_days
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeasePage'
+    post:
+      tags: [Leases]
+      summary: 创建合同草稿
+      operationId: createLease
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaseCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lease'
+
+  /leases/{lease_id}:
+    get:
+      tags: [Leases]
+      summary: 合同详情
+      operationId: getLease
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/LeaseIdPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lease'
+
+  /leases/{lease_id}/activate:
+    post:
+      tags: [Leases]
+      summary: 激活合同（占用单元）
+      operationId: activateLease
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/LeaseIdPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lease'
+
+  /leases/{lease_id}/terminate:
+    post:
+      tags: [Leases]
+      summary: 退租终止合同
+      operationId: terminateLease
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/LeaseIdPath'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+                terminated_on: { type: string, format: date }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lease'
+
+  /bills:
+    get:
+      tags: [Bills]
+      summary: 账单列表
+      operationId: listBills
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: park_id
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: party_id
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: period_start
+          in: query
+          schema: { type: string, format: date }
+        - name: period_end
+          in: query
+          schema: { type: string, format: date }
+        - name: is_overdue
+          in: query
+          description: true=仅逾期未结（衍生条件，非 status=OVERDUE）
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillPage'
+    post:
+      tags: [Bills]
+      summary: 创建账单草稿
+      operationId: createBill
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+
+  /bills/{bill_id}:
+    get:
+      tags: [Bills]
+      summary: 账单详情（含明细行）
+      operationId: getBill
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/BillIdPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+    patch:
+      tags: [Bills]
+      summary: 更新草稿账单
+      operationId: updateBill
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/BillIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+
+  /bills/{bill_id}/issue:
+    post:
+      tags: [Bills]
+      summary: 签发账单
+      operationId: issueBill
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/BillIdPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+
+  /bills/{bill_id}/void:
+    post:
+      tags: [Bills]
+      summary: 作废账单
+      operationId: voidBill
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/BillIdPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+
+  /bills/duplicate-check:
+    post:
+      tags: [Bills]
+      summary: 账期重复检查
+      operationId: duplicateCheckBill
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [party_id, period_start, period_end]
+              properties:
+                party_id: { type: integer, format: int64 }
+                period_start: { type: string, format: date }
+                period_end: { type: string, format: date }
+                park_id: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  has_duplicate: { type: boolean }
+                  candidates:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Bill'
+
+  /payments:
+    get:
+      tags: [Payments]
+      summary: 收款列表
+      operationId: listPayments
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: park_id
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentPage'
+    post:
+      tags: [Payments]
+      summary: 收款登记并核销账单（非在线支付；allocations 分摊核销，支持部分收款）
+      operationId: createPayment
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+
+  /collection/cases:
+    get:
+      tags: [Collection]
+      summary: 催缴案件列表
+      operationId: listCollectionCases
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: park_id
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: bill_id
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionCasePage'
+    post:
+      tags: [Collection]
+      summary: 创建催缴案件
+      operationId: createCollectionCase
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionCaseCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionCaseEnvelope'
+
+  /collection/cases/{case_id}:
+    get:
+      tags: [Collection]
+      summary: 催缴案件详情（含 records）
+      operationId: getCollectionCase
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionCaseDetailEnvelope'
+    patch:
+      tags: [Collection]
+      summary: 更新案件状态/级别/跟进人
+      operationId: updateCollectionCase
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionCaseUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionCaseEnvelope'
+
+  /collection/cases/{case_id}/records:
+    get:
+      tags: [Collection]
+      summary: 催缴记录列表
+      operationId: listCollectionRecords
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionRecordListEnvelope'
+    post:
+      tags: [Collection]
+      summary: 追加催缴记录
+      operationId: createCollectionRecord
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionRecordCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionRecordEnvelope'
+
+
+  /collection/sms/preview:
+    post:
+      tags: [Collection]
+      summary: 催缴短信预览
+      operationId: previewCollectionSms
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bill_ids]
+              properties:
+                bill_ids:
+                  type: array
+                  items: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        bill_id: { type: integer, format: int64 }
+                        phone: { type: string }
+                        content: { type: string }
+
+  /collection/sms/send:
+    post:
+      tags: [Collection]
+      summary: 发送催缴短信（需二次验证）
+      operationId: sendCollectionSms
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bill_ids, page_access_proof]
+              properties:
+                bill_ids:
+                  type: array
+                  items: { type: integer, format: int64 }
+                page_access_proof: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
+
+  /leads:
+    get:
+      tags: [Leads]
+      summary: 线索列表
+      operationId: listLeads
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: park_id
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: status
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadPage'
+    post:
+      tags: [Leads]
+      summary: 创建线索
+      operationId: createLead
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeadCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+
+  /leads/{lead_id}/convert:
+    post:
+      tags: [Leads]
+      summary: 线索转化为合同草稿
+      operationId: convertLead
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                unit_ids:
+                  type: array
+                  items: { type: integer, format: int64 }
+                start_date: { type: string, format: date }
+                end_date: { type: string, format: date }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lead:
+                    $ref: '#/components/schemas/Lead'
+                  party:
+                    $ref: '#/components/schemas/Party'
+                  lease:
+                    $ref: '#/components/schemas/Lease'
+
+  /ai/bill-recognize/jobs:
+    post:
+      tags: [AI]
+      summary: 创建 AI 账单识别任务
+      operationId: createBillRecognizeJob
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                park_id: { type: integer, format: int64 }
+                files:
+                  type: array
+                  items: { type: string, format: binary }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiJob'
+
+  /ai/bill-recognize/jobs/{job_id}:
+    get:
+      tags: [AI]
+      summary: 识别任务状态
+      operationId: getBillRecognizeJob
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiJob'
+
+  /ai/bill-recognize/jobs/{job_id}/commit:
+    post:
+      tags: [AI]
+      summary: 将识别结果提交为账单草稿
+      operationId: commitBillRecognizeJob
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_ids:
+                    type: array
+                    items: { type: integer, format: int64 }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSize:
+      name: page_size
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 200, default: 20 }
+    ParkIdPath:
+      name: park_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    UnitIdPath:
+      name: unit_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    LeaseIdPath:
+      name: lease_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    BillIdPath:
+      name: bill_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string }
+      description: 写操作幂等键（payments 创建、bills issue 等必须支持）
+
+  schemas:
+    # ----- 统一响应 envelope（P0-3）-----
+    ApiEnvelopeOk:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: { type: string, example: OK }
+        message: { type: string, example: success }
+        data: { type: object, nullable: true }
+
+    ErrorResponse:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: { type: string, example: VALIDATION_ERROR }
+        message: { type: string }
+        data: { type: object, nullable: true }
+
+    PageAccessProofResponse:
+      type: object
+      properties:
+        code: { type: string, example: OK }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            page_access_proof: { type: string }
+            expires_in: { type: integer }
+
+    PermissionCodesResponse:
+      type: object
+      properties:
+        code: { type: string, example: OK }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            codes:
+              type: array
+              items: { type: string }
+
+    PartyEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/Party'
+
+    BuildingEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/Building'
+
+    BuildingUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        building_type: { type: string }
+        address: { type: string }
+        description: { type: string }
+
+    PartyUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        contact_name: { type: string }
+        contact_phone: { type: string }
+        credit_code: { type: string }
+        address: { type: string }
+        status: { type: string }
+        remark: { type: string }
+
+    ApiOk:
+      description: Prefer ApiEnvelopeOk — same envelope shape
+      type: object
+      properties:
+        code: { type: string, default: OK }
+        message: { type: string, default: success }
+        data: { type: object, nullable: true }
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string, format: password }
+        tenant_code: { type: string, nullable: true, description: 多租户同名用户必须指定 }
+
+    TokenPair:
+      type: object
+      properties:
+        access_token: { type: string }
+        token_type: { type: string, default: bearer }
+        expires_in: { type: integer }
+
+    LoginResponse:
+      allOf:
+        - $ref: '#/components/schemas/TokenPair'
+        - type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/UserInfo'
+
+    UserInfo:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        tenant_id: { type: integer, format: int64 }
+        username: { type: string }
+        real_name: { type: string }
+        phone: { type: string, nullable: true }
+        permissions:
+          type: array
+          items: { type: string }
+          description: |
+            动作权限码列表。`*` 表示全部动作权限，不授予全园区数据范围。
+        park_ids:
+          type: array
+          items: { type: integer, format: int64 }
+          description: |
+            LIST 模式下可访问的园区 id 并集；ALL/NONE 时通常为空数组。
+        park_scope_mode:
+          type: string
+          enum: [NONE, LIST, ALL]
+          description: |
+            园区数据范围模式，与 permissions 正交。
+            ALL=租户内全部园区；LIST=park_ids；NONE=无园区访问。
+
+    Park:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        address: { type: string }
+        area: { type: number }
+        contact: { type: string, nullable: true }
+        manager: { type: string, nullable: true }
+        status: { type: string }
+    ParkCreate:
+      type: object
+      required: [name, address]
+      properties:
+        name: { type: string }
+        address: { type: string }
+        area: { type: number }
+        contact: { type: string }
+        manager: { type: string }
+        description: { type: string }
+    ParkUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        address: { type: string }
+        area: { type: number }
+        contact: { type: string }
+        manager: { type: string }
+        status: { type: string }
+        description: { type: string }
+    ParkPage:
+      type: object
+      properties:
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Park'
+
+    Building:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        park_id: { type: integer, format: int64 }
+        name: { type: string }
+        building_type: { type: string }
+        address: { type: string }
+    BuildingCreate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        building_type: { type: string, default: FACTORY }
+        address: { type: string }
+        description: { type: string }
+
+    Unit:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        park_id: { type: integer, format: int64 }
+        building_id: { type: integer, format: int64 }
+        code: { type: string }
+        name: { type: string }
+        rentable_area: { type: number }
+        used_area: { type: number }
+        base_rent_price: { type: number }
+        status: { type: string }
+        attributes: { type: object, additionalProperties: true }
+    UnitCreate:
+      type: object
+      required: [park_id, building_id, code, name]
+      properties:
+        park_id: { type: integer, format: int64 }
+        building_id: { type: integer, format: int64 }
+        code: { type: string }
+        name: { type: string }
+        rentable_area: { type: number }
+        base_rent_price: { type: number }
+        attributes: { type: object, additionalProperties: true }
+    UnitUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        rentable_area: { type: number }
+        base_rent_price: { type: number }
+        status: { type: string }
+        attributes: { type: object, additionalProperties: true }
+    UnitPage:
+      type: object
+      properties:
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Unit'
+
+    Party:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        park_id: { type: integer, format: int64 }
+        name: { type: string }
+        contact_name: { type: string, nullable: true }
+        contact_phone: { type: string }
+        status: { type: string }
+    PartyCreate:
+      type: object
+      required: [park_id, name, contact_phone]
+      properties:
+        park_id: { type: integer, format: int64 }
+        name: { type: string }
+        contact_name: { type: string }
+        contact_phone: { type: string }
+        credit_code: { type: string }
+        address: { type: string }
+    PartyPage:
+      type: object
+      properties:
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Party'
+
+    LeaseUnitItem:
+      type: object
+      required: [unit_id]
+      properties:
+        unit_id: { type: integer, format: int64 }
+        occupied_area: { type: number }
+        unit_rent_price: { type: number }
+
+    Lease:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        contract_no: { type: string }
+        park_id: { type: integer, format: int64 }
+        party_id: { type: integer, format: int64 }
+        status: { type: string }
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date }
+        increase_date: { type: string, format: date, nullable: true }
+        increase_rate: { type: number, nullable: true }
+        deposit_amount: { type: number }
+        units:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaseUnitItem'
+    LeaseCreate:
+      type: object
+      required: [park_id, party_id, start_date, end_date, units]
+      properties:
+        park_id: { type: integer, format: int64 }
+        party_id: { type: integer, format: int64 }
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date }
+        increase_date: { type: string, format: date }
+        increase_rate: { type: number }
+        deposit_amount: { type: number }
+        remark: { type: string }
+        units:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaseUnitItem'
+    LeasePage:
+      type: object
+      properties:
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Lease'
+
+    BillLine:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        fee_code: { type: string }
+        description: { type: string }
+        quantity: { type: number }
+        unit_price: { type: number }
+        amount: { type: number }
+        meter_reading_from: { type: number, nullable: true }
+        meter_reading_to: { type: number, nullable: true }
+        multiplier: { type: number, nullable: true }
+    BillLineInput:
+      type: object
+      required: [fee_code, amount]
+      properties:
+        fee_code: { type: string }
+        description: { type: string }
+        quantity: { type: number }
+        unit_price: { type: number }
+        amount: { type: number }
+        meter_reading_from: { type: number }
+        meter_reading_to: { type: number }
+        multiplier: { type: number }
+    Bill:
+      type: object
+      description: |
+        账单。status 仅限 DRAFT|ISSUED|PARTIALLY_PAID|PAID|VOID|DISCARDED。
+        禁止 OVERDUE 主状态；逾期见 is_overdue。
+      properties:
+        id: { type: integer, format: int64 }
+        bill_no: { type: string }
+        park_id: { type: integer, format: int64 }
+        party_id: { type: integer, format: int64 }
+        contract_id: { type: integer, format: int64, nullable: true }
+        period_start: { type: string, format: date }
+        period_end: { type: string, format: date }
+        due_date: { type: string, format: date, nullable: true }
+        overdue_since: { type: string, format: date, nullable: true }
+        status:
+          type: string
+          enum: [DRAFT, ISSUED, PARTIALLY_PAID, PAID, VOID, DISCARDED]
+        total_amount: { type: number }
+        paid_amount: { type: number }
+        open_amount: { type: number, description: total_amount - paid_amount }
+        is_overdue:
+          type: boolean
+          description: 衍生字段；逾期且未结清
+        source: { type: string }
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillLine'
+    BillCreate:
+      type: object
+      required: [park_id, party_id, period_start, period_end, lines]
+      properties:
+        park_id: { type: integer, format: int64 }
+        party_id: { type: integer, format: int64 }
+        contract_id: { type: integer, format: int64 }
+        period_start: { type: string, format: date }
+        period_end: { type: string, format: date }
+        due_date: { type: string, format: date }
+        title: { type: string }
+        project_name: { type: string }
+        remark: { type: string }
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillLineInput'
+    BillUpdate:
+      type: object
+      properties:
+        title: { type: string }
+        project_name: { type: string }
+        due_date: { type: string, format: date }
+        remark: { type: string }
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillLineInput'
+    BillPage:
+      type: object
+      properties:
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Bill'
+
+    PaymentAllocationInput:
+      type: object
+      required: [bill_id, amount]
+      properties:
+        bill_id: { type: integer, format: int64 }
+        amount: { type: number }
+    Payment:
+      type: object
+      description: |
+        收款登记凭证（运营侧登记实收并核销账单）。
+        不是租户在线支付订单；在线收银台为二期。
+      properties:
+        id: { type: integer, format: int64 }
+        payment_no: { type: string }
+        park_id: { type: integer, format: int64 }
+        party_id: { type: integer, format: int64 }
+        amount: { type: number }
+        method: { type: string }
+        paid_at: { type: string, format: date-time }
+        status: { type: string }
+        allocations:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentAllocationInput'
+    PaymentCreate:
+      type: object
+      description: 收款登记；allocations 将金额分摊到一张或多张账单（部分/全额核销）
+      required: [park_id, party_id, amount, paid_at, allocations]
+      properties:
+        park_id: { type: integer, format: int64 }
+        party_id: { type: integer, format: int64 }
+        amount: { type: number }
+        method: { type: string, default: TRANSFER }
+        paid_at: { type: string, format: date-time }
+        remark: { type: string }
+        allocations:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentAllocationInput'
+    PaymentPage:
+      type: object
+      properties:
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+
+    CollectionCase:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        bill_id: { type: integer, format: int64 }
+        party_id: { type: integer, format: int64 }
+        status: { type: string }
+        level: { type: string }
+    CollectionCasePage:
+      type: object
+      properties:
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionCase'
+
+    Lead:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        park_id: { type: integer, format: int64 }
+        name: { type: string }
+        contact_phone: { type: string }
+        status: { type: string }
+        intent_level: { type: string, nullable: true }
+        intent_area: { type: number, nullable: true }
+    LeadCreate:
+      type: object
+      required: [park_id, name, contact_phone]
+      properties:
+        park_id: { type: integer, format: int64 }
+        name: { type: string }
+        contact_phone: { type: string }
+        agent_name: { type: string }
+        intent_level: { type: string }
+        intent_area: { type: number }
+        remark: { type: string }
+    LeadPage:
+      type: object
+      properties:
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Lead'
+
+
+    CollectionCaseCreate:
+      type: object
+      required: [park_id, party_id, bill_id]
+      properties:
+        park_id: { type: integer, format: int64 }
+        party_id: { type: integer, format: int64 }
+        bill_id: { type: integer, format: int64 }
+        level: { type: string, default: L1 }
+        assignee_id: { type: integer, format: int64, nullable: true }
+        remark: { type: string }
+    CollectionCaseUpdate:
+      type: object
+      properties:
+        status: { type: string }
+        level: { type: string }
+        assignee_id: { type: integer, format: int64, nullable: true }
+        next_action_at: { type: string, format: date-time, nullable: true }
+    CollectionCase:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        park_id: { type: integer, format: int64 }
+        party_id: { type: integer, format: int64 }
+        bill_id: { type: integer, format: int64 }
+        status: { type: string }
+        level: { type: string }
+        assignee_id: { type: integer, format: int64, nullable: true }
+        open_amount_snapshot: { type: number, nullable: true }
+        next_action_at: { type: string, format: date-time, nullable: true }
+    CollectionRecord:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        case_id: { type: integer, format: int64 }
+        record_type: { type: string, description: 'SMS|CALL|VISIT|NOTE|SYSTEM' }
+        content: { type: string, nullable: true }
+        result: { type: string, nullable: true }
+        channel_ref: { type: string, nullable: true }
+        created_by: { type: integer, format: int64, nullable: true }
+        created_at: { type: string, format: date-time }
+    CollectionRecordCreate:
+      type: object
+      required: [record_type]
+      properties:
+        record_type: { type: string }
+        content: { type: string }
+        result: { type: string }
+    CollectionCaseEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data: { $ref: '#/components/schemas/CollectionCase' }
+    CollectionCaseDetailEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            case: { $ref: '#/components/schemas/CollectionCase' }
+            records:
+              type: array
+              items: { $ref: '#/components/schemas/CollectionRecord' }
+    CollectionRecordEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data: { $ref: '#/components/schemas/CollectionRecord' }
+    CollectionRecordListEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/CollectionRecord' }
+
+    AiJob:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        job_type: { type: string }
+        status: { type: string }
+        result_meta: { type: object, additionalProperties: true, nullable: true }
+        error_message: { type: string, nullable: true }
