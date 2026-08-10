@@ -23,10 +23,11 @@ engine: Engine = create_engine(
     connect_args=_connect_args,
 )
 
-# SQLite FK support
+# SQLite FK support — bind to this engine only (not all Engine instances),
+# so PostgreSQL integration engines are not polluted with PRAGMA.
 if _settings.database_url.startswith("sqlite"):
 
-    @event.listens_for(Engine, "connect")
+    @event.listens_for(engine, "connect")
     def _set_sqlite_pragma(dbapi_connection, connection_record) -> None:  # type: ignore[no-untyped-def]
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")

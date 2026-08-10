@@ -6,7 +6,11 @@
 - [x] 0.4 `openspec validate implement-party-master --strict`
 - [ ] 0.5 人工确认预检 → 再议 apply（等待）
 
-**当前阻塞标签：`PARTY_APPLY_BLOCKED_NO_POSTGRES`**
+**当前阻塞标签：**
+
+- ~~`PARTY_APPLY_BLOCKED_NO_POSTGRES`~~（Docker + PG16 容器连接已验证）  
+- **`POSTGRES_BASELINE_MIGRATION_FAILED`**（`9f17fd2e9180` 中 `all_parks = 1` 与 PG boolean 不兼容；未改历史 migration）  
+- apply 仍 **阻塞** 直至基线 migration 在 PG 上可 upgrade head 且 downgrade/upgrade 往返成功
 
 ---
 

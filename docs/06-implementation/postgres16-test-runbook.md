@@ -60,3 +60,27 @@ docker compose -f infra/postgres-test/compose.yaml down
 - 不连接生产 / 旧 Java 库  
 - `.env` 被 gitignore  
 - Compose 无真实密码  
+
+## 已知基线迁移问题（PostgreSQL）
+
+**标记：`POSTGRES_BASELINE_MIGRATION_FAILED`**
+
+| 项 | 内容 |
+| --- | --- |
+| 文件 | `apps/api/alembic/versions/9f17fd2e9180_add_all_parks_scope_flags.py` |
+| 错误类型 | `psycopg.errors.DatatypeMismatch` / SQLAlchemy `ProgrammingError` |
+| 现象 | `UPDATE roles SET all_parks = 1` — PostgreSQL 要求 boolean 使用 `true`/`false`，整数 `1` 非法 |
+| 前序 revision | `44cb70117ff4` → `8c2f4aa10b7d` 在失败前可执行；失败事务回滚后库可为空 |
+| 策略 | **禁止静默改写已应用历史 migration**；须单独评审后以兼容 SQL（如 `true` 或 dialect 分支）修复 |
+| 影响 | 在修复前：**不能**宣称 PG baseline upgrade 到 head 成功；**不能**解除 Party apply 的 PG 门禁 |
+
+## 会话验证记录（脱敏）
+
+- Docker daemon：可用时 `ServerVersion=29.6.2`  
+- 容器：`kwzy_party_test_pg` / image `postgres:16` / health=healthy  
+- 绑定：`127.0.0.1:55432` / DB=`kwzy_party_test` / major=16  
+- Alembic heads：`9f17fd2e9180`  
+- Alembic upgrade head：**失败**（见上）  
+- `pytest -m pg`：连接/事务 harness 可通过（不依赖 full schema）  
+- SQLite 全量：应保持通过  
+
