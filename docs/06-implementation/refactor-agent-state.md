@@ -3,23 +3,20 @@
 | 字段 | 值 |
 | --- | --- |
 | 更新时间 | 2026-08-10 |
-| 当前分支 | `feat/payment-collection` |
-| HEAD | `640b3f1` 已推送 origin |
-| 状态 | 主链 Party→Lease→Bill→Payment 已实现；全量 78 passed；Alembic head `f6d24e5b7c43` |
-| 允许继续 | 等待人工 merge main；禁止自动部署 |
-| 最终报告 | `docs/06-implementation/refactor-final-acceptance.md` |
+| 当前分支 | `main` |
+| HEAD | 见 `git rev-parse HEAD`（merge commit 已推送 origin/main） |
+| 状态 | **main 已合并 phase06 主链**（Party/Lease/Bill/Payment） |
+| 部署 | **未部署**（合并 ≠ 部署） |
+| 允许继续 | 可做部署前检查；生产部署仍须人工确认环境 |
 
-## 分支 tip
+## 合并记录
 
-| 分支 | 说明 |
-| --- | --- |
-| feat/party-master | Party |
-| feat/lease-contract | +Lease |
-| feat/bill-master | +Bill |
-| feat/payment-collection | +Payment（全栈 tip） |
+- 源分支：`feat/payment-collection`（含 stacked 全栈）
+- 策略：`merge --no-ff` 进 `main`
+- 远程：`origin/main` 已 push（非 force）
 
-## 下一条动作（人工）
+## 下一条动作
 
-1. Review `feat/payment-collection`  
-2. 按栈合并 main  
-3. 预发 migrate + 冒烟  
+1. 预发/生产：`alembic upgrade head` 至 `f6d24e5b7c43`
+2. 冒烟：登录、园区、主体、合同、账单、收款
+3. 延期项：KMS/PII、滞纳金、催缴、在线支付、ETL

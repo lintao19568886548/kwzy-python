@@ -1,8 +1,8 @@
 # KWZY Python 重构最终验收包（开发侧）
 
 > 生成时间：2026-08-10  
-> 状态：**主链能力已在 feature 栈交付并推送**；**未合并 main、未部署生产**。  
-> 人工需批准：merge 顺序、部署与延期项处理。
+> 状态：**主链已合并 `main`（2026-08-10）**；**未部署生产**。  
+> 人工需批准：部署与延期项处理。
 
 ---
 
@@ -34,7 +34,7 @@
 | D-COLLECTION-CASE | 催缴案件/SMS | 主链未阻塞 | 独立 change |
 | D-ONLINE-PAY | 在线支付网关 | 明确二期 | 二期 |
 | D-ETL | 旧 Java ETL | 未批准连接旧库 | 人工方案 |
-| D-MERGE-MAIN | 合并 main / 发布 | 强制人工 | 本报告 §5 |
+| D-MERGE-MAIN | 合并 main | **已完成** | 发布/部署仍人工 |
 
 ---
 
@@ -89,6 +89,6 @@ main
 
 ## 8. 结论标记
 
-开发侧主链交付完成；**等待人工批准合并 main 与部署**。
+开发侧主链已合并 main；**等待人工批准部署**。
 
-`KWZY_PYTHON_REFACTOR_READY_FOR_FINAL_HUMAN_ACCEPTANCE`
+`KWZY_PYTHON_MAIN_MERGED_AWAITING_DEPLOY_APPROVAL`

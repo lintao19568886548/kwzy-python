@@ -12,7 +12,7 @@
 | 3 | Bill | implement-bill-master | feat/bill-master | 完成并推送 |
 | 4 | Payment | implement-payment-collection | feat/payment-collection | 完成（本 tip） |
 | 5 | 收口/最终验收 | — | tip | 见 refactor-final-acceptance.md |
-| 6 | 合并 main | — | — | **人工** |
+| 6 | 合并 main | — | `main` | **已合并**（2026-08-10，源 feat/payment-collection；部署仍人工） |
 
 ## 2. 延期
 
