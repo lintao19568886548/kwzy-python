@@ -7,3 +7,8 @@
 - [x] Wire payment/bill/lease numbering + Idempotency-Key
 - [x] OpenAPI sync
 - [x] PG concurrent tests + full pytest + push branch
+- [x] Idempotency cache must re-check authorization (park scope)
+- [x] Full PaymentCreate body hash including remark
+- [x] Idempotency-Key length validation + OpenAPI min/max
+- [x] PG dual-connection concurrent same-key tests
+- [x] Remove dead next_seq / next_contract_seq count+1 helpers

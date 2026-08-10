@@ -56,12 +56,6 @@ class PaymentRepository:
                 stmt = stmt.with_for_update()
         return self.session.scalars(stmt).first()
 
-    def next_seq(self) -> int:
-        n = self.session.scalar(
-            select(func.count()).select_from(Payment).where(Payment.tenant_id == self.ctx.tenant_id)
-        )
-        return int(n or 0) + 1
-
     def add(self, model: Payment) -> Payment:
         model.tenant_id = self.ctx.tenant_id
         self.session.add(model)

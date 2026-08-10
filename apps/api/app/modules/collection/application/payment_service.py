@@ -17,6 +17,7 @@ from app.infrastructure.database.base import utc_now
 from app.infrastructure.platform.idempotency import (
     begin_idempotent,
     complete_idempotent,
+    normalize_idempotency_key,
     request_hash,
 )
 from app.infrastructure.platform.number_sequence import next_number
@@ -112,37 +113,35 @@ class PaymentService:
     def get_payment(self, payment_id: int) -> dict[str, Any]:
         return self._to_dict(self._require(payment_id), with_alloc=True)
 
-    def create_payment(
-        self, data: dict[str, Any], *, idempotency_key: str | None = None
-    ) -> dict[str, Any]:
-        """功能说明：登记收款并核销账单（同园、可幂等、可并发）。"""
+    def _payment_request_hash(self, data: dict[str, Any]) -> str:
+        """覆盖 PaymentCreate 全部业务字段（含 remark），不含 Token/密码。"""
 
-        if not self.ctx.has_permission("payment:write"):
-            raise AppError("无收款登记权限", code="PERMISSION_DENIED", status_code=403)
-
-        op = "payments.create"
-        # hash without secrets; only business fields
+        allocations = data.get("allocations") or []
+        # normalize allocation dicts to stable order of keys
+        alloc_norm = []
+        for raw in allocations:
+            if hasattr(raw, "model_dump"):
+                raw = raw.model_dump()
+            alloc_norm.append(
+                {
+                    "bill_id": raw.get("bill_id"),
+                    "amount": raw.get("amount"),
+                }
+            )
         body_for_hash = {
-            "park_id": data.get("park_id"),
-            "party_id": data.get("party_id"),
             "amount": data.get("amount"),
+            "allocations": alloc_norm,
             "method": data.get("method"),
             "paid_at": data.get("paid_at"),
+            "park_id": data.get("park_id"),
+            "party_id": data.get("party_id"),
             "payment_no": data.get("payment_no"),
-            "allocations": data.get("allocations") or [],
+            "remark": data.get("remark"),
         }
-        body_hash = request_hash(body_for_hash)
-        if idempotency_key:
-            cached = begin_idempotent(
-                self.session,
-                tenant_id=self.ctx.tenant_id,
-                user_id=self.ctx.user_id,
-                operation=op,
-                idem_key=idempotency_key,
-                body_hash=body_hash,
-            )
-            if cached is not None:
-                return cached
+        return request_hash(body_for_hash)
+
+    def _authorize_payment_create_scope(self, data: dict[str, Any]) -> dict[str, Any]:
+        """在幂等缓存返回之前强制执行动作/租户/园区/资源可见性校验。"""
 
         park_id = int(data["park_id"])
         party_id = int(data["party_id"])
@@ -161,20 +160,87 @@ class PaymentService:
             raise AppError("收款金额须大于 0", code="VALIDATION_ERROR", status_code=400)
         paid_at = self._parse_dt(data.get("paid_at"))
         allocations = data.get("allocations") or []
+        if hasattr(allocations, "__iter__") and allocations and hasattr(allocations[0], "model_dump"):
+            allocations = [a.model_dump() if hasattr(a, "model_dump") else a for a in allocations]
         alloc_sum = money(sum(Decimal(str(a.get("amount") or 0)) for a in allocations))
         try:
             assert_allocations_within_payment(amount, alloc_sum)
         except ValueError as exc:
             raise AppError(str(exc), code="ALLOCATION_INVALID", status_code=400) from exc
 
-        bill_ids = [int(a["bill_id"]) for a in allocations]
-        locked = self.bills.lock_bills_ordered(bill_ids) if bill_ids else {}
-
+        # Visibility-only checks (no row lock yet): each bill must be in current park scope.
         for raw in allocations:
             bill_id = int(raw["bill_id"])
             a_amt = money(raw.get("amount") or 0)
             if a_amt <= 0:
                 raise AppError("核销金额须大于 0", code="VALIDATION_ERROR", status_code=400)
+            # get_bill → scoped _require: out-of-scope bills surface as BILL_NOT_FOUND.
+            bill = self.bills.get_bill(bill_id)
+            if int(bill["party_id"]) != party_id:
+                raise AppError("账单主体与收款主体不一致", code="PARTY_MISMATCH", status_code=400)
+            if int(bill["park_id"]) != park_id:
+                raise AppError(
+                    "账单园区与收款园区不一致",
+                    code="PAYMENT_BILL_PARK_MISMATCH",
+                    status_code=409,
+                )
+            if bill["status"] in {"DRAFT", "VOID", "DISCARDED"}:
+                raise AppError("账单状态不可核销", code="BILL_STATUS_INVALID", status_code=400)
+
+        return {
+            "park_id": park_id,
+            "party_id": party_id,
+            "method": method,
+            "amount": amount,
+            "paid_at": paid_at,
+            "allocations": allocations,
+        }
+
+    def create_payment(
+        self, data: dict[str, Any], *, idempotency_key: str | None = None
+    ) -> dict[str, Any]:
+        """功能说明：登记收款并核销账单（同园、可幂等、可并发）。
+
+        幂等缓存仅跳过副作用：动作权限、园区/资源可见性必须先通过。
+        """
+
+        if not self.ctx.has_permission("payment:write"):
+            raise AppError("无收款登记权限", code="PERMISSION_DENIED", status_code=403)
+
+        idem_key = normalize_idempotency_key(idempotency_key)
+        op = "payments.create"
+        body_hash = self._payment_request_hash(data)
+
+        # Authorization ALWAYS before cache return (cannot skip park scope).
+        authorized = self._authorize_payment_create_scope(data)
+        park_id = authorized["park_id"]
+        party_id = authorized["party_id"]
+        method = authorized["method"]
+        amount = authorized["amount"]
+        paid_at = authorized["paid_at"]
+        allocations = authorized["allocations"]
+
+        if idem_key:
+            cached = begin_idempotent(
+                self.session,
+                tenant_id=self.ctx.tenant_id,
+                user_id=self.ctx.user_id,
+                operation=op,
+                idem_key=idem_key,
+                body_hash=body_hash,
+            )
+            if cached is not None:
+                # Defense-in-depth: re-load through current user's park scope.
+                cached_id = int(cached.get("id") or 0)
+                if cached_id <= 0:
+                    raise AppError("幂等缓存无效", code="IDEMPOTENCY_CACHE_INVALID", status_code=409)
+                return self.get_payment(cached_id)
+
+        bill_ids = [int(a["bill_id"]) for a in allocations]
+        locked = self.bills.lock_bills_ordered(bill_ids) if bill_ids else {}
+
+        for raw in allocations:
+            bill_id = int(raw["bill_id"])
             bill = locked[bill_id]
             if int(bill.party_id) != party_id:
                 raise AppError("账单主体与收款主体不一致", code="PARTY_MISMATCH", status_code=400)
@@ -228,12 +294,12 @@ class PaymentService:
                 detail={"payment_no": pno, "amount": str(amount)},
             )
             result = self.get_payment(int(model.id))
-            if idempotency_key:
+            if idem_key:
                 complete_idempotent(
                     self.session,
                     tenant_id=self.ctx.tenant_id,
                     operation=op,
-                    idem_key=idempotency_key,
+                    idem_key=idem_key,
                     resource_type="PAYMENT",
                     resource_id=str(model.id),
                     response=result,

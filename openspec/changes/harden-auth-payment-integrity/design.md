@@ -12,8 +12,16 @@
 - reverse locks payment then bills by id order
 
 ## Idempotency
-- Unique (tenant_id, operation, idempotency_key)
+- Unique (tenant_id, operation, idempotency_key); user_id stored for audit only, not isolation
 - Store request_hash + response_json without secrets
+- Request hash for payments covers full PaymentCreate business fields (including remark)
+- **Authorization re-check always precedes cache return**:
+  - Payment: permission + park scope + party + each allocation bill visibility first
+  - Bill issue: permission + scoped `_require(bill_id)` first
+  - Cache hit reloads resource under current scope (get_payment / get_bill)
+- Idempotency-Key: optional; when present length 1–128 after trim
+- Concurrent first-insert uses unique constraint + PROCESSING → COMPLETED; conflicts map to 409 not 500
 
 ## Numbering
 - number_sequences (tenant_id, biz_type, period_key) with next_val under row lock
+- Dead count()+1 helpers removed from payment/bill/lease repositories

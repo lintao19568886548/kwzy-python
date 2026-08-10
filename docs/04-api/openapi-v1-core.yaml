@@ -1745,8 +1745,11 @@ components:
       name: Idempotency-Key
       in: header
       required: false
-      schema: { type: string }
-      description: 写操作幂等键（payments 创建、bills issue 等必须支持）
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 128
+      description: 写操作幂等键（payments 创建、bills issue 等必须支持；1–128 字符，不作为授权边界）
 
   schemas:
     # ----- 统一响应 envelope（P0-3）-----

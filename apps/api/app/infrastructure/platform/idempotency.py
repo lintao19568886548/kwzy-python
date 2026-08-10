@@ -14,9 +14,43 @@ from app.core.errors import AppError
 from app.infrastructure.database.base import utc_now
 from app.infrastructure.database.models.platform import IdempotencyKey
 
+IDEMPOTENCY_KEY_MAX_LEN = 128
+
+
+def normalize_idempotency_key(raw: Optional[str]) -> Optional[str]:
+    """校验并规范化 Idempotency-Key；None 表示调用方未提供。
+
+    空串/纯空白 → 422；超过 128 → 422。不得依赖数据库层报错。
+    """
+
+    if raw is None:
+        return None
+    key = str(raw).strip()
+    if not key:
+        raise AppError(
+            "Idempotency-Key 不能为空",
+            code="VALIDATION_ERROR",
+            status_code=422,
+        )
+    if len(key) > IDEMPOTENCY_KEY_MAX_LEN:
+        raise AppError(
+            f"Idempotency-Key 最长 {IDEMPOTENCY_KEY_MAX_LEN} 字符",
+            code="VALIDATION_ERROR",
+            status_code=422,
+        )
+    return key
+
 
 def request_hash(payload: dict[str, Any]) -> str:
-    raw = json.dumps(payload, sort_keys=True, ensure_ascii=False, default=str)
+    """稳定规范化 JSON 哈希：sort_keys、紧凑分隔符、ensure_ascii=False。"""
+
+    raw = json.dumps(
+        payload,
+        sort_keys=True,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        default=str,
+    )
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 

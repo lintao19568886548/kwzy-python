@@ -83,12 +83,6 @@ class BillRepository:
             stmt = stmt.where(Bill.id != exclude_id)
         return self.session.scalars(stmt).first()
 
-    def next_seq(self) -> int:
-        n = self.session.scalar(
-            select(func.count()).select_from(Bill).where(Bill.tenant_id == self.ctx.tenant_id)
-        )
-        return int(n or 0) + 1
-
     def add(self, model: Bill) -> Bill:
         model.tenant_id = self.ctx.tenant_id
         self.session.add(model)

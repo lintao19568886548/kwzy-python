@@ -307,3 +307,137 @@ def test_bill_issue_idempotency(client) -> None:
     assert r2.status_code == 200
     assert r2.json()["data"]["id"] == bill["id"]
     assert r2.json()["data"]["status"] == "ISSUED"
+
+
+def test_idempotency_remark_change_conflicts(client) -> None:
+    """Same key with only remark changed → 409 (full body hash)."""
+    h = _token()
+    park = client.post("/api/v1/parks", headers=h, json={"name": "备注园", "address": "t"}).json()[
+        "data"
+    ]
+    party = client.post(
+        "/api/v1/parties", headers=h, json={"name": "备注主体", "party_type": "ORGANIZATION"}
+    ).json()["data"]
+    bill = client.post(
+        "/api/v1/bills",
+        headers=h,
+        json={
+            "park_id": park["id"],
+            "party_id": party["id"],
+            "period_start": "2026-07-01",
+            "period_end": "2026-07-31",
+            "lines": [{"fee_code": "RENT", "quantity": "1", "unit_price": "100"}],
+        },
+    ).json()["data"]
+    client.post(f"/api/v1/bills/{bill['id']}/issue", headers=h)
+    key_headers = {**h, "Idempotency-Key": "pay-remark-hash"}
+    body1 = {
+        "park_id": park["id"],
+        "party_id": party["id"],
+        "amount": "50",
+        "method": "TRANSFER",
+        "paid_at": "2026-07-05T10:00:00",
+        "remark": "first",
+        "allocations": [{"bill_id": bill["id"], "amount": "50"}],
+    }
+    assert client.post("/api/v1/payments", headers=key_headers, json=body1).status_code == 200
+    body2 = {**body1, "remark": "second"}
+    r2 = client.post("/api/v1/payments", headers=key_headers, json=body2)
+    assert r2.status_code == 409, r2.text
+    assert r2.json()["code"] == "IDEMPOTENCY_KEY_CONFLICT"
+
+
+def test_idempotency_key_length_and_empty(client) -> None:
+    h = _token()
+    park = client.post("/api/v1/parks", headers=h, json={"name": "键长园", "address": "t"}).json()[
+        "data"
+    ]
+    party = client.post(
+        "/api/v1/parties", headers=h, json={"name": "键长主体", "party_type": "ORGANIZATION"}
+    ).json()["data"]
+    body = {
+        "park_id": park["id"],
+        "party_id": party["id"],
+        "amount": "1",
+        "method": "TRANSFER",
+        "paid_at": "2026-07-06T10:00:00",
+        "allocations": [],
+    }
+    empty = client.post("/api/v1/payments", headers={**h, "Idempotency-Key": "   "}, json=body)
+    assert empty.status_code == 422, empty.text
+    assert empty.json()["code"] == "VALIDATION_ERROR"
+    too_long = client.post(
+        "/api/v1/payments",
+        headers={**h, "Idempotency-Key": "k" * 129},
+        json=body,
+    )
+    assert too_long.status_code == 422, too_long.text
+    assert too_long.json()["code"] == "VALIDATION_ERROR"
+    ok = client.post(
+        "/api/v1/payments",
+        headers={**h, "Idempotency-Key": "k" * 128},
+        json=body,
+    )
+    assert ok.status_code == 200, ok.text
+
+
+def test_payment_idempotency_cache_not_bypass_park_scope(client) -> None:
+    """User B (park B only) cannot replay user A's payment idempotency cache."""
+    h_admin = _token(mode="ALL")
+    seed = _seed_two_parks_same_party(client, h_admin)
+    h_a = _token(park_ids=[seed["park_a"]["id"]], mode="LIST")
+    h_b = _token(park_ids=[seed["park_b"]["id"]], mode="LIST")
+
+    body = {
+        "park_id": seed["park_a"]["id"],
+        "party_id": seed["party"]["id"],
+        "amount": "30",
+        "method": "TRANSFER",
+        "paid_at": "2026-03-15T10:00:00",
+        "remark": "scope-a",
+        "allocations": [{"bill_id": seed["bill_a"]["id"], "amount": "30"}],
+    }
+    key = "cross-user-pay-cache"
+    r1 = client.post("/api/v1/payments", headers={**h_a, "Idempotency-Key": key}, json=body)
+    assert r1.status_code == 200, r1.text
+    pid = r1.json()["data"]["id"]
+
+    r2 = client.post("/api/v1/payments", headers={**h_b, "Idempotency-Key": key}, json=body)
+    assert r2.status_code in {403, 404}, r2.text
+    assert r2.json()["code"] in {"PARK_SCOPE_DENIED", "BILL_NOT_FOUND", "PAYMENT_NOT_FOUND"}
+    # must not leak cached payload
+    data = r2.json().get("data")
+    assert data is None or data.get("id") != pid
+
+
+def test_bill_issue_idempotency_cache_not_bypass_park_scope(client) -> None:
+    """User B without park scope cannot replay bill issue cache."""
+    h_admin = _token(mode="ALL")
+    seed = _seed_two_parks_same_party(client, h_admin)
+    # create a DRAFT on park A for issue test (seed bills already issued — make another)
+    draft = client.post(
+        "/api/v1/bills",
+        headers=h_admin,
+        json={
+            "park_id": seed["park_a"]["id"],
+            "party_id": seed["party"]["id"],
+            "period_start": "2026-10-01",
+            "period_end": "2026-10-31",
+            "lines": [{"fee_code": "RENT", "quantity": "1", "unit_price": "10"}],
+        },
+    ).json()["data"]
+    h_a = _token(park_ids=[seed["park_a"]["id"]], mode="LIST")
+    h_b = _token(park_ids=[seed["park_b"]["id"]], mode="LIST")
+    key = "cross-user-bill-issue"
+    r1 = client.post(
+        f"/api/v1/bills/{draft['id']}/issue",
+        headers={**h_a, "Idempotency-Key": key},
+    )
+    assert r1.status_code == 200, r1.text
+    r2 = client.post(
+        f"/api/v1/bills/{draft['id']}/issue",
+        headers={**h_b, "Idempotency-Key": key},
+    )
+    assert r2.status_code in {403, 404}, r2.text
+    assert r2.json()["code"] in {"BILL_NOT_FOUND", "PARK_SCOPE_DENIED", "PERMISSION_DENIED"}
+    assert r2.json().get("data") is None or r2.json()["data"].get("id") != draft["id"]

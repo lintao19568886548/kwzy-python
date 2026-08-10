@@ -20,6 +20,7 @@ from app.core.security import create_access_token
 from app.infrastructure.database.base import utc_now
 from app.infrastructure.database.models.billing import Bill, BillLine
 from app.infrastructure.database.models.collection import Payment, PaymentAllocation
+from app.infrastructure.database.models.platform import IdempotencyKey
 from app.infrastructure.platform.number_sequence import next_number
 from app.modules.collection.application.payment_service import PaymentService
 from app.modules.identity.application.bootstrap import ensure_default_tenant
@@ -319,3 +320,141 @@ def test_pg_integrity_tables_exist() -> None:
         }
         assert "uk_idem_tenant_op_key" in uk
         assert "uk_number_seq" in uk
+
+
+def test_pg_concurrent_same_idempotency_key_one_payment() -> None:
+    """Two connections, same key+body: one payment / one allocation / one paid delta."""
+    url = _require_pg_url()
+    engine, Session = _session_factory(url)
+    with Session() as s:
+        tid = _ensure_tenant(s)
+    seed = _seed_bill(Session, tenant_id=tid, total="500.00", park_name="幂等并发园")
+    barrier = threading.Barrier(2)
+    results: list[tuple[str, str | None, int | None]] = []
+    key = f"pg-idem-{seed['bill_id']}"
+
+    def _pay() -> tuple[str, str | None, int | None]:
+        with Session() as s:
+            try:
+                barrier.wait(timeout=15)
+                svc = PaymentService(s, _ctx(tid))
+                out = svc.create_payment(
+                    {
+                        "park_id": seed["park_id"],
+                        "party_id": seed["party_id"],
+                        "amount": "200",
+                        "method": "TRANSFER",
+                        "paid_at": "2026-07-20T10:00:00",
+                        "remark": "same",
+                        "allocations": [{"bill_id": seed["bill_id"], "amount": "200"}],
+                    },
+                    idempotency_key=key,
+                )
+                return ("ok", None, int(out["id"]))
+            except AppError as exc:
+                s.rollback()
+                return ("err", exc.code, None)
+            except Exception as exc:  # noqa: BLE001
+                s.rollback()
+                return ("exc", type(exc).__name__, None)
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futs = [pool.submit(_pay), pool.submit(_pay)]
+        for f in as_completed(futs):
+            results.append(f.result())
+
+    excs = [r for r in results if r[0] == "exc"]
+    assert not excs, results
+    oks = [r for r in results if r[0] == "ok"]
+    errs = [r for r in results if r[0] == "err"]
+    # At least one success; the other may be ok (cache) or IN_PROGRESS
+    assert len(oks) >= 1, results
+    for e in errs:
+        assert e[1] in {
+            "IDEMPOTENCY_IN_PROGRESS",
+            "PAYMENT_NO_CONFLICT",
+            "NUMBER_SEQUENCE_CONFLICT",
+        }, results
+    ok_ids = {r[2] for r in oks if r[2] is not None}
+    assert len(ok_ids) <= 1, results
+
+    with Session() as s:
+        allocs = s.scalars(
+            select(PaymentAllocation).where(PaymentAllocation.bill_id == seed["bill_id"])
+        ).all()
+        assert len(allocs) == 1, allocs
+        bill = s.get(Bill, seed["bill_id"])
+        assert Decimal(str(bill.paid_amount)) == Decimal("200.00")
+        rows = s.scalars(
+            select(IdempotencyKey).where(
+                IdempotencyKey.tenant_id == tid,
+                IdempotencyKey.operation == "payments.create",
+                IdempotencyKey.idem_key == key,
+            )
+        ).all()
+        assert len(rows) == 1
+        assert rows[0].status == "COMPLETED"
+
+
+def test_pg_concurrent_same_key_different_body_conflict() -> None:
+    url = _require_pg_url()
+    engine, Session = _session_factory(url)
+    with Session() as s:
+        tid = _ensure_tenant(s)
+    seed = _seed_bill(Session, tenant_id=tid, total="800.00", park_name="幂等冲突园")
+    barrier = threading.Barrier(2)
+    results: list[tuple[str, str | None]] = []
+    key = f"pg-idem-diff-{seed['bill_id']}"
+
+    def _pay(amount: str) -> tuple[str, str | None]:
+        with Session() as s:
+            try:
+                barrier.wait(timeout=15)
+                PaymentService(s, _ctx(tid)).create_payment(
+                    {
+                        "park_id": seed["park_id"],
+                        "party_id": seed["party_id"],
+                        "amount": amount,
+                        "method": "TRANSFER",
+                        "paid_at": "2026-07-21T10:00:00",
+                        "remark": amount,
+                        "allocations": [{"bill_id": seed["bill_id"], "amount": amount}],
+                    },
+                    idempotency_key=key,
+                )
+                return ("ok", None)
+            except AppError as exc:
+                s.rollback()
+                return ("err", exc.code)
+            except Exception as exc:  # noqa: BLE001
+                s.rollback()
+                return ("exc", type(exc).__name__)
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futs = [pool.submit(_pay, "100"), pool.submit(_pay, "150")]
+        for f in as_completed(futs):
+            results.append(f.result())
+
+    assert not any(r[0] == "exc" for r in results), results
+    codes = [r[1] for r in results if r[0] == "err"]
+    oks = [r for r in results if r[0] == "ok"]
+    # Exactly one business success and at least one conflict (or both conflict if both see race badly)
+    assert len(oks) <= 1, results
+    assert "IDEMPOTENCY_KEY_CONFLICT" in codes or (
+        len(oks) == 1 and any(c in {"IDEMPOTENCY_IN_PROGRESS", "IDEMPOTENCY_KEY_CONFLICT"} for c in codes)
+    ), results
+
+    with Session() as s:
+        rows = s.scalars(
+            select(IdempotencyKey).where(
+                IdempotencyKey.tenant_id == tid,
+                IdempotencyKey.operation == "payments.create",
+                IdempotencyKey.idem_key == key,
+            )
+        ).all()
+        assert len(rows) == 1
+        # Winner must complete; no permanent PROCESSING after both requests finished.
+        if len(oks) == 1:
+            assert rows[0].status == "COMPLETED"
+        else:
+            assert rows[0].status in {"COMPLETED", "PROCESSING"}

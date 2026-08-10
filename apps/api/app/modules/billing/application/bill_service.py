@@ -243,27 +243,35 @@ class BillService:
         return self.get_bill(bill_id)
 
     def issue(self, bill_id: int, *, idempotency_key: str | None = None) -> dict[str, Any]:
+        """签发账单。幂等缓存不得跳过园区 scope 与动作权限。"""
+
         if not self.ctx.has_permission("bill:issue"):
             raise AppError("无账单签发权限", code="PERMISSION_DENIED", status_code=403)
         from app.infrastructure.platform.idempotency import (
             begin_idempotent,
             complete_idempotent,
+            normalize_idempotency_key,
             request_hash,
         )
 
+        idem_key = normalize_idempotency_key(idempotency_key)
+        # Visibility first: scoped 404/403 before any cache return.
+        self._require(bill_id, for_update=False)
+
         op = "bills.issue"
         body_hash = request_hash({"bill_id": bill_id})
-        if idempotency_key:
+        if idem_key:
             cached = begin_idempotent(
                 self.session,
                 tenant_id=self.ctx.tenant_id,
                 user_id=self.ctx.user_id,
                 operation=op,
-                idem_key=idempotency_key,
+                idem_key=idem_key,
                 body_hash=body_hash,
             )
             if cached is not None:
-                return cached
+                # Re-load under current scope (never trust cache alone).
+                return self.get_bill(bill_id)
 
         model = self._require(bill_id, for_update=True)
         try:
@@ -282,12 +290,12 @@ class BillService:
             detail={},
         )
         result = self.get_bill(bill_id)
-        if idempotency_key:
+        if idem_key:
             complete_idempotent(
                 self.session,
                 tenant_id=self.ctx.tenant_id,
                 operation=op,
-                idem_key=idempotency_key,
+                idem_key=idem_key,
                 resource_type="BILL",
                 resource_id=str(bill_id),
                 response=result,
