@@ -140,8 +140,12 @@ class PaymentService:
         }
         return request_hash(body_for_hash)
 
-    def _authorize_payment_create_scope(self, data: dict[str, Any]) -> dict[str, Any]:
-        """在幂等缓存返回之前强制执行动作/租户/园区/资源可见性校验。"""
+    def _authorize_payment_create_access(self, data: dict[str, Any]) -> dict[str, Any]:
+        """动作权限外的访问授权：tenant 园区、主体、账单可见性与请求结构。
+
+        不含 Bill 业务状态（DRAFT/VOID 等）——状态校验仅在新创建路径行锁后执行。
+        幂等缓存重放也走此路径，确保授权始终执行且不因后续 VOID/冲正而失败。
+        """
 
         park_id = int(data["park_id"])
         party_id = int(data["party_id"])
@@ -168,24 +172,23 @@ class PaymentService:
         except ValueError as exc:
             raise AppError(str(exc), code="ALLOCATION_INVALID", status_code=400) from exc
 
-        # Visibility-only checks (no row lock yet): each bill must be in current park scope.
         for raw in allocations:
             bill_id = int(raw["bill_id"])
             a_amt = money(raw.get("amount") or 0)
             if a_amt <= 0:
                 raise AppError("核销金额须大于 0", code="VALIDATION_ERROR", status_code=400)
-            # get_bill → scoped _require: out-of-scope bills surface as BILL_NOT_FOUND.
-            bill = self.bills.get_bill(bill_id)
-            if int(bill["party_id"]) != party_id:
+            # Scoped visibility only (BillRepository.get_by_id) — not business status.
+            bill_model = self.bills.bills.get_by_id(bill_id)
+            if bill_model is None:
+                raise AppError("账单不存在", code="BILL_NOT_FOUND", status_code=404)
+            if int(bill_model.party_id) != party_id:
                 raise AppError("账单主体与收款主体不一致", code="PARTY_MISMATCH", status_code=400)
-            if int(bill["park_id"]) != park_id:
+            if int(bill_model.park_id) != park_id:
                 raise AppError(
                     "账单园区与收款园区不一致",
                     code="PAYMENT_BILL_PARK_MISMATCH",
                     status_code=409,
                 )
-            if bill["status"] in {"DRAFT", "VOID", "DISCARDED"}:
-                raise AppError("账单状态不可核销", code="BILL_STATUS_INVALID", status_code=400)
 
         return {
             "park_id": park_id,
@@ -196,12 +199,36 @@ class PaymentService:
             "allocations": allocations,
         }
 
+    def _assert_payment_create_business_state(
+        self,
+        *,
+        park_id: int,
+        party_id: int,
+        locked_bills: dict[int, Any],
+        allocations: list[dict[str, Any]],
+    ) -> None:
+        """新创建路径：行锁后校验当前业务状态（不可核销状态等）。"""
+
+        for raw in allocations:
+            bill_id = int(raw["bill_id"])
+            bill = locked_bills[bill_id]
+            if int(bill.party_id) != party_id:
+                raise AppError("账单主体与收款主体不一致", code="PARTY_MISMATCH", status_code=400)
+            if int(bill.park_id) != park_id:
+                raise AppError(
+                    "账单园区与收款园区不一致",
+                    code="PAYMENT_BILL_PARK_MISMATCH",
+                    status_code=409,
+                )
+            if bill.status in {"DRAFT", "VOID", "DISCARDED"}:
+                raise AppError("账单状态不可核销", code="BILL_STATUS_INVALID", status_code=400)
+
     def create_payment(
         self, data: dict[str, Any], *, idempotency_key: str | None = None
     ) -> dict[str, Any]:
         """功能说明：登记收款并核销账单（同园、可幂等、可并发）。
 
-        幂等缓存仅跳过副作用：动作权限、园区/资源可见性必须先通过。
+        幂等缓存命中：仍校验动作权限与数据范围，但返回首次缓存响应（非当前状态）。
         """
 
         if not self.ctx.has_permission("payment:write"):
@@ -212,7 +239,7 @@ class PaymentService:
         body_hash = self._payment_request_hash(data)
 
         # Authorization ALWAYS before cache return (cannot skip park scope).
-        authorized = self._authorize_payment_create_scope(data)
+        authorized = self._authorize_payment_create_access(data)
         park_id = authorized["park_id"]
         party_id = authorized["party_id"]
         method = authorized["method"]
@@ -230,28 +257,23 @@ class PaymentService:
                 body_hash=body_hash,
             )
             if cached is not None:
-                # Defense-in-depth: re-load through current user's park scope.
                 cached_id = int(cached.get("id") or 0)
                 if cached_id <= 0:
                     raise AppError("幂等缓存无效", code="IDEMPOTENCY_CACHE_INVALID", status_code=409)
-                return self.get_payment(cached_id)
+                # Access recheck only: resource must remain visible under current park scope.
+                if self.payments.get_by_id(cached_id) is None:
+                    raise AppError("收款单不存在", code="PAYMENT_NOT_FOUND", status_code=404)
+                # Return first-response snapshot, not current Payment status.
+                return cached
 
         bill_ids = [int(a["bill_id"]) for a in allocations]
         locked = self.bills.lock_bills_ordered(bill_ids) if bill_ids else {}
-
-        for raw in allocations:
-            bill_id = int(raw["bill_id"])
-            bill = locked[bill_id]
-            if int(bill.party_id) != party_id:
-                raise AppError("账单主体与收款主体不一致", code="PARTY_MISMATCH", status_code=400)
-            if int(bill.park_id) != park_id:
-                raise AppError(
-                    "账单园区与收款园区不一致",
-                    code="PAYMENT_BILL_PARK_MISMATCH",
-                    status_code=409,
-                )
-            if bill.status in {"DRAFT", "VOID", "DISCARDED"}:
-                raise AppError("账单状态不可核销", code="BILL_STATUS_INVALID", status_code=400)
+        self._assert_payment_create_business_state(
+            park_id=park_id,
+            party_id=party_id,
+            locked_bills=locked,
+            allocations=allocations,
+        )
 
         pno = (data.get("payment_no") or "").strip()
         if not pno:

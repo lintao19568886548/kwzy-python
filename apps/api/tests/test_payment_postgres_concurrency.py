@@ -438,11 +438,9 @@ def test_pg_concurrent_same_key_different_body_conflict() -> None:
     assert not any(r[0] == "exc" for r in results), results
     codes = [r[1] for r in results if r[0] == "err"]
     oks = [r for r in results if r[0] == "ok"]
-    # Exactly one business success and at least one conflict (or both conflict if both see race badly)
-    assert len(oks) <= 1, results
-    assert "IDEMPOTENCY_KEY_CONFLICT" in codes or (
-        len(oks) == 1 and any(c in {"IDEMPOTENCY_IN_PROGRESS", "IDEMPOTENCY_KEY_CONFLICT"} for c in codes)
-    ), results
+    # One writer wins; the other must conflict on body hash (or see in-progress then conflict).
+    assert len(oks) == 1, results
+    assert "IDEMPOTENCY_KEY_CONFLICT" in codes or "IDEMPOTENCY_IN_PROGRESS" in codes, results
 
     with Session() as s:
         rows = s.scalars(
@@ -453,8 +451,9 @@ def test_pg_concurrent_same_key_different_body_conflict() -> None:
             )
         ).all()
         assert len(rows) == 1
-        # Winner must complete; no permanent PROCESSING after both requests finished.
-        if len(oks) == 1:
-            assert rows[0].status == "COMPLETED"
-        else:
-            assert rows[0].status in {"COMPLETED", "PROCESSING"}
+        # After both finish, winner must leave COMPLETED — never permanent PROCESSING.
+        assert rows[0].status == "COMPLETED", rows[0].status
+        allocs = s.scalars(
+            select(PaymentAllocation).where(PaymentAllocation.bill_id == seed["bill_id"])
+        ).all()
+        assert len(allocs) == 1

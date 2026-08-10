@@ -243,7 +243,11 @@ class BillService:
         return self.get_bill(bill_id)
 
     def issue(self, bill_id: int, *, idempotency_key: str | None = None) -> dict[str, Any]:
-        """签发账单。幂等缓存不得跳过园区 scope 与动作权限。"""
+        """签发账单。
+
+        缓存命中：先做动作权限 + 园区可见性，再返回首次 response_json（非当前状态）。
+        未命中：行锁后校验当前业务状态（可签发性）再执行副作用。
+        """
 
         if not self.ctx.has_permission("bill:issue"):
             raise AppError("无账单签发权限", code="PERMISSION_DENIED", status_code=403)
@@ -255,7 +259,7 @@ class BillService:
         )
 
         idem_key = normalize_idempotency_key(idempotency_key)
-        # Visibility first: scoped 404/403 before any cache return.
+        # Access only: resource must be visible under current park scope (any status).
         self._require(bill_id, for_update=False)
 
         op = "bills.issue"
@@ -270,9 +274,10 @@ class BillService:
                 body_hash=body_hash,
             )
             if cached is not None:
-                # Re-load under current scope (never trust cache alone).
-                return self.get_bill(bill_id)
+                # First-response snapshot; do not re-read current VOID/PAID etc.
+                return cached
 
+        # Fresh create path: lock and enforce current business state.
         model = self._require(bill_id, for_update=True)
         try:
             model.status = assert_transition(model.status, "ISSUED")

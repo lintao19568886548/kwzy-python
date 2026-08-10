@@ -22,6 +22,17 @@ Cache hits SHALL only skip business side effects. On every request the system SH
 - **WHEN** user A issues a bill under key K and user B without park scope for that bill replays the same key
 - **THEN** user B receives 403 or 404 and MUST NOT receive the cached bill payload
 
+### Requirement: Idempotent replay returns the first stored response
+After authorization succeeds, a COMPLETED cache hit SHALL return the stored response_json from the first successful execution. The system MUST NOT re-serialize the resource's current state. Subsequent business transitions (payment REVERSED, bill VOID) MUST NOT alter the first idempotent response body.
+
+#### Scenario: Payment replay after reverse
+- **WHEN** a payment is created under key K then reversed and the same key and body are replayed by an authorized caller
+- **THEN** the response matches the first CONFIRMED snapshot and no new payment, allocation, or create audit is produced
+
+#### Scenario: Bill issue replay after void
+- **WHEN** a bill is issued under key K then voided and the same key is replayed by an authorized caller
+- **THEN** the response matches the first ISSUED snapshot and issue side effects are not repeated
+
 ### Requirement: Full business-body request hash
 Payment request hash SHALL cover all PaymentCreate business fields including remark using stable canonical JSON. Secrets such as tokens and passwords MUST NOT be stored.
 

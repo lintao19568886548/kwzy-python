@@ -16,11 +16,12 @@
 - Store request_hash + response_json without secrets
 - Request hash for payments covers full PaymentCreate business fields (including remark)
 - **Authorization re-check always precedes cache return**:
-  - Payment: permission + park scope + party + each allocation bill visibility first
-  - Bill issue: permission + scoped `_require(bill_id)` first
-  - Cache hit reloads resource under current scope (get_payment / get_bill)
+  - Payment: permission + park scope + party + each allocation bill visibility (not business status)
+  - Bill issue: permission + scoped visibility `_require(bill_id)` first
+  - Cache hit verifies resource still accessible, then returns **stored response_json** (first response)
+  - Business status (VOID / REVERSED / non-allocatable) is enforced only on non-cache create/issue path under row locks
 - Idempotency-Key: optional; when present length 1–128 after trim
-- Concurrent first-insert uses unique constraint + PROCESSING → COMPLETED; conflicts map to 409 not 500
+- Concurrent first-insert uses unique constraint + PROCESSING → COMPLETED; conflicts map to 409 not 500; no permanent PROCESSING after winner completes
 
 ## Numbering
 - number_sequences (tenant_id, biz_type, period_key) with next_val under row lock

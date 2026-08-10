@@ -410,6 +410,109 @@ def test_payment_idempotency_cache_not_bypass_park_scope(client) -> None:
     assert data is None or data.get("id") != pid
 
 
+def test_payment_idempotency_replay_after_reverse_returns_first_response(client) -> None:
+    """Create → reverse → replay key returns first CONFIRMED snapshot, no new side effects."""
+    h = _token()
+    park = client.post("/api/v1/parks", headers=h, json={"name": "冲正重放园", "address": "t"}).json()[
+        "data"
+    ]
+    party = client.post(
+        "/api/v1/parties", headers=h, json={"name": "冲正重放主体", "party_type": "ORGANIZATION"}
+    ).json()["data"]
+    bill = client.post(
+        "/api/v1/bills",
+        headers=h,
+        json={
+            "park_id": park["id"],
+            "party_id": party["id"],
+            "period_start": "2026-11-01",
+            "period_end": "2026-11-30",
+            "lines": [{"fee_code": "RENT", "quantity": "1", "unit_price": "400"}],
+        },
+    ).json()["data"]
+    client.post(f"/api/v1/bills/{bill['id']}/issue", headers=h)
+    body = {
+        "park_id": park["id"],
+        "party_id": party["id"],
+        "amount": "120",
+        "method": "TRANSFER",
+        "paid_at": "2026-11-05T10:00:00",
+        "remark": "first-pay",
+        "allocations": [{"bill_id": bill["id"], "amount": "120"}],
+    }
+    key_h = {**h, "Idempotency-Key": "pay-after-reverse"}
+    r1 = client.post("/api/v1/payments", headers=key_h, json=body)
+    assert r1.status_code == 200, r1.text
+    first = r1.json()["data"]
+    assert first["status"] == "CONFIRMED"
+    pid = first["id"]
+    paid_after_create = client.get(f"/api/v1/bills/{bill['id']}", headers=h).json()["data"][
+        "paid_amount"
+    ]
+    assert Decimal(str(paid_after_create)) == Decimal("120.00")
+
+    rev = client.post(f"/api/v1/payments/{pid}/reverse", headers=h)
+    assert rev.status_code == 200
+    assert rev.json()["data"]["status"] == "REVERSED"
+    assert Decimal(
+        str(client.get(f"/api/v1/bills/{bill['id']}", headers=h).json()["data"]["paid_amount"])
+    ) == Decimal("0")
+
+    pays_before = client.get("/api/v1/payments", headers=h).json()["data"]["total"]
+    r2 = client.post("/api/v1/payments", headers=key_h, json=body)
+    assert r2.status_code == 200, r2.text
+    replay = r2.json()["data"]
+    # First-response snapshot, not current REVERSED state.
+    assert replay["status"] == "CONFIRMED"
+    assert replay["id"] == pid
+    assert replay.get("remark") == "first-pay"
+    pays_after = client.get("/api/v1/payments", headers=h).json()["data"]["total"]
+    assert pays_after == pays_before == 1
+    # No new allocation / amount change from replay
+    assert Decimal(
+        str(client.get(f"/api/v1/bills/{bill['id']}", headers=h).json()["data"]["paid_amount"])
+    ) == Decimal("0")
+    current = client.get(f"/api/v1/payments/{pid}", headers=h).json()["data"]
+    assert current["status"] == "REVERSED"
+
+
+def test_bill_issue_idempotency_replay_after_void_returns_first_response(client) -> None:
+    """Issue → void → replay key returns first ISSUED snapshot, no re-issue."""
+    h = _token()
+    park = client.post("/api/v1/parks", headers=h, json={"name": "作废重发园", "address": "t"}).json()[
+        "data"
+    ]
+    party = client.post(
+        "/api/v1/parties", headers=h, json={"name": "作废重发主体", "party_type": "ORGANIZATION"}
+    ).json()["data"]
+    bill = client.post(
+        "/api/v1/bills",
+        headers=h,
+        json={
+            "park_id": park["id"],
+            "party_id": party["id"],
+            "period_start": "2026-12-01",
+            "period_end": "2026-12-31",
+            "lines": [{"fee_code": "RENT", "quantity": "1", "unit_price": "10"}],
+        },
+    ).json()["data"]
+    key_h = {**h, "Idempotency-Key": "bill-issue-after-void"}
+    r1 = client.post(f"/api/v1/bills/{bill['id']}/issue", headers=key_h)
+    assert r1.status_code == 200
+    assert r1.json()["data"]["status"] == "ISSUED"
+    void = client.post(f"/api/v1/bills/{bill['id']}/void", headers=h)
+    assert void.status_code == 200
+    assert void.json()["data"]["status"] == "VOID"
+
+    r2 = client.post(f"/api/v1/bills/{bill['id']}/issue", headers=key_h)
+    assert r2.status_code == 200, r2.text
+    assert r2.json()["data"]["status"] == "ISSUED"
+    assert r2.json()["data"]["id"] == bill["id"]
+    # Live resource remains VOID
+    live = client.get(f"/api/v1/bills/{bill['id']}", headers=h).json()["data"]
+    assert live["status"] == "VOID"
+
+
 def test_bill_issue_idempotency_cache_not_bypass_park_scope(client) -> None:
     """User B without park scope cannot replay bill issue cache."""
     h_admin = _token(mode="ALL")

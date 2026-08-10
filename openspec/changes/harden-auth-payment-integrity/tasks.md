@@ -12,3 +12,4 @@
 - [x] Idempotency-Key length validation + OpenAPI min/max
 - [x] PG dual-connection concurrent same-key tests
 - [x] Remove dead next_seq / next_contract_seq count+1 helpers
+- [x] Idempotent replay returns first response_json (not current state after reverse/void)
