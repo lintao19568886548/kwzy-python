@@ -1,6 +1,6 @@
 # KWZY Python Workspace Agent 状态
 
-> 会话重启后**必须先读本文件 + refactor-master-roadmap.md**，禁止凭聊天记忆猜测进度。
+> 会话重启后**必须先读本文件 + refactor-master-roadmap.md**。
 
 ---
 
@@ -9,72 +9,52 @@
 | 字段 | 值 |
 | --- | --- |
 | 更新时间 | 2026-08-10 |
-| 当前分支 | `feat/party-master` |
-| 本地 HEAD | `d7e1300` — feat(party): implement Party master with PII address lockdown |
-| 远程 `origin/feat/party-master` | `d7e1300`（已同步） |
-| 工作区 | 干净（仅可能有本状态文件后续微调） |
-| 当前 OpenSpec change | `implement-party-master` **feature 已交付并推送**；main **未合并** |
-| 当前任务 | Party 收尾完成 → DISCOVER 下一能力 Lease |
-| 是否允许继续 | **是**（禁止自动 merge main / 部署生产） |
+| 当前分支 | `feat/lease-contract` |
+| HEAD | （见 git；基于 Party 推送后最新） |
+| parent branch | `feat/party-master` |
+| parent commits | `d7e1300`（Party 实现）、`c181e7f`（状态文档） |
+| 当前 OpenSpec change | `implement-lease-contract`（proposal/design/specs/tasks 已建） |
+| 当前任务 | 0.2 strict validate 后按 tasks 从领域开始 APPLY |
+| 是否允许继续 | **是**；禁止 merge main |
 
 ---
 
-## 第三次验收结果（已通过）
-
-| 项 | 结果 |
-| --- | --- |
-| P0 | 0 |
-| P1 | 0（docstring 已补齐） |
-| PERSON 地址无 API 泄露 | PASS |
-| ORGANIZATION 地址回归 | PASS |
-| SQLite base→head | `c3a91b2e4f10` |
-| PG16 base→head + down/up | `c3a91b2e4f10` |
-| pytest not pg | 58 passed |
-| pytest pg | 9 passed |
-| 全量 pytest | 67 passed |
-| openspec strict | valid |
-| OpenAPI 严格校验 | 通过（全量测试内） |
-| git diff --check | 0 |
-| 敏感文件跟踪 | 无 |
-| PG 容器 | 已停止，55432 free |
-| 合并 main | **未做** |
-
----
-
-## 提交与推送
+## Party 已交付（锁定）
 
 | 项 | 值 |
 | --- | --- |
-| Commit | `d7e1300` |
-| Push | `origin/feat/party-master` 正常推送（非 force） |
-| Parent baseline | `a16070b` (portability) |
+| 分支 | `feat/party-master` |
+| 实现 commit | `d7e1300` |
+| 状态文档 commit | `c181e7f` |
+| 远程 | 已推送 origin |
+| 第三次验收 | P0=0 P1=0；67 tests；PG/SQLite/OpenAPI/openspec 通过 |
+| main | **未合并** |
+
+---
+
+## Lease 边界（已写入 design）
+
+**做：** 合同生命周期、占用、terms、used_area 投影、tenant/park、审计  
+
+**不做：** Bill/Payment、押金退还流水、旧 rental 适配、自动 EXPIRING 调度产品化  
+
+**暂停触发：** 实现中若需发明未批准计费/舍入/滞纳金/退款算法 → HUMAN_DECISION_REQUIRED  
 
 ---
 
 ## 下一条动作
 
-1. DISCOVER Lease：读取 `docs/02-domain-design`、aggregates、ADR、`apps/api/app/modules/lease` stub  
-2. 若计费/周期/押金/滞纳金等规则无批准依据 → **HUMAN_DECISION_REQUIRED**  
-3. 否则创建独立 OpenSpec change（如 `implement-lease-contract`）与 stacked 分支 `feat/lease-*`，parent=`feat/party-master`@`d7e1300`  
-4. 不合并 main  
-
----
-
-## 安全检查（最近）
-
-| 项 | 状态 |
-| --- | --- |
-| .env / *.db 未跟踪 | 是 |
-| PERSON 地址 API 全拒绝 | PASS |
-| force push | 未使用 |
-| 合并 main | 未做 |
-| 测试容器已停 | 是 |
+1. `openspec validate implement-lease-contract --strict`  
+2. tasks 1.x Domain 实体与规则 + 单测  
+3. 2.x 迁移与仓储  
+4. 3.x Service/Router  
+5. 测试与推送 `feat/lease-contract`  
 
 ---
 
 ## Stacked 分支记录
 
-| 分支 | parent branch | parent commit | change | push |
+| 分支 | parent | parent commit | change | push |
 | --- | --- | --- | --- | --- |
-| feat/party-master | main | 0a2e75d 附近 | implement-party-master | **d7e1300 已推送** |
-| feat/lease-* | feat/party-master | d7e1300 | 待建 | — |
+| feat/party-master | main | 0a2e75d 一带 | implement-party-master | d7e1300 + c181e7f |
+| feat/lease-contract | feat/party-master | c181e7f | implement-lease-contract | 进行中 |
