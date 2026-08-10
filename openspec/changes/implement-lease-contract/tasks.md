@@ -39,7 +39,7 @@
 - [x] 5.2 pytest -m pg / not pg / 全量（74 passed）
 - [x] 5.3 中文 docstring（公开 API 核心方法）
 - [x] 5.4 自审 P0/P1=0；容器停止
-- [ ] 5.5 commit + 正常 push `feat/lease-contract`（不 merge main）
+- [x] 5.5 commit + 正常 push `feat/lease-contract`（`f173996`；不 merge main）
 
 ## 明确不做
 

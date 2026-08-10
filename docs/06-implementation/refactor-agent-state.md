@@ -10,8 +10,10 @@
 | --- | --- |
 | 更新时间 | 2026-08-10 |
 | 当前分支 | `feat/lease-contract` |
-| 当前 OpenSpec | `implement-lease-contract`（实现完成，待 push） |
-| 当前任务 | commit + push；下一步 DISCOVER Bill 或继续补强 Lease 测试 |
+| HEAD | `f173996` feat(lease): implement lease contracts… |
+| 远程 | origin/feat/lease-contract 已同步 |
+| 当前 OpenSpec | `implement-lease-contract` **已推送** |
+| 当前任务 | 下一步 DISCOVER Bill（规则不足则 HUMAN_DECISION_REQUIRED） |
 | 是否允许继续 | **是**；禁止 merge main |
 
 ## Party（已锁定推送）
