@@ -22,6 +22,7 @@ from app.modules.park_property.interface.api import router as park_router
 from app.modules.party.interface.api import router as party_router
 from app.modules.lease.interface.api import router as lease_router
 from app.modules.billing.interface.api import router as billing_router
+from app.modules.collection.interface.api import router as collection_router
 
 
 @asynccontextmanager
@@ -46,7 +47,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
         version=__version__,
-        description="KWZY AI Smart Park API — Identity+Park+Unit+Party+Lease+Billing",
+        description="KWZY AI Smart Park API — Identity+Park+Unit+Party+Lease+Billing+Collection",
         docs_url="/docs",
         redoc_url="/redoc",
         lifespan=lifespan,
@@ -71,6 +72,7 @@ def create_app() -> FastAPI:
     app.include_router(party_router, prefix=prefix)
     app.include_router(lease_router, prefix=prefix)
     app.include_router(billing_router, prefix=prefix)
+    app.include_router(collection_router, prefix=prefix)
 
     @app.get("/health")
     def health() -> dict:

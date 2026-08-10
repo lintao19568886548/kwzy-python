@@ -12,6 +12,7 @@ from app.infrastructure.database.models.identity import (
     UserRole,
 )
 from app.infrastructure.database.models.billing import Bill, BillLine, FeeCatalog
+from app.infrastructure.database.models.collection import Payment, PaymentAllocation
 from app.infrastructure.database.models.lease import (
     LeaseContract,
     LeaseContractUnit,
@@ -52,4 +53,6 @@ __all__ = [
     "FeeCatalog",
     "Bill",
     "BillLine",
+    "Payment",
+    "PaymentAllocation",
 ]

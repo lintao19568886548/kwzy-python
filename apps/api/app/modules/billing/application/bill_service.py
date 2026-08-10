@@ -72,9 +72,9 @@ class BillService:
             "period_end": e.period_end.isoformat(),
             "due_date": e.due_date.isoformat() if e.due_date else None,
             "status": e.status,
-            "total_amount": str(e.total_amount),
-            "paid_amount": str(e.paid_amount),
-            "open_amount": str(oa),
+            "total_amount": str(money(e.total_amount)),
+            "paid_amount": str(money(e.paid_amount)),
+            "open_amount": str(money(oa)),
             "is_overdue": is_overdue(
                 status=e.status,
                 due_date=e.due_date,
