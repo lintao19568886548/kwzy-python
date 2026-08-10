@@ -11,7 +11,7 @@
 | 序 | 能力 | 依赖 | OpenSpec change | 状态 | 验收条件（摘要） | 风险 / 延期 |
 | --- | --- | --- | --- | --- | --- | --- |
 | 0 | Step1 基础：Identity + Park + Unit | — | archive: harden-step1 / close-step1-gaps；repair-postgres-baseline-boolean-portability | **完成** | 权限、scope、日志、审计、PG harness | Boolean 可移植已修 |
-| 1 | Party 主数据 | Step1 | `implement-party-master`（+ 归档 `design-party-domain`） | **实现+PII+docstring 完成，待第三次验收/提交** | P0=0 P1=0；PERSON 地址全拒绝；ORG 地址 OK；迁移/PG/SQLite/OpenAPI/全量测试 | PERSON 地址 KMS/加密 → 独立后续 change；Lease 未实现 |
+| 1 | Party 主数据 | Step1 | `implement-party-master`（+ 归档 `design-party-domain`） | **完成并推送** `feat/party-master`@`d7e1300`（**未合 main**） | P0=0 P1=0；PERSON 地址全拒绝；ORG 地址 OK；迁移/PG/SQLite/OpenAPI/全量测试 | PERSON 地址 KMS/加密 → 独立后续 change；Lease 未实现 |
 | 2 | Lease | Party + Park/Unit | 待建 `implement-lease-*` | **未开始** | 领域规则须有批准文档；租户/园区隔离 | **财务周期/计费规则未批准则强制暂停** |
 | 3 | Bill | Lease | 待建 | **未开始** | 同上 | 舍入/税费/滞纳金须批准 |
 | 4 | Payment（收款登记） | Bill | 待建 | **未开始** | 核销/退款须批准 | 非在线支付订单 |
@@ -57,4 +57,4 @@
 
 | 日期 | 说明 |
 | --- | --- |
-| 2026-08-10 | 初建；Party 待第三次验收与 commit/push |
+| 2026-08-10 | 初建；Party 第三次验收通过；commit `d7e1300` 已推送 origin |

@@ -10,45 +10,53 @@
 | --- | --- |
 | 更新时间 | 2026-08-10 |
 | 当前分支 | `feat/party-master` |
-| 本地 HEAD（已提交） | `a16070b` — fix(migration): make all_parks boolean portable |
-| 工作区 | **有未提交** Party 实现 + PII + docstring + OpenAPI/tests |
-| 当前 OpenSpec change | `implement-party-master` |
-| 当前任务 | 第三次验收 → P0/P1=0 则 commit + 正常 push；不合并 main |
-| 是否允许继续 | **是**（常规 apply/test/commit/push；合并 main 需人工） |
+| 本地 HEAD | `d7e1300` — feat(party): implement Party master with PII address lockdown |
+| 远程 `origin/feat/party-master` | `d7e1300`（已同步） |
+| 工作区 | 干净（仅可能有本状态文件后续微调） |
+| 当前 OpenSpec change | `implement-party-master` **feature 已交付并推送**；main **未合并** |
+| 当前任务 | Party 收尾完成 → DISCOVER 下一能力 Lease |
+| 是否允许继续 | **是**（禁止自动 merge main / 部署生产） |
 
 ---
 
-## 已完成验证（历史摘要）
+## 第三次验收结果（已通过）
 
 | 项 | 结果 |
 | --- | --- |
-| PERSON 地址 PII 全拒绝（Application 层） | PASS（二次验收） |
-| ORGANIZATION 地址 CRUD | PASS |
-| Docstring P1 六段式补齐 | RESOLVED（MISSING 公开 API = 0） |
-| 业务逻辑 AST 哈希（docstring 前后） | 一致（逻辑 diff 零） |
-| 全量 pytest（docstring 后） | 67 passed |
+| P0 | 0 |
+| P1 | 0（docstring 已补齐） |
+| PERSON 地址无 API 泄露 | PASS |
+| ORGANIZATION 地址回归 | PASS |
+| SQLite base→head | `c3a91b2e4f10` |
+| PG16 base→head + down/up | `c3a91b2e4f10` |
+| pytest not pg | 58 passed |
+| pytest pg | 9 passed |
+| 全量 pytest | 67 passed |
 | openspec strict | valid |
-| PG 容器 | 已停止 |
+| OpenAPI 严格校验 | 通过（全量测试内） |
+| git diff --check | 0 |
+| 敏感文件跟踪 | 无 |
+| PG 容器 | 已停止，55432 free |
+| 合并 main | **未做** |
 
 ---
 
-## 未解决问题
+## 提交与推送
 
-| 级别 | 项 | 处置 |
-| --- | --- | --- |
-| — | 工作区未提交 | 第三次验收通过后 commit |
-| P2/延期 | KMS/PII PERSON 地址可读 | roadmap D-PII-KMS |
-| 流程 | tasks.md 仍勾选「禁止本会话 commit」 | 现指令已授权验收后 commit/push |
+| 项 | 值 |
+| --- | --- |
+| Commit | `d7e1300` |
+| Push | `origin/feat/party-master` 正常推送（非 force） |
+| Parent baseline | `a16070b` (portability) |
 
 ---
 
 ## 下一条动作
 
-1. 第三次验收：git check、敏感文件、临时 SQLite/PG 迁移、pytest pg/not pg/全量、openspec、OpenAPI  
-2. 自审 P0/P1  
-3. 通过则 commit + `git push origin feat/party-master`  
-4. 更新本状态与 roadmap  
-5. DISCOVER 下一能力（Lease）并起草 change（财务规则不明则 HUMAN_DECISION_REQUIRED）
+1. DISCOVER Lease：读取 `docs/02-domain-design`、aggregates、ADR、`apps/api/app/modules/lease` stub  
+2. 若计费/周期/押金/滞纳金等规则无批准依据 → **HUMAN_DECISION_REQUIRED**  
+3. 否则创建独立 OpenSpec change（如 `implement-lease-contract`）与 stacked 分支 `feat/lease-*`，parent=`feat/party-master`@`d7e1300`  
+4. 不合并 main  
 
 ---
 
@@ -57,10 +65,10 @@
 | 项 | 状态 |
 | --- | --- |
 | .env / *.db 未跟踪 | 是 |
-| PERSON 地址无 API 泄露 | PASS |
-| 测试容器端口 127.0.0.1 | 是 |
-| force push | 禁止 |
+| PERSON 地址 API 全拒绝 | PASS |
+| force push | 未使用 |
 | 合并 main | 未做 |
+| 测试容器已停 | 是 |
 
 ---
 
@@ -68,4 +76,5 @@
 
 | 分支 | parent branch | parent commit | change | push |
 | --- | --- | --- | --- | --- |
-| feat/party-master | main | 0a2e75d（约） | implement-party-master | 待推送实现 commit |
+| feat/party-master | main | 0a2e75d 附近 | implement-party-master | **d7e1300 已推送** |
+| feat/lease-* | feat/party-master | d7e1300 | 待建 | — |
