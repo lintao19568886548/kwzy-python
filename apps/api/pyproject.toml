@@ -26,6 +26,10 @@ dev = [
   "httpx>=0.27.0",
   "ruff>=0.7.0",
   "openapi-spec-validator>=0.7.0",
+  "psycopg[binary]>=3.2.0",
+]
+pg = [
+  "psycopg[binary]>=3.2.0",
 ]
 
 [build-system]
@@ -42,3 +46,6 @@ target-version = "py311"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+  "pg: requires PostgreSQL 16 (TEST_DATABASE_URL / POSTGRES_TEST_URL)",
+]

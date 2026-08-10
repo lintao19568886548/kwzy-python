@@ -34,6 +34,20 @@ DEFAULT_PERMISSIONS = (
     ("park:write", "维护园区", "park"),
     ("unit:read", "查看单元", "unit"),
     ("unit:write", "维护单元", "unit"),
+    ("party:read", "查看主体", "party"),
+    ("party:write", "维护主体", "party"),
+    ("party:manage_unscoped", "管理未关联园区主体", "party"),
+    ("party:risk_read", "查看主体风险历史", "party"),
+    ("party:risk_manage", "管理主体黑名单", "party"),
+    ("lease:read", "查看租赁合同", "lease"),
+    ("lease:write", "维护租赁合同", "lease"),
+    ("lease:activate", "提交/激活租赁合同", "lease"),
+    ("lease:terminate", "终止租赁合同", "lease"),
+    ("bill:read", "查看账单", "billing"),
+    ("bill:write", "维护账单草稿", "billing"),
+    ("bill:issue", "签发/作废账单", "billing"),
+    ("payment:read", "查看收款登记", "collection"),
+    ("payment:write", "登记收款与核销", "collection"),
 )
 
 

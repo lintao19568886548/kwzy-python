@@ -2,6 +2,13 @@
 .env
 .env.*
 !.env.example
+**/.env
+**/.env.*
+!**/.env.example
+.env.test
+.env.*.local
+infra/postgres-test/.env
+postgres-test-data/
 *.pem
 *.key
 

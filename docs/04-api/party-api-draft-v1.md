@@ -1,26 +1,65 @@
-# Party API 草案 v1.3（终局）
+# Party API 草案 v1.4（预检修订）
 
-> 设计 only。envelope、snake_case、`/api/v1`、Bearer JWT。  
-> 生产数据方言：PostgreSQL 16（ADR-003d）。
+> 设计 only。生产方言 PostgreSQL 16。主档 **无 park_id、无 address**。
 
 ---
 
-## 1. 安全与权限
+## 1. 权限
 
-| 权限码 | 含义 |
+| 码 | 含义 |
 | --- | --- |
-| `party:read` | 读 park-scope 可见 Party；**默认不含完整风险原因** |
-| `party:write` | 主档/角色/关系/联系人/archive/restore |
-| `party:manage_unscoped` | 零园区关联 Party |
-| **`party:risk_read`** | 读 `risk-events` 与完整 reason |
-| **`party:risk_manage`** | blacklist / remove-blacklist |
-| `*` | 全部动作；不绕过 park DataScope |
-
-OpenAPI security：为 risk 端点单独标注 `party:risk_read` / `party:risk_manage`。
+| party:read | 读可见 Party；不含完整风险原因 |
+| party:write | 主档/角色/关系/联系人/地址(组织)/归档 |
+| party:manage_unscoped | 零园区关联 Party |
+| party:risk_read / party:risk_manage | 风险 |
 
 ---
 
-## 2. Party 主资源
+## 2. Party 主档契约（修订旧 park_id）
+
+### 禁止（新 API 正式模型）
+
+- Party 响应/请求主档字段 **`park_id`** 作为归属  
+- Party 主档模糊 **`address`** 字符串  
+
+### 创建 Party（示例）
+
+```json
+{
+  "party_type": "ORGANIZATION",
+  "name": "某某科技",
+  "contact_name": "张三",
+  "contact_phone": "13800000000",
+  "credit_code": "91XXXXXXXXXXXXXX",
+  "initial_park_relation": {
+    "park_id": 10,
+    "party_role_id": 9
+  }
+}
+```
+
+- `initial_park_relation`：**可选组合命令**（同事务建角色关系+园关系，或要求已有 role）  
+- **不是** Party 主档上的 park_id  
+- 无 initial 时创建零关联 Party，需 `party:manage_unscoped`  
+
+### 查询园区关系
+
+仅子资源：`/parties/{id}/park-relations`  
+
+### 旧 OpenAPI / 草案兼容策略
+
+| 旧契约 | 处理 |
+| --- | --- |
+| `Party.park_id` | **从正式 v1 Party schema 移除** |
+| 创建 required park_id | **移除**；改用 initial_park_relation 可选 |
+| 文档中的单 address | **移除**；改用 addresses 子资源 |
+
+**不**将主档 park_id 标 deprecated 后继续作为事实来源。  
+实现期：契约测试断言 Party schema **不含** `park_id` 属性。
+
+---
+
+## 3. 主资源路径
 
 | 方法 | 路径 |
 | --- | --- |
@@ -28,94 +67,57 @@ OpenAPI security：为 risk 端点单独标注 `party:risk_read` / `party:risk_m
 | GET/PATCH | `/parties/{party_id}` |
 | POST | `/parties/{party_id}/archive` |
 | POST | `/parties/{party_id}/restore` |
-
-**禁止：** 物理 DELETE；**禁止** PATCH 直接改 `risk_status`。
-
-列表默认排除 ARCHIVED；`include_archived` / `status=ARCHIVED`。  
-**无证件号字段。**
-
----
-
-## 3. 风险 API（专用动作，非 PATCH）
-
-| 方法 | 路径 | 权限 |
-| --- | --- | --- |
-| GET | `/parties/{party_id}/risk-events` | `party:risk_read` |
-| POST | `/parties/{party_id}/blacklist` | `party:risk_manage` |
-| POST | `/parties/{party_id}/remove-blacklist` | `party:risk_manage` |
-
-### blacklist body
-
-```json
-{ "reason": "必填原因" }
-```
-
-### remove-blacklist body
-
-```json
-{ "reason": "必填解除原因" }
-```
-
-同事务：
-
-1. 更新 `parties.risk_status` 与便捷 blacklist 字段  
-2. **INSERT** `party_risk_events`（不可变）  
-3. **INSERT** `audit_logs`  
-
-restore ARCHIVED **不**自动 unblacklist。
+| GET | `/parties/{party_id}/risk-events` |
+| POST | `/parties/{party_id}/blacklist` |
+| POST | `/parties/{party_id}/remove-blacklist` |
+| GET/POST | `/parties/{party_id}/roles` |
+| GET/POST | `/parties/{party_id}/park-relations` |
+| GET/POST | `/parties/{party_id}/contacts` |
+| … | contacts/{id} PATCH/DELETE |
 
 ---
 
-## 4. 角色 / 园区关系 / 联系人
+## 4. 地址子资源 `party_addresses`
 
-- 角色：`/parties/{id}/roles`  
-- 园关系：`/parties/{id}/park-relations`，body 含 `park_id` + `party_role_id`  
-- 联系人：嵌套 REST + 软删  
+| 方法 | 路径 |
+| --- | --- |
+| GET | `/parties/{party_id}/addresses` |
+| POST | `/parties/{party_id}/addresses` |
+| GET | `/parties/{party_id}/addresses/{address_id}` |
+| PATCH | `/parties/{party_id}/addresses/{address_id}` |
+| DELETE | `/parties/{party_id}/addresses/{address_id}` |
 
-（规则同前轮，略。）
+**规则：**
+
+1. address 必须属于 path party_id + tenant  
+2. 禁止跨 Party/tenant 用 address_id  
+3. 默认排除软删  
+4. 同 type 仅一条有效 primary  
+5. type：REGISTERED / OFFICE / MAILING / BILLING / OTHER  
+6. REGISTERED=法定注册地址；BILLING=账单通信地址（非收款账户）  
+7. 写操作审计；明细不进普通业务日志  
+8. **ORGANIZATION**：允许地址 CRUD（需 party:write + 可见性）  
+9. **PERSON**：首版 **禁止地址写入**（403 / FEATURE_DISABLED）；无 PII 控制前不开放详细地址暴露  
+10. Party 归档不物理删地址  
+
+DELETE = 软删（deleted_at）。
 
 ---
 
-## 5. 错误码（风险相关增补）
+## 5. 旧接口
+
+removal_target_version: **v2.0.0**  
+removal_gate_status: **NOT_READY**  
+（门禁同前）
+
+---
+
+## 6. 错误码增补
 
 | code | 场景 |
 | --- | --- |
-| PARTY_RISK_REASON_REQUIRED | 缺少 reason |
-| PARTY_RISK_INVALID | 非法状态迁移（如已黑名单再黑） |
-| PERMISSION_DENIED | 缺 risk_read / risk_manage |
-| … | 见前轮 credit/relation 错误码 |
-
----
-
-## 6. 旧接口兼容
-
-| 项 | 值 |
-| --- | --- |
-| 旧路径 | `/rental/tenant*` |
-| 新路径 | `/api/v1/parties*` |
-| **removal_target_version** | **v2.0.0** |
-| **removal_gate_status** | **NOT_READY** |
-
-门禁（全部满足后才可独立 change 删除；到 v2.0.0 仍可因未满足而保留兼容层）：
-
-1. deprecated 公告 ≥90 天  
-2. 调用方全部登记  
-3. PC/App/小程序/外部集成均已迁移  
-4. 连续 30 天调用量 = 0  
-5. 新 Party 接口稳定 ≥2 个正式发布周期  
-6. 字段映射与迁移说明已发布  
-7. 生产回归通过  
-8. 人工下线批准  
-9. 独立 OpenSpec change  
-10. 任一条件不满足 → **继续保留**  
-
-弃用期：Deprecation + Sunset 计划信息；调用量/调用方/request_id/路径；不记密码 Token 敏感体；禁止 301/302 写；适配层调 Party Application Service；不扩展 rental_tenant。
-
----
-
-## 7. OpenAPI 同步（实现前）
-
-- security schemes 含 risk 权限  
-- risk-events / blacklist / remove-blacklist  
-- 去掉主档 park_id；无证件字段  
-- 文档注明 PG 16 生产 / SQLite 单测  
+| ADDRESS_NOT_FOUND | 地址不可见/不存在 |
+| ADDRESS_PRIMARY_CONFLICT | primary 冲突 |
+| PERSON_ADDRESS_FORBIDDEN | PERSON 地址写入禁止 |
+| PARTY_ROLE_MISMATCH | role 不属于 party |
+| … | 既有 CREDIT_* / RELATION_* / RISK_* |

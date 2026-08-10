@@ -71,3 +71,8 @@ class ParkRepository(TenantParkRepositoryBase[Park]):
         stmt = self._base_select().where(Park.id == entity_id)
         stmt = self.apply_park_scope(stmt)
         return self.session.scalars(stmt).first()
+
+    def exists_in_tenant(self, park_id: int) -> bool:
+        """租户内园区是否存在（忽略园区 scope，用于外键校验）。"""
+        stmt = self._base_select().where(Park.id == int(park_id))
+        return self.session.scalars(stmt).first() is not None

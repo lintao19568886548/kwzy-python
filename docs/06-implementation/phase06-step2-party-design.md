@@ -1,93 +1,71 @@
-# Phase06-Step2 Party 设计记录（终稿）
+# Phase06-Step2 Party / implement 预检记录
 
-> 状态：**FINAL APPROVAL READY**  
-> 分支：`design/party-domain-v1`  
-> OpenSpec：`design-party-domain`  
+> 状态：**PREFLIGHT READY**（**未**批准 apply）  
+> 标记：`PARTY_APPLY_BLOCKED_NO_POSTGRES`（PG 连接未验证）  
 > 日期：2026-08-10  
 
 ---
 
-## 1. 范围
+## 1. PostgreSQL 能力矩阵（只读预检）
 
-仅设计/ADR/OpenSpec/草案。  
-**不** apply、编码、迁移、commit、push、创建 implement change。
+| 能力 | 状态 | 证据 |
+| --- | --- | --- |
+| Docker | AVAILABLE | `Docker version 29.6.2` |
+| Docker Compose | AVAILABLE | `Docker Compose version v5.3.1` |
+| Podman | NOT_AVAILABLE | 命令不存在 |
+| psql | NOT_AVAILABLE | 命令不存在 |
+| pg_isready | NOT_AVAILABLE | 命令不存在 |
+| TEST_DATABASE_URL | NOT_SET | 进程环境 |
+| POSTGRES_TEST_URL | NOT_SET | 进程环境 |
+| DATABASE_URL | NOT_SET | 进程环境 |
+| 项目 Docker Compose PG 配置 | NOT_AVAILABLE | 无 compose 文件 |
+| Testcontainers | NOT_AVAILABLE | 代码库未检出 |
+| PostgreSQL pytest fixture | NOT_AVAILABLE | 仅 SQLite memory |
+| CI PostgreSQL service | NOT_AVAILABLE | 无 `.github/workflows` |
+| psycopg 驱动 | NOT_AVAILABLE | pyproject 仅 pymysql + sqlite |
+| pytest PG marker | NOT_AVAILABLE | 未配置 |
+
+**结论：** 具备用 Docker 拉起 PG 的**本机能力**，但 **PG 16 测试栈与连接均未验证** → **`PARTY_APPLY_BLOCKED_NO_POSTGRES`**。  
+**禁止**用 SQLite 代替生产方言验证。
 
 ---
 
-## 2. 终局决策摘要
+## 2. 首选测试方案（规划）
 
-| 项 | 结论 |
+Docker Compose 一次性 `postgres:16`，绑定 127.0.0.1，库名含 test，凭据 env，无真密码入库。  
+apply 后实现 compose 文件与 `pytest.mark.pg`；**apply 前须人工/后续会话实际连通验证**。
+
+---
+
+## 3. 分支门禁（apply 前，本阶段不建分支）
+
+- main 干净且同步 origin  
+- design 已归档推送（`0a2e75d`）  
+- 规划审批通过  
+- 创建 `feat/party-master` 再开发  
+- 禁 main 直开、禁 force push、禁无 PG 测合并  
+
+---
+
+## 4. 地址与 OpenAPI
+
+- ADR-003g：`party_addresses`  
+- 主档无 address / 无 park_id  
+- `initial_park_relation` 可选组合命令  
+- PERSON 地址写入首版禁止  
+
+---
+
+## 5. 是否可申请 apply
+
+| 项 | 状态 |
 | --- | --- |
-| 生产库 | **PostgreSQL 16** |
-| SQLite | 开发 + 单元测试 only |
-| 风险历史 | 首版 **party_risk_events** |
-| 风险权限 | party:risk_read / party:risk_manage |
-| 旧接口 | 目标 **v2.0.0**，gate **NOT_READY** |
-
----
-
-## 3. 测试分工
-
-### 3.1 SQLite（快速）
-
-- 领域规则、service 逻辑、大量 API 用例  
-- **不得**单独作为生产约束通过依据  
-
-### 3.2 PostgreSQL 16 集成测试（权威，Party 实现必含）
-
-至少：
-
-1. Alembic base → head  
-2. downgrade → upgrade  
-3. tenant_id 隔离  
-4. credit_code 非空唯一  
-5. ACTIVE 园区关系部分唯一索引  
-6. 外键约束  
-7. 并发创建重复 Party（credit_code）  
-8. 并发创建重复有效园区关系  
-9. 软删除与恢复  
-10. 事务审计（含 risk 事件 + audit_logs 同事务）  
-
-连接串仅环境变量；无真实密码入仓。
-
-### 3.3 CI 目标
-
-- Job A：SQLite 快速测试  
-- Job B：PostgreSQL 16 集成测试  
-
----
-
-## 4. 实现分期（批准后另开 change）
-
-| 阶段 | 内容 |
-| --- | --- |
-| I0 | PG 测试容器/CI 骨架 |
-| I1 | Alembic（PG 权威）parties/roles/relations/contacts/risk_events |
-| I2 | Domain/Repo 可见性 + unscoped |
-| I3 | risk 动作 + 事件 + 审计同事务 |
-| I4 | roles/relations/contacts API |
-| I5 | archive/restore |
-| I6 | legacy adapter + metrics + OpenAPI |
-| 不做 | 证件列、旧接口删除、Lease 规则、旧库 ETL |
-
-### 建议 implement change 名称
-
-**`implement-party-master`**
-
-（可选后续：`implement-party-legacy-adapter`、`implement-party-pii-identity`、`remove-legacy-rental-tenant-v2`）
-
----
-
-## 5. 是否具备最终批准条件
-
-| 项 | 结论 |
-| --- | --- |
-| 结构性 Open Questions | **无** |
-| 设计完整性 | **具备最终人工批准条件** |
-| 编码 | **否**，待批准 + 新 open implement change |
+| 规划结构 | 通过 |
+| PG 实际可连 | **未通过** |
+| 申请 apply 批准 | **否** |
 
 ---
 
 ```text
-PHASE06-PARTY-DESIGN-FINAL-APPROVAL-READY
+PHASE06-PARTY-IMPLEMENTATION-PREFLIGHT-READY
 ```
