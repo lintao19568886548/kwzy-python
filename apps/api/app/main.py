@@ -19,6 +19,7 @@ from app.infrastructure.database.session import SessionLocal
 from app.modules.identity.application.bootstrap import ensure_default_tenant
 from app.modules.identity.interface.api import router as identity_router
 from app.modules.park_property.interface.api import router as park_router
+from app.modules.party.interface.api import router as party_router
 
 
 @asynccontextmanager
@@ -43,7 +44,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
         version=__version__,
-        description="KWZY AI Smart Park API — phase06 step1 Identity+Park+Unit",
+        description="KWZY AI Smart Park API — Identity+Park+Unit+Party",
         docs_url="/docs",
         redoc_url="/redoc",
         lifespan=lifespan,
@@ -63,9 +64,9 @@ def create_app() -> FastAPI:
     app.add_middleware(RequestIdMiddleware)
 
     prefix = settings.api_v1_prefix
-    # Step1 only: Identity + ParkProperty
     app.include_router(identity_router, prefix=prefix)
     app.include_router(park_router, prefix=prefix)
+    app.include_router(party_router, prefix=prefix)
 
     @app.get("/health")
     def health() -> dict:

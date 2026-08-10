@@ -34,6 +34,11 @@ DEFAULT_PERMISSIONS = (
     ("park:write", "维护园区", "park"),
     ("unit:read", "查看单元", "unit"),
     ("unit:write", "维护单元", "unit"),
+    ("party:read", "查看主体", "party"),
+    ("party:write", "维护主体", "party"),
+    ("party:manage_unscoped", "管理未关联园区主体", "party"),
+    ("party:risk_read", "查看主体风险历史", "party"),
+    ("party:risk_manage", "管理主体黑名单", "party"),
 )
 
 

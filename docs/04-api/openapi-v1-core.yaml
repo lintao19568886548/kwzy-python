@@ -449,7 +449,7 @@ paths:
   /parties:
     get:
       tags: [Parties]
-      summary: 入驻方列表
+      summary: 主体列表（租户级，按园区可见性过滤）
       operationId: listParties
       security: [{ bearerAuth: [] }]
       parameters:
@@ -457,20 +457,33 @@ paths:
         - $ref: '#/components/parameters/PageSize'
         - name: park_id
           in: query
+          description: 按关联园区筛选（非主档归属）
           schema: { type: integer, format: int64 }
         - name: keyword
           in: query
           schema: { type: string }
+        - name: status
+          in: query
+          schema: { type: string, enum: [ACTIVE, INACTIVE, ARCHIVED] }
+        - name: risk_status
+          in: query
+          schema: { type: string, enum: [NORMAL, BLACKLISTED] }
+        - name: party_type
+          in: query
+          schema: { type: string, enum: [ORGANIZATION, PERSON] }
+        - name: include_archived
+          in: query
+          schema: { type: boolean, default: false }
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PartyPage'
+                $ref: '#/components/schemas/PartyPageEnvelope'
     post:
       tags: [Parties]
-      summary: 创建入驻方
+      summary: 创建主体（可选 initial_park_relation 组合命令）
       operationId: createParty
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -480,18 +493,17 @@ paths:
             schema:
               $ref: '#/components/schemas/PartyCreate'
       responses:
-        '201':
-          description: Created
+        '200':
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Party'
-
+                $ref: '#/components/schemas/PartyEnvelope'
 
   /parties/{party_id}:
     get:
       tags: [Parties]
-      summary: 入驻方详情
+      summary: 主体详情
       operationId: getParty
       security: [{ bearerAuth: [] }]
       parameters:
@@ -508,7 +520,7 @@ paths:
                 $ref: '#/components/schemas/PartyEnvelope'
     patch:
       tags: [Parties]
-      summary: 更新入驻方
+      summary: 更新主体
       operationId: updateParty
       security: [{ bearerAuth: [] }]
       parameters:
@@ -522,6 +534,461 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PartyUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyEnvelope'
+
+  /parties/{party_id}/archive:
+    post:
+      tags: [Parties]
+      summary: 归档主体
+      operationId: archiveParty
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyEnvelope'
+
+  /parties/{party_id}/restore:
+    post:
+      tags: [Parties]
+      summary: 恢复已归档主体
+      operationId: restoreParty
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyRestoreBody'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyEnvelope'
+
+  /parties/{party_id}/roles:
+    get:
+      tags: [Parties]
+      summary: 列出业务角色
+      operationId: listPartyRoles
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyRoleListEnvelope'
+    post:
+      tags: [Parties]
+      summary: 添加业务角色
+      operationId: addPartyRole
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyRoleCreate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyRoleEnvelope'
+
+  /parties/{party_id}/roles/{role_id}/deactivate:
+    post:
+      tags: [Parties]
+      summary: 停用业务角色
+      operationId: deactivatePartyRole
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: role_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyRoleEnvelope'
+
+  /parties/{party_id}/park-relations:
+    get:
+      tags: [Parties]
+      summary: 列出 Party-Park 关系
+      operationId: listPartyParkRelations
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyParkRelationListEnvelope'
+    post:
+      tags: [Parties]
+      summary: 添加 Party-Park 关系
+      operationId: addPartyParkRelation
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyParkRelationCreate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyParkRelationEnvelope'
+
+  /parties/{party_id}/park-relations/{relation_id}/end:
+    post:
+      tags: [Parties]
+      summary: 结束 Party-Park 关系
+      operationId: endPartyParkRelation
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: relation_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyParkRelationEnvelope'
+
+  /parties/{party_id}/contacts:
+    get:
+      tags: [Parties]
+      summary: 联系人列表
+      operationId: listPartyContacts
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyContactListEnvelope'
+    post:
+      tags: [Parties]
+      summary: 创建联系人
+      operationId: createPartyContact
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyContactCreate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyContactEnvelope'
+
+  /parties/{party_id}/contacts/{contact_id}:
+    patch:
+      tags: [Parties]
+      summary: 更新联系人
+      operationId: updatePartyContact
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: contact_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyContactUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyContactEnvelope'
+    delete:
+      tags: [Parties]
+      summary: 软删除联系人
+      operationId: deletePartyContact
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: contact_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
+
+  /parties/{party_id}/addresses:
+    get:
+      tags: [Parties]
+      summary: 地址列表（ORGANIZATION；PERSON v1 禁止）
+      description: |
+        ORGANIZATION：返回可见地址。
+        PERSON：v1 一律 403 PERSON_ADDRESS_FORBIDDEN（含库中已有行），不返回任何地址字段。
+      operationId: listPartyAddresses
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyAddressListEnvelope'
+        '403':
+          description: PERSON 主体地址禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags: [Parties]
+      summary: 创建地址（ORGANIZATION；PERSON v1 禁止）
+      description: PERSON 返回 403 PERSON_ADDRESS_FORBIDDEN。
+      operationId: createPartyAddress
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyAddressCreate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyAddressEnvelope'
+        '403':
+          description: PERSON 主体地址禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /parties/{party_id}/addresses/{address_id}:
+    patch:
+      tags: [Parties]
+      summary: 更新地址（ORGANIZATION；PERSON v1 禁止）
+      operationId: updatePartyAddress
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: address_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyAddressUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyAddressEnvelope'
+        '403':
+          description: PERSON 主体地址禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags: [Parties]
+      summary: 软删除地址（ORGANIZATION；PERSON v1 禁止）
+      operationId: deletePartyAddress
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: address_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
+        '403':
+          description: PERSON 主体地址禁止访问
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /parties/{party_id}/risk-events:
+    get:
+      tags: [Parties]
+      summary: 风险事件历史
+      operationId: listPartyRiskEvents
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyRiskEventListEnvelope'
+
+  /parties/{party_id}/blacklist:
+    post:
+      tags: [Parties]
+      summary: 加入黑名单
+      operationId: blacklistParty
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyRiskReasonBody'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyEnvelope'
+
+  /parties/{party_id}/remove-blacklist:
+    post:
+      tags: [Parties]
+      summary: 解除黑名单
+      operationId: removePartyBlacklist
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartyRiskReasonBody'
       responses:
         '200':
           description: OK
@@ -1247,6 +1714,86 @@ components:
         message: { type: string }
         data:
           $ref: '#/components/schemas/Party'
+    PartyPageEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/PartyPage'
+    PartyRoleEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/PartyRole'
+    PartyRoleListEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartyRole'
+    PartyParkRelationEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/PartyParkRelation'
+    PartyParkRelationListEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartyParkRelation'
+    PartyContactEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/PartyContact'
+    PartyContactListEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartyContact'
+    PartyAddressEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/PartyAddress'
+    PartyAddressListEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartyAddress'
+    PartyRiskEventListEnvelope:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartyRiskEvent'
 
     BuildingEnvelope:
       type: object
@@ -1268,12 +1815,87 @@ components:
       type: object
       properties:
         name: { type: string }
-        contact_name: { type: string }
-        contact_phone: { type: string }
-        credit_code: { type: string }
-        address: { type: string }
-        status: { type: string }
-        remark: { type: string }
+        party_type: { type: string, enum: [ORGANIZATION, PERSON] }
+        contact_name: { type: string, nullable: true }
+        contact_phone: { type: string, nullable: true }
+        credit_code: { type: string, nullable: true }
+        status: { type: string, enum: [ACTIVE, INACTIVE, ARCHIVED] }
+        remark: { type: string, nullable: true }
+      description: |
+        主档更新。禁止 risk_status 经此接口变更；禁止主档 address/park_id。
+
+    PartyRestoreBody:
+      type: object
+      properties:
+        target_status: { type: string, enum: [ACTIVE, INACTIVE], default: ACTIVE }
+
+    PartyRoleCreate:
+      type: object
+      required: [role_code]
+      properties:
+        role_code:
+          type: string
+          enum: [PROPERTY_OWNER, LESSEE, BROKER, SUPPLIER, PARTNER, CUSTOMER]
+
+    PartyParkRelationCreate:
+      type: object
+      required: [park_id, party_role_id]
+      properties:
+        park_id: { type: integer, format: int64 }
+        party_role_id: { type: integer, format: int64 }
+
+    PartyContactCreate:
+      type: object
+      properties:
+        name: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        role_label: { type: string, nullable: true }
+        is_primary: { type: boolean, default: false }
+
+    PartyContactUpdate:
+      type: object
+      properties:
+        name: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        role_label: { type: string, nullable: true }
+        is_primary: { type: boolean, nullable: true }
+
+    PartyAddressCreate:
+      type: object
+      properties:
+        address_type:
+          type: string
+          enum: [REGISTERED, OFFICE, MAILING, BILLING, OTHER]
+          default: OTHER
+        country_code: { type: string, nullable: true }
+        province: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        district: { type: string, nullable: true }
+        street: { type: string, nullable: true }
+        detail: { type: string, nullable: true }
+        postal_code: { type: string, nullable: true }
+        is_primary: { type: boolean, default: false }
+
+    PartyAddressUpdate:
+      type: object
+      properties:
+        country_code: { type: string, nullable: true }
+        province: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        district: { type: string, nullable: true }
+        street: { type: string, nullable: true }
+        detail: { type: string, nullable: true }
+        postal_code: { type: string, nullable: true }
+        is_primary: { type: boolean, nullable: true }
+        status: { type: string, nullable: true }
+
+    PartyRiskReasonBody:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1 }
 
     ApiOk:
       description: Prefer ApiEnvelopeOk — same envelope shape
@@ -1434,23 +2056,53 @@ components:
 
     Party:
       type: object
+      description: |
+        租户级主体主档。无 park_id 归属字段；园区关联见 park_relations 子资源。
+        无主档 address 自由文本事实字段；地址见 addresses 子资源。
       properties:
         id: { type: integer, format: int64 }
-        park_id: { type: integer, format: int64 }
+        tenant_id: { type: integer, format: int64 }
+        party_type: { type: string, enum: [ORGANIZATION, PERSON] }
         name: { type: string }
         contact_name: { type: string, nullable: true }
-        contact_phone: { type: string }
-        status: { type: string }
+        contact_phone: { type: string, nullable: true }
+        credit_code: { type: string, nullable: true }
+        status: { type: string, enum: [ACTIVE, INACTIVE, ARCHIVED] }
+        risk_status: { type: string, enum: [NORMAL, BLACKLISTED] }
+        blacklist_reason: { type: string, nullable: true }
+        remark: { type: string, nullable: true }
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartyRole'
+        park_relations:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartyParkRelation'
+        created_at: { type: string, nullable: true }
+        updated_at: { type: string, nullable: true }
     PartyCreate:
       type: object
-      required: [park_id, name, contact_phone]
+      required: [name]
+      properties:
+        name: { type: string }
+        party_type: { type: string, enum: [ORGANIZATION, PERSON], default: ORGANIZATION }
+        contact_name: { type: string, nullable: true }
+        contact_phone: { type: string, nullable: true }
+        credit_code: { type: string, nullable: true }
+        remark: { type: string, nullable: true }
+        initial_park_relation:
+          $ref: '#/components/schemas/InitialParkRelation'
+      description: |
+        创建主体。无主档 park_id/address。
+        可选 initial_park_relation 为同事务组合命令，不写 Party 主档 park 列。
+    InitialParkRelation:
+      type: object
+      required: [park_id]
       properties:
         park_id: { type: integer, format: int64 }
-        name: { type: string }
-        contact_name: { type: string }
-        contact_phone: { type: string }
-        credit_code: { type: string }
-        address: { type: string }
+        party_role_id: { type: integer, format: int64, nullable: true }
+        role_code: { type: string, nullable: true }
     PartyPage:
       type: object
       properties:
@@ -1461,6 +2113,53 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Party'
+    PartyRole:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        party_id: { type: integer, format: int64 }
+        role_code: { type: string }
+        status: { type: string }
+    PartyParkRelation:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        park_id: { type: integer, format: int64 }
+        party_role_id: { type: integer, format: int64 }
+        status: { type: string }
+    PartyContact:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        party_id: { type: integer, format: int64 }
+        name: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        role_label: { type: string, nullable: true }
+        is_primary: { type: boolean }
+    PartyAddress:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        address_type: { type: string }
+        country_code: { type: string, nullable: true }
+        province: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        district: { type: string, nullable: true }
+        street: { type: string, nullable: true }
+        detail: { type: string, nullable: true }
+        postal_code: { type: string, nullable: true }
+        is_primary: { type: boolean }
+        status: { type: string }
+    PartyRiskEvent:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        event_type: { type: string }
+        previous_risk_status: { type: string }
+        new_risk_status: { type: string }
+        reason: { type: string }
+        occurred_at: { type: string, nullable: true }
 
     LeaseUnitItem:
       type: object

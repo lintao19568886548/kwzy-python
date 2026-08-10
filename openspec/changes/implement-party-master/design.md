@@ -41,8 +41,21 @@
 
 ### D2 — party_addresses 独立表（ADR-003g）
 
-见 ADR-003g。主档 **删除** 模糊 `address` 第二事实来源。  
-PERSON：首版 **不开放地址写入**（或仅设计保留）；ORGANIZATION 可用。
+见 ADR-003g。主档 **删除** 模糊 `address` 第二事实来源。
+ORGANIZATION：允许地址 CRUD（授权 + 可见性）。
+
+### D2b — PERSON 地址 v1 临时安全边界（验收缺陷修复）
+
+在 KMS、字段加密、数据分级与专用 PII 权限完成前（独立 change）：
+
+1. PERSON 地址 **禁止** 创建 / 修改 / 删除 / 列表 / 详情
+2. Party 列表与详情 **不得** 嵌入 PERSON 地址或数量摘要
+3. 即使 `party_addresses` 已有 PERSON 行，API **不得** 返回任何地址字段
+4. 不得将 PERSON 地址写入日志、审计 detail、异常信息
+5. **不** 新增临时 `party:pii:*` 权限
+6. 规则在 **Application Service** 强制执行（禁止仅 Router 拦截）
+7. 错误：统一 `AppError`，HTTP 403，code=`PERSON_ADDRESS_FORBIDDEN`
+8. 本边界由未来 KMS/PII change 替换，非永久领域模型
 
 ### D3 — Git 分支门禁（apply 前必须满足，本阶段不创建）
 
@@ -89,7 +102,7 @@ PERSON：首版 **不开放地址写入**（或仅设计保留）；ORGANIZATION
 | 风险 | 缓解 |
 | --- | --- |
 | 仅有 Docker 未跑通 PG | 显式 BLOCK；不得用 SQLite 代替 |
-| PERSON 地址隐私 | 首版禁止写；无 PII ACL 不开放 |
+| PERSON 地址隐私 | v1 读写全拒绝（含预存行）；Application 层强制；ORGANIZATION 不受影响 |
 
 ## Open Questions
 

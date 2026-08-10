@@ -29,15 +29,34 @@ Address delete SHALL be soft delete. Archiving a Party SHALL NOT physically dele
 - **THEN** default list excludes it
 
 ### Requirement: Organization vs person address policy
-ORGANIZATION parties SHALL be allowed to use address CRUD in the first release when authorized. PERSON address writes SHALL be disabled in the first release until personal PII access controls exist. PERSON detailed addresses SHALL NOT be exposed without proper authorization.
+ORGANIZATION parties SHALL be allowed to use address CRUD in the first release when authorized. PERSON parties SHALL have all address access disabled in v1 until KMS, field encryption, data classification, and dedicated PII permissions exist in a separate change. ORGANIZATION address behavior SHALL remain unchanged by the PERSON lockdown.
 
 #### Scenario: Person address write forbidden
 - **WHEN** a client creates an address for a PERSON party in first release
-- **THEN** the API rejects the write
+- **THEN** the API rejects the write with PERSON_ADDRESS_FORBIDDEN
+
+### Requirement: PERSON address full deny in v1 (temporary security boundary)
+Until an independent KMS/PII change lands, Party v1 SHALL refuse PERSON address create, update, delete, list, and detail reads. Application service layer SHALL enforce the rule (not router-only). No temporary party:pii:* permission codes SHALL be introduced in this change. Party list and Party detail responses SHALL NOT embed PERSON addresses, address counts, or address summaries.
+
+#### Scenario: Person address list forbidden
+- **WHEN** a client lists addresses for a PERSON party
+- **THEN** the API returns 403 with code PERSON_ADDRESS_FORBIDDEN and empty data payload without address fields
+
+#### Scenario: Person address update and delete forbidden
+- **WHEN** a client updates or deletes an address under a PERSON party
+- **THEN** the API returns 403 with code PERSON_ADDRESS_FORBIDDEN
+
+#### Scenario: Preexisting PERSON address rows not leaked
+- **WHEN** party_addresses already contains rows for a PERSON party (e.g. manual insert or future migration)
+- **THEN** list/detail/read APIs still return 403 and do not return street, detail, or any address payload
+
+#### Scenario: Organization addresses unaffected
+- **WHEN** an authorized client performs address CRUD for an ORGANIZATION party
+- **THEN** create, list, update, and soft-delete continue to work as approved
 
 ### Requirement: Address writes audited without verbose logs
-Successful address writes SHALL be audited. Ordinary business logs SHALL NOT include full address field dumps.
+Successful ORGANIZATION address writes SHALL be audited. Ordinary business logs, audit detail_json, exception messages, and test assertions SHALL NOT include full address field dumps (street/detail lines). PERSON address denials SHALL NOT log or audit full address content.
 
 #### Scenario: Audit without log dump
-- **WHEN** an address is created
+- **WHEN** an ORGANIZATION address is created
 - **THEN** an audit record exists and structured logs do not print full street/detail lines

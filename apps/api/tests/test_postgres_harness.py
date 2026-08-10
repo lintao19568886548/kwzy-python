@@ -90,3 +90,45 @@ def test_postgres_url_safety_shape() -> None:
     assert re.search(r"@127\.0\.0\.1:\d+/kwzy_party_test", url) or re.search(
         r"@localhost:\d+/kwzy_party_test", url
     )
+
+
+def test_postgres_party_tables_and_partial_indexes() -> None:
+    """Party migration objects exist on PostgreSQL 16 (after alembic upgrade head)."""
+    url = _require_pg_url()
+    from sqlalchemy import create_engine, text
+
+    engine = create_engine(url, pool_pre_ping=True)
+    expected_tables = (
+        "parties",
+        "party_roles",
+        "party_park_relations",
+        "party_contacts",
+        "party_addresses",
+        "party_risk_events",
+    )
+    with engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                "SELECT tablename FROM pg_tables "
+                "WHERE schemaname = 'public' "
+                "AND (tablename = 'parties' OR tablename LIKE 'party\\_%' ESCAPE '\\')"
+            )
+        ).fetchall()
+        names = {r[0] for r in rows}
+        for t in expected_tables:
+            assert t in names, f"missing table {t}"
+        # partial unique indexes from migration
+        idxs = {
+            r[0]
+            for r in conn.execute(
+                text(
+                    "SELECT indexname FROM pg_indexes "
+                    "WHERE schemaname = 'public' "
+                    "AND indexname IN ('uk_ppr_active', 'uk_party_addr_primary', "
+                    "'uk_parties_tenant_credit')"
+                )
+            ).fetchall()
+        }
+        assert "uk_ppr_active" in idxs
+        assert "uk_party_addr_primary" in idxs
+        assert "uk_parties_tenant_credit" in idxs

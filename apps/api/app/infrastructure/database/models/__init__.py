@@ -1,4 +1,4 @@
-"""ORM models package — Step1 foundation."""
+"""ORM models package — Step1 foundation + Party."""
 
 from app.infrastructure.database.models.audit import AuditLog
 from app.infrastructure.database.models.identity import (
@@ -12,6 +12,14 @@ from app.infrastructure.database.models.identity import (
     UserRole,
 )
 from app.infrastructure.database.models.park_property import Building, Park, Unit
+from app.infrastructure.database.models.party import (
+    Party,
+    PartyAddress,
+    PartyContact,
+    PartyParkRelation,
+    PartyRiskEvent,
+    PartyRole,
+)
 
 __all__ = [
     "Tenant",
@@ -26,4 +34,10 @@ __all__ = [
     "Park",
     "Building",
     "Unit",
+    "Party",
+    "PartyRole",
+    "PartyParkRelation",
+    "PartyContact",
+    "PartyAddress",
+    "PartyRiskEvent",
 ]
