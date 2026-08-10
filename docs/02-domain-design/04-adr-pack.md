@@ -158,6 +158,28 @@
 
 ---
 
+## ADR-003g — Party 地址独立表 party_addresses
+
+**状态：** Accepted（2026-08-10，implement 预检修订）  
+
+**上下文：**  
+早期草案用 Party 主档单一 `address` 字符串，语义模糊（注册/办公/账单混用），无法表达多地址与 primary，且易成为与结构化地址并行的第二事实来源。  
+
+**决策：**
+
+1. 地址落在独立表 **`party_addresses`**（tenant_id、party_id、address_type、行政区划字段、is_primary、status、软删）。  
+2. **禁止**在 Party 主档保留含义不清的 `address` 列作为事实来源。  
+3. `address_type` 首版：REGISTERED | OFFICE | MAILING | BILLING | OTHER。  
+4. 同 Party + 同 type 仅一条有效 primary。  
+5. **ORGANIZATION** 首版开放地址 CRUD。  
+6. **PERSON** 地址属个人敏感信息：在缺少个人 PII 访问控制前，**不开放地址写入**；不得无权限暴露个人详细地址。  
+7. Party 归档不物理删地址历史。  
+8. 地址写操作审计；地址明细不进普通业务日志。  
+
+**与旧草案关系：** 显式废止「主档单 address 字段」方案，非静默变更。
+
+---
+
 ## ADR-004 — 租户隔离强制点
 
 **状态：** Accepted  
