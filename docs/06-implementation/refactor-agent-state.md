@@ -4,7 +4,8 @@
 | --- | --- |
 | 更新时间 | 2026-08-10 |
 | 当前分支 | `feat/payment-collection` |
-| 状态 | 主链 Party→Lease→Bill→Payment 已实现；全量 78 passed；head `f6d24e5b7c43` |
+| HEAD | `640b3f1` 已推送 origin |
+| 状态 | 主链 Party→Lease→Bill→Payment 已实现；全量 78 passed；Alembic head `f6d24e5b7c43` |
 | 允许继续 | 等待人工 merge main；禁止自动部署 |
 | 最终报告 | `docs/06-implementation/refactor-final-acceptance.md` |
 
