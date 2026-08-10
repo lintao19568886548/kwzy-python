@@ -48,6 +48,7 @@ def test_payment_allocate_and_reverse(client) -> None:
             "party_id": party["id"],
             "amount": "200",
             "method": "TRANSFER",
+            "paid_at": "2026-02-15T10:00:00",
             "allocations": [{"bill_id": bill["id"], "amount": "200"}],
         },
     )

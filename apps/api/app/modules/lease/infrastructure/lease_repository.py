@@ -106,16 +106,6 @@ class LeaseContractRepository:
             )
         ).first()
 
-    def next_contract_seq(self) -> int:
-        """功能说明：租户内合同序号（用于生成号）。"""
-
-        n = self.session.scalar(
-            select(func.count()).select_from(LeaseContract).where(
-                LeaseContract.tenant_id == self.tenant_id
-            )
-        )
-        return int(n or 0) + 1
-
     def add(self, model: LeaseContract) -> LeaseContract:
         model.tenant_id = self.tenant_id
         self.session.add(model)

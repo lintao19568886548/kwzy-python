@@ -373,6 +373,7 @@ def test_production_requires_token(monkeypatch) -> None:
     monkeypatch.setenv("APP_ENV", "production")
     monkeypatch.setenv("JWT_SECRET", "production-test-secret")
     monkeypatch.setenv("CORS_ORIGINS", "https://app.example.test")
+    monkeypatch.setenv("ALLOW_ANON_DEV", "false")
     get_settings.cache_clear()
     try:
         with TestClient(create_app()) as production_client:
@@ -390,6 +391,7 @@ def test_production_settings_reject_insecure_defaults() -> None:
             app_env="production",
             jwt_secret="change-me-in-production",
             cors_origins="https://app.example.test",
+            allow_anon_dev=False,
         )
     with pytest.raises(ValueError):
         Settings(
@@ -397,6 +399,7 @@ def test_production_settings_reject_insecure_defaults() -> None:
             app_env="production",
             jwt_secret="production-test-secret",
             cors_origins="*",
+            allow_anon_dev=False,
         )
 
     settings = Settings(
@@ -404,6 +407,7 @@ def test_production_settings_reject_insecure_defaults() -> None:
         app_env="production",
         jwt_secret="production-test-secret",
         cors_origins="https://app.example.test",
+        allow_anon_dev=False,
     )
     assert settings.app_env == "production"
 
@@ -412,6 +416,7 @@ def test_production_bootstrap_forbidden(db_session: Session, monkeypatch) -> Non
     monkeypatch.setenv("APP_ENV", "production")
     monkeypatch.setenv("JWT_SECRET", "production-test-secret")
     monkeypatch.setenv("CORS_ORIGINS", "https://app.example.test")
+    monkeypatch.setenv("ALLOW_ANON_DEV", "false")
     get_settings.cache_clear()
     try:
         with pytest.raises(RuntimeError, match="production"):
