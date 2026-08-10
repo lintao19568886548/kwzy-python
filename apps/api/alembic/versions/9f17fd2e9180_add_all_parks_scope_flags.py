@@ -27,8 +27,14 @@ def upgrade() -> None:
         batch.add_column(
             sa.Column("all_parks", sa.Boolean(), nullable=False, server_default=sa.false())
         )
-    # Existing ADMIN roles that historically relied on * for all-parks
-    op.execute("UPDATE roles SET all_parks = 1 WHERE code = 'ADMIN'")
+    # Existing ADMIN roles that historically relied on * for all-parks.
+    # Use portable boolean True (PostgreSQL rejects integer 1 for boolean columns).
+    roles = sa.table(
+        "roles",
+        sa.column("all_parks", sa.Boolean()),
+        sa.column("code", sa.String()),
+    )
+    op.execute(roles.update().where(roles.c.code == "ADMIN").values(all_parks=True))
 
 
 def downgrade() -> None:
