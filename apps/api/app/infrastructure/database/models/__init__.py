@@ -11,6 +11,7 @@ from app.infrastructure.database.models.identity import (
     UserParkScope,
     UserRole,
 )
+from app.infrastructure.database.models.billing import Bill, BillLine, FeeCatalog
 from app.infrastructure.database.models.lease import (
     LeaseContract,
     LeaseContractUnit,
@@ -48,4 +49,7 @@ __all__ = [
     "LeaseContract",
     "LeaseContractUnit",
     "LeaseTerm",
+    "FeeCatalog",
+    "Bill",
+    "BillLine",
 ]

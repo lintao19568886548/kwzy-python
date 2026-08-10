@@ -89,7 +89,7 @@ def test_step1_runtime_paths_covered_by_openapi() -> None:
             openapi_with_prefix.add("/api/v1" + p if p.startswith("/") else "/api/v1/" + p)
         openapi_with_prefix.add(p.replace("/api/v1", "", 1) if p.startswith("/api/v1") else p)
 
-    required_markers = ("/auth/login", "/parks", "/units", "/parties", "/leases")
+    required_markers = ("/auth/login", "/parks", "/units", "/parties", "/leases", "/bills")
     for marker in required_markers:
         assert any(marker in p for p in paths) or any(
             marker in p for p in runtime
