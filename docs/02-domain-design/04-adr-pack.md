@@ -39,16 +39,122 @@
 
 ## ADR-003 — Party 园区归属
 
-**状态：** Accepted  
+**状态：** **Superseded**（2026-08-10，由 ADR-003a 取代）  
 
-**上下文：** 一期模型 `parties.park_id` 单园。  
+**原决策（历史保留）：**
+
+- 一期：Party 归属单园（`parties.park_id`）  
+- 二期：可引入 `party_parks`，Party 去 park_id  
+
+**原后果：** 跨园集团客户一期拆成多 Party 或人工处理。  
+
+**废止原因：** 人工评审否决单园主档——多园租赁、业主/经纪人/供应商多园服务、同一 `credit_code` 租户内唯一时无法靠复制 Party 解决多园关系。见 **ADR-003a**。
+
+---
+
+## ADR-003a — Party 租户主档 + 多园区关系
+
+**状态：** Accepted（2026-08-10，Phase06-Step2 评审修订；同日二次修订见下）  
+
+**上下文：**  
+同一企业可租赁多个园区；产权业主、经纪人、供应商、合作伙伴可服务多园。`credit_code` 在 `tenant_id` 内强唯一后，禁止靠「复制 Party」表达多园。  
 
 **决策：**
 
-- 一期：Party 归属单园  
-- 二期：可引入 `party_parks`，Party 去 park_id  
+1. **Party 主档**仅属 SaaS `tenant_id`，**不**使用单一 `park_id` 表达唯一归属。  
+2. 园区关联落在关系表 **`party_park_relations`**（party ↔ park 多对多，通过 `party_role_id` 引用业务角色，见 **ADR-003b**）。  
+3. 列表/详情可见性 = 用户 park scope ∩ Party 有效关联园区；`park_scope_mode=ALL` 可见租户内**已有园区关联**的 Party。  
+4. **无园区关联**的 Party：仅显式拥有 **`party:manage_unscoped`** 的用户可查询/创建（暂不关联园）/修改/分配首个园区关系。  
+   - `all_parks`、`party:read`、`party:write` **均不**自动包含该权限。  
+   - 动作权限 `*` 可包含 `party:manage_unscoped` 动作，**仍不得**绕过园区 DataScope 规则。  
+5. 禁止为多园重复创建相同企业主档。  
+6. 同一 `(tenant_id, party_id, park_id, party_role_id)` 仅允许一条 **ACTIVE** 有效关系（DB + 应用双重保证，见数据库草案）。  
 
-**后果：** 跨园集团客户一期拆成多 Party 或人工处理。  
+**后果：**
+
+- 原 `docs/03` 基线 `parties.park_id` 与 OpenAPI `Party.park_id` 须在实现前按本 ADR 修订。  
+- Lease/Bill 未来可各自带业务 `park_id`，不要求 Party 单园。  
+- DataScope 查询须 join/subquery `party_park_relations`。  
+
+**与 ADR-003 关系：** 本 ADR **取代** ADR-003 的一期单园方案；ADR-003 仅作历史记录。
+
+---
+
+## ADR-003b — 园区关系引用 party_role_id（单一角色事实来源）
+
+**状态：** Accepted（2026-08-10，Phase06-Step2 第二轮评审）  
+
+**上下文：**  
+若 `party_roles.role_code` 与 `party_park_relations.relation_role` 各存一份角色字符串，将形成**双事实来源**，易不一致且停用角色时无法约束园区关系。  
+
+**决策：**
+
+1. **业务角色唯一落在 `party_roles`**：`role_code` 为首版枚举（PROPERTY_OWNER / LESSEE / BROKER / SUPPLIER / PARTNER / CUSTOMER）。  
+2. **`party_park_relations` 使用 `party_role_id` FK** 引用同 tenant、同 party 的 `party_roles.id`；**禁止**再存 `relation_role` 字符串。  
+3. 拥有角色 ≠ 已关联任何园区；关联园区必须先有对应 `party_role`。  
+4. 停用 `party_role` 前必须检查是否存在有效园区关系；有则业务冲突，须先 end 关系。  
+5. Party 业务角色与 Identity RBAC **完全分离**，不授予登录权限。  
+
+**备选否决：** 关系表冗余 `relation_role` — 双写风险。  
+
+**后果：** 创建园区关系 API 入参为 `park_id` + `party_role_id`（或 role_code 经服务解析为 id）；查询通过 join 展示 role_code。
+
+---
+
+## ADR-003c — 个人证件 PII 延后至独立安全能力
+
+**状态：** Accepted（2026-08-10）  
+
+**决策：** Party **首版 migration / API 不创建、不接收、不存储** 证件明文或 ciphertext/hash/masked 列。原因：尚无确认的字段级加密、KMS、轮换与查看脱敏能力。未来须独立 OpenSpec change（KMS、envelope encryption、key_version、轮换、权限）完成后再加字段。Lease/实名 **禁止** 临时明文证件列。
+
+---
+
+## ADR-003d — 生产数据库方言 PostgreSQL 16
+
+**状态：** Accepted（2026-08-10，Party 设计终局）  
+
+**决策：**
+
+1. **生产目标数据库：PostgreSQL 16。**  
+2. **SQLite**：仅本地快速开发与单元测试；**不是**生产库；**不是**约束正确性的唯一验证环境。  
+3. **不以 MySQL/MariaDB** 作为当前新系统生产目标。  
+4. ORM/领域层保持数据库无关；**Alembic 以 PostgreSQL 16 为权威方言**。  
+5. Party 实现阶段 **必须** 有 PostgreSQL 集成测试（upgrade/downgrade、唯一索引、外键、并发、审计等，见实施计划）。  
+6. SQLite 与 PostgreSQL 行为不一致时，**以 PostgreSQL 16 为准**。  
+7. CI 目标：SQLite 快速测试 + PostgreSQL 16 集成测试。  
+8. 连接串仅环境变量；源码/文档/测试输出 **不得** 含真实密码。  
+
+---
+
+## ADR-003e — Party 风险事件表与风险权限命名
+
+**状态：** Accepted（2026-08-10）  
+
+**决策：**
+
+1. 首版建立 **`party_risk_events`** 不可变风险历史；`parties.risk_status` 仅存当前状态。  
+2. 加入/解除黑名单：同事务更新当前状态 + **追加**风险事件 + 写 `audit_logs`；二者不可互相替代。  
+3. 事件 **禁止 UPDATE/DELETE**。  
+4. 权限码对齐现有 `module:action` 风格（与 `party:read` / `party:write` / `party:manage_unscoped` 一致）：  
+   - **`party:risk_read`** — 读完整风险原因与事件时间线  
+   - **`party:risk_manage`** — 执行 blacklist / remove-blacklist  
+5. 普通 `party:read` **默认不得**查看完整风险原因。  
+6. 不通过普通 PATCH 直接改 `risk_status`。  
+
+**备选否决：** 三节权限码 `party:risk:read`（与现有两段式 `resource:action` 不一致）。
+
+---
+
+## ADR-003f — 旧 /rental/tenant* 移除目标版本
+
+**状态：** Accepted（2026-08-10）  
+
+**决策：**
+
+- `removal_target_version: **v2.0.0**`  
+- `removal_gate_status: **NOT_READY**`  
+- 到达 v2.0.0 **不**等于可无条件删除；须全部门禁满足 + 独立 OpenSpec change + 人工批准。  
+- 弃用期：Deprecation/Sunset 头、调用量指标、适配层调 Party Application Service、禁止 301/302 写、不扩展 rental_tenant。  
 
 ---
 

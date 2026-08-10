@@ -8,3 +8,4 @@
 | [04-adr-pack.md](./04-adr-pack.md) | **ADR 决策包（P0 冻结）** |
 | [05-phase06-scope.md](./05-phase06-scope.md) | 阶段 06 In/Out Scope |
 | [06-repository-and-layering.md](./06-repository-and-layering.md) | Repository 过滤基类 + 四层冻结 |
+| [07-party-domain-v1.md](./07-party-domain-v1.md) | **Party 领域设计 v1（Step2 评审中）** |
