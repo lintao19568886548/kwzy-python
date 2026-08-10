@@ -10,11 +10,11 @@
 | --- | --- |
 | 更新时间 | 2026-08-10 |
 | 当前分支 | `feat/lease-contract` |
-| HEAD | （见 git；基于 Party 推送后最新） |
+| HEAD | `0a5b551` — docs(lease): add implement-lease-contract OpenSpec |
 | parent branch | `feat/party-master` |
 | parent commits | `d7e1300`（Party 实现）、`c181e7f`（状态文档） |
-| 当前 OpenSpec change | `implement-lease-contract`（proposal/design/specs/tasks 已建） |
-| 当前任务 | 0.2 strict validate 后按 tasks 从领域开始 APPLY |
+| 当前 OpenSpec change | `implement-lease-contract`（strict valid；tasks 0.1–0.2 完成） |
+| 当前任务 | **APPLY** tasks 1.x Domain 实体/规则 + 单测 |
 | 是否允许继续 | **是**；禁止 merge main |
 
 ---
