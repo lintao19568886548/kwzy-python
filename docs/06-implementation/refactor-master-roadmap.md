@@ -12,7 +12,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | 0 | Step1 基础：Identity + Park + Unit | — | archive: harden-step1 / close-step1-gaps；repair-postgres-baseline-boolean-portability | **完成** | 权限、scope、日志、审计、PG harness | Boolean 可移植已修 |
 | 1 | Party 主数据 | Step1 | `implement-party-master`（+ 归档 `design-party-domain`） | **完成并推送** `feat/party-master`@`d7e1300`（**未合 main**） | P0=0 P1=0；PERSON 地址全拒绝；ORG 地址 OK；迁移/PG/SQLite/OpenAPI/全量测试 | PERSON 地址 KMS/加密 → 独立后续 change；Lease 未实现 |
-| 2 | Lease | Party + Park/Unit | `implement-lease-contract` | **OpenSpec 已建 / APPLY 进行中**（分支 `feat/lease-contract`） | 合同生命周期+占用+投影；不含 Bill/Payment | 押金退还/出账计费属后续；未批准算法则暂停 |
+| 2 | Lease | Party + Park/Unit | `implement-lease-contract` | **实现完成**（分支 `feat/lease-contract`，head `d4b02c3f5a21`） | 合同生命周期+占用+投影；74 tests | 押金退还/出账计费属后续 |
 | 3 | Bill | Lease | 待建 | **未开始** | 同上 | 舍入/税费/滞纳金须批准 |
 | 4 | Payment（收款登记） | Bill | 待建 | **未开始** | 核销/退款须批准 | 非在线支付订单 |
 | 5 | 文档/接口/迁移/安全收口 | 各能力 | 按能力分 change | 进行中 | OpenAPI 同步、唯一 head、无敏感文件 | — |

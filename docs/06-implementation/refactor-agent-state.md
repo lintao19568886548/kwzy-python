@@ -10,51 +10,24 @@
 | --- | --- |
 | 更新时间 | 2026-08-10 |
 | 当前分支 | `feat/lease-contract` |
-| HEAD | `0a5b551` — docs(lease): add implement-lease-contract OpenSpec |
-| parent branch | `feat/party-master` |
-| parent commits | `d7e1300`（Party 实现）、`c181e7f`（状态文档） |
-| 当前 OpenSpec change | `implement-lease-contract`（strict valid；tasks 0.1–0.2 完成） |
-| 当前任务 | **APPLY** tasks 1.x Domain 实体/规则 + 单测 |
+| 当前 OpenSpec | `implement-lease-contract`（实现完成，待 push） |
+| 当前任务 | commit + push；下一步 DISCOVER Bill 或继续补强 Lease 测试 |
 | 是否允许继续 | **是**；禁止 merge main |
 
----
+## Party（已锁定推送）
 
-## Party 已交付（锁定）
+- `feat/party-master` @ `d7e1300` / 状态 doc `c181e7f`
+
+## Lease
 
 | 项 | 值 |
 | --- | --- |
-| 分支 | `feat/party-master` |
-| 实现 commit | `d7e1300` |
-| 状态文档 commit | `c181e7f` |
-| 远程 | 已推送 origin |
-| 第三次验收 | P0=0 P1=0；67 tests；PG/SQLite/OpenAPI/openspec 通过 |
-| main | **未合并** |
-
----
-
-## Lease 边界（已写入 design）
-
-**做：** 合同生命周期、占用、terms、used_area 投影、tenant/park、审计  
-
-**不做：** Bill/Payment、押金退还流水、旧 rental 适配、自动 EXPIRING 调度产品化  
-
-**暂停触发：** 实现中若需发明未批准计费/舍入/滞纳金/退款算法 → HUMAN_DECISION_REQUIRED  
-
----
+| Alembic head | `d4b02c3f5a21` |
+| 全量测试 | 74 passed |
+| 不做 | Bill/Payment/押金退还/rental 适配 |
 
 ## 下一条动作
 
-1. `openspec validate implement-lease-contract --strict`  
-2. tasks 1.x Domain 实体与规则 + 单测  
-3. 2.x 迁移与仓储  
-4. 3.x Service/Router  
-5. 测试与推送 `feat/lease-contract`  
-
----
-
-## Stacked 分支记录
-
-| 分支 | parent | parent commit | change | push |
-| --- | --- | --- | --- | --- |
-| feat/party-master | main | 0a2e75d 一带 | implement-party-master | d7e1300 + c181e7f |
-| feat/lease-contract | feat/party-master | c181e7f | implement-lease-contract | 进行中 |
+1. git commit + push origin feat/lease-contract  
+2. 更新 roadmap 状态  
+3. 评估 `implement-bill-*` OpenSpec（账期/出账规则若不足 → HUMAN_DECISION_REQUIRED）

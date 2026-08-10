@@ -1000,7 +1000,7 @@ paths:
   /leases:
     get:
       tags: [Leases]
-      summary: 合同列表
+      summary: 合同列表（tenant + park scope）
       operationId: listLeases
       security: [{ bearerAuth: [] }]
       parameters:
@@ -1009,22 +1009,25 @@ paths:
         - name: park_id
           in: query
           schema: { type: integer, format: int64 }
+        - name: party_id
+          in: query
+          schema: { type: integer, format: int64 }
         - name: status
           in: query
           schema: { type: string }
-        - name: expiring_within_days
-          in: query
-          schema: { type: integer }
       responses:
         '200':
-          description: OK
+          description: OK envelope
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LeasePage'
+                $ref: '#/components/schemas/ApiOk'
     post:
       tags: [Leases]
-      summary: 创建合同草稿
+      summary: 创建合同草稿 DRAFT
+      description: |
+        需 lease:write。deposit_amount 仅字段存储，不产生收款/退还流水。
+        本阶段不签发账单。
       operationId: createLease
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -1034,17 +1037,17 @@ paths:
             schema:
               $ref: '#/components/schemas/LeaseCreate'
       responses:
-        '201':
-          description: Created
+        '200':
+          description: OK envelope
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Lease'
+                $ref: '#/components/schemas/ApiOk'
 
   /leases/{lease_id}:
     get:
       tags: [Leases]
-      summary: 合同详情
+      summary: 合同详情（含 units/terms）
       operationId: getLease
       security: [{ bearerAuth: [] }]
       parameters:
@@ -1055,12 +1058,80 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Lease'
+                $ref: '#/components/schemas/ApiOk'
+    patch:
+      tags: [Leases]
+      summary: 更新 DRAFT/PENDING_ACTIVE 合同
+      operationId: updateLease
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/LeaseIdPath'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaseUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
+
+  /leases/{lease_id}/submit:
+    post:
+      tags: [Leases]
+      summary: 提交合同 DRAFT→PENDING_ACTIVE
+      operationId: submitLease
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/LeaseIdPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
+
+  /leases/{lease_id}/reject:
+    post:
+      tags: [Leases]
+      summary: 驳回 PENDING_ACTIVE→DRAFT
+      operationId: rejectLease
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/LeaseIdPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
+
+  /leases/{lease_id}/cancel:
+    post:
+      tags: [Leases]
+      summary: 取消草稿/待激活合同
+      operationId: cancelLease
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/LeaseIdPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
 
   /leases/{lease_id}/activate:
     post:
       tags: [Leases]
-      summary: 激活合同（占用单元）
+      summary: 激活合同（占用单元，投影 used_area）
+      description: 需 lease:activate。冲突时 409 OCCUPANCY_CONFLICT。不生成账单。
       operationId: activateLease
       security: [{ bearerAuth: [] }]
       parameters:
@@ -1071,31 +1142,39 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Lease'
+                $ref: '#/components/schemas/ApiOk'
 
   /leases/{lease_id}/terminate:
     post:
       tags: [Leases]
-      summary: 退租终止合同
+      summary: 正常退租终止（释放占用；无押金退还流水）
       operationId: terminateLease
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/LeaseIdPath'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                reason: { type: string }
-                terminated_on: { type: string, format: date }
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Lease'
+                $ref: '#/components/schemas/ApiOk'
+
+  /leases/{lease_id}/breach:
+    post:
+      tags: [Leases]
+      summary: 违约终止
+      operationId: breachLease
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/LeaseIdPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOk'
 
   /bills:
     get:
@@ -2188,10 +2267,11 @@ components:
             $ref: '#/components/schemas/LeaseUnitItem'
     LeaseCreate:
       type: object
-      required: [park_id, party_id, start_date, end_date, units]
+      required: [park_id, party_id, start_date, end_date]
       properties:
         park_id: { type: integer, format: int64 }
         party_id: { type: integer, format: int64 }
+        contract_no: { type: string }
         start_date: { type: string, format: date }
         end_date: { type: string, format: date }
         increase_date: { type: string, format: date }
@@ -2202,6 +2282,35 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LeaseUnitItem'
+        terms:
+          type: array
+          items:
+            type: object
+            properties:
+              term_type: { type: string }
+              effective_date: { type: string, format: date }
+              end_date: { type: string, format: date }
+              rate: { type: number }
+              amount: { type: number }
+              description: { type: string }
+              sort_order: { type: integer }
+    LeaseUpdate:
+      type: object
+      properties:
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date }
+        deposit_amount: { type: number }
+        remark: { type: string }
+        units:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaseUnitItem'
+        terms:
+          type: array
+          items:
+            type: object
+            properties:
+              term_type: { type: string }
     LeasePage:
       type: object
       properties:
