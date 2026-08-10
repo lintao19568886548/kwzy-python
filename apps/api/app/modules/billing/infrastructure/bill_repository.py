@@ -61,8 +61,13 @@ class BillRepository:
             vis = vis.where(Bill.party_id == int(party_id))
         return int(self.session.scalar(select(func.count()).select_from(vis.subquery())) or 0)
 
-    def get_by_id(self, bill_id: int) -> Optional[Bill]:
-        return self.session.scalars(self._scope(select(Bill).where(Bill.id == bill_id))).first()
+    def get_by_id(self, bill_id: int, *, for_update: bool = False) -> Optional[Bill]:
+        stmt = self._scope(select(Bill).where(Bill.id == bill_id))
+        if for_update:
+            dialect = self.session.bind.dialect.name if self.session.bind is not None else ""
+            if dialect == "postgresql":
+                stmt = stmt.with_for_update()
+        return self.session.scalars(stmt).first()
 
     def find_duplicate_period(
         self, party_id: int, period_start, period_end, *, exclude_id: Optional[int] = None

@@ -277,9 +277,16 @@ class LeaseService:
         if end < start:
             raise AppError("end_date 不得早于 start_date", code="VALIDATION_ERROR", status_code=400)
 
+        from app.infrastructure.platform.number_sequence import next_number
+
         contract_no = (data.get("contract_no") or "").strip()
         if not contract_no:
-            seq = self.contracts.next_contract_seq()
+            seq = next_number(
+                self.session,
+                tenant_id=self.ctx.tenant_id,
+                biz_type="CONTRACT",
+                period_key=start.strftime("%Y%m%d"),
+            )
             contract_no = f"LC{start.strftime('%Y%m%d')}{seq:04d}"
         if self.contracts.find_by_contract_no(contract_no):
             raise AppError("合同号重复", code="LEASE_NO_DUPLICATE", status_code=409)

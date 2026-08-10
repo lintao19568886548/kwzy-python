@@ -1274,6 +1274,7 @@ paths:
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/BillIdPath'
+        - $ref: '#/components/parameters/IdempotencyKey'
       responses:
         '200':
           description: OK
@@ -1354,6 +1355,8 @@ paths:
       summary: 收款登记并核销账单（非在线支付；allocations 分摊核销，支持部分收款）
       operationId: createPayment
       security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -1361,8 +1364,8 @@ paths:
             schema:
               $ref: '#/components/schemas/PaymentCreate'
       responses:
-        '201':
-          description: Created
+        '200':
+          description: OK（统一 envelope，与运行时一致）
           content:
             application/json:
               schema:

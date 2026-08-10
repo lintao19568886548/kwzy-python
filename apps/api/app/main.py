@@ -29,7 +29,7 @@ from app.modules.collection.interface.api import router as collection_router
 async def lifespan(_: FastAPI):
     # Ensure step1 tables exist when using create_all fallback
     settings = get_settings()
-    if settings.app_env in {"local", "test"}:
+    if settings.app_env in {"local", "test"}:  # normalized lowercase by Settings
         from app.infrastructure.database.session import create_all_tables
 
         create_all_tables()

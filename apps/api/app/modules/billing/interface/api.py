@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Header, Query
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database.session import get_db
@@ -59,10 +59,14 @@ def update_bill(bill_id: int, body: BillUpdate, svc: BillService = Depends(_svc)
 
 
 @router.post("/bills/{bill_id}/issue")
-def issue_bill(bill_id: int, svc: BillService = Depends(_svc)) -> dict:
+def issue_bill(
+    bill_id: int,
+    svc: BillService = Depends(_svc),
+    idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
+) -> dict:
     """功能说明：签发账单。"""
 
-    return ok(svc.issue(bill_id), message="issued")
+    return ok(svc.issue(bill_id, idempotency_key=idempotency_key), message="issued")
 
 
 @router.post("/bills/{bill_id}/void")

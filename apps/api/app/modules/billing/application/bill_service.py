@@ -44,8 +44,8 @@ class BillService:
         self.parties = PartyRepository(session, ctx)
         self.audit = AuditRecorder(session, ctx)
 
-    def _require(self, bill_id: int):
-        m = self.bills.get_by_id(bill_id)
+    def _require(self, bill_id: int, *, for_update: bool = False):
+        m = self.bills.get_by_id(bill_id, for_update=for_update)
         if m is None:
             raise AppError("账单不存在", code="BILL_NOT_FOUND", status_code=404)
         return m
@@ -170,7 +170,17 @@ class BillService:
         dup = self.bills.find_duplicate_period(party_id, ps, pe)
         if dup:
             raise AppError("同期账单已存在", code="BILL_DUPLICATE_PERIOD", status_code=409)
-        bill_no = (data.get("bill_no") or "").strip() or f"B{ps.strftime('%Y%m')}{self.bills.next_seq():04d}"
+        from app.infrastructure.platform.number_sequence import next_number
+
+        bill_no = (data.get("bill_no") or "").strip()
+        if not bill_no:
+            seq = next_number(
+                self.session,
+                tenant_id=self.ctx.tenant_id,
+                biz_type="BILL",
+                period_key=ps.strftime("%Y%m"),
+            )
+            bill_no = f"B{ps.strftime('%Y%m')}{seq:04d}"
         due = data.get("due_date")
         model = BillMapper.new_model(
             BillEntity(
@@ -232,10 +242,30 @@ class BillService:
         self.session.commit()
         return self.get_bill(bill_id)
 
-    def issue(self, bill_id: int) -> dict[str, Any]:
+    def issue(self, bill_id: int, *, idempotency_key: str | None = None) -> dict[str, Any]:
         if not self.ctx.has_permission("bill:issue"):
             raise AppError("无账单签发权限", code="PERMISSION_DENIED", status_code=403)
-        model = self._require(bill_id)
+        from app.infrastructure.platform.idempotency import (
+            begin_idempotent,
+            complete_idempotent,
+            request_hash,
+        )
+
+        op = "bills.issue"
+        body_hash = request_hash({"bill_id": bill_id})
+        if idempotency_key:
+            cached = begin_idempotent(
+                self.session,
+                tenant_id=self.ctx.tenant_id,
+                user_id=self.ctx.user_id,
+                operation=op,
+                idem_key=idempotency_key,
+                body_hash=body_hash,
+            )
+            if cached is not None:
+                return cached
+
+        model = self._require(bill_id, for_update=True)
         try:
             model.status = assert_transition(model.status, "ISSUED")
         except ValueError as exc:
@@ -251,8 +281,19 @@ class BillService:
             park_id=model.park_id,
             detail={},
         )
+        result = self.get_bill(bill_id)
+        if idempotency_key:
+            complete_idempotent(
+                self.session,
+                tenant_id=self.ctx.tenant_id,
+                operation=op,
+                idem_key=idempotency_key,
+                resource_type="BILL",
+                resource_id=str(bill_id),
+                response=result,
+            )
         self.session.commit()
-        return self.get_bill(bill_id)
+        return result
 
     def void(self, bill_id: int) -> dict[str, Any]:
         if not self.ctx.has_permission("bill:issue"):
@@ -295,10 +336,13 @@ class BillService:
         self.session.commit()
         return self.get_bill(bill_id)
 
-    def apply_payment_delta(self, bill_id: int, delta: Decimal) -> None:
-        """功能说明：收款核销回写 paid_amount 与 status（由 Payment 调用，同事务）。"""
+    def apply_payment_delta(self, bill_id: int, delta: Decimal, *, already_locked: bool = False) -> None:
+        """功能说明：收款核销回写 paid_amount 与 status（由 Payment 调用，同事务）。
 
-        model = self._require(bill_id)
+        PostgreSQL 下对账单行 FOR UPDATE，防止并发丢失更新与超额核销。
+        """
+
+        model = self._require(bill_id, for_update=not already_locked)
         paid = money(Decimal(str(model.paid_amount or 0)) + Decimal(str(delta)))
         if paid < 0:
             raise AppError("核销金额非法", code="ALLOCATION_INVALID", status_code=400)
@@ -310,3 +354,11 @@ class BillService:
         if model.status == "PAID":
             model.overdue_since = None
         self.bills.save(model)
+
+    def lock_bills_ordered(self, bill_ids: list[int]) -> dict[int, Any]:
+        """按 ID 升序锁定多张账单，降低死锁概率。"""
+
+        locked: dict[int, Any] = {}
+        for bid in sorted({int(x) for x in bill_ids}):
+            locked[bid] = self._require(bid, for_update=True)
+        return locked

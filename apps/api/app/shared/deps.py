@@ -1,4 +1,4 @@
-"""FastAPI dependencies."""
+"""FastAPI dependencies — auth fail-closed by default."""
 
 from __future__ import annotations
 
@@ -39,12 +39,13 @@ def get_tenant_context(
 ) -> TenantContext:
     """
     Resolve tenant context from JWT.
-    Local/dev without token: tenant_id=1 with full park access (for step1).
-    Production: requires valid JWT.
+
+    Fail-closed: missing Bearer raises 401 unless explicit local/test
+    ALLOW_ANON_DEV is enabled. Production/staging never allow anonymous.
     """
     settings = get_settings()
     if creds is None or not creds.credentials:
-        if settings.app_env == "production":
+        if not settings.allows_anonymous_dev_identity():
             raise AppError("未登录", code="UNAUTHORIZED", status_code=401)
         return TenantContext(
             tenant_id=1,
@@ -82,7 +83,6 @@ def get_tenant_context(
     )
 
 
-# legacy alias used by old stubs
 def get_current_user(ctx: TenantContext = Depends(get_tenant_context)) -> TenantContext:
     return ctx
 
@@ -103,7 +103,6 @@ def require_permissions(*permission_codes: str) -> Callable[..., TenantContext]:
     return _check
 
 
-# re-export for tests / services
 CurrentUser = TenantContext
 
 

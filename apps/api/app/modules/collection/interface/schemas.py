@@ -17,7 +17,7 @@ class PaymentCreate(BaseModel):
     party_id: int
     amount: Any
     method: str = "TRANSFER"
-    paid_at: Optional[str] = None
+    paid_at: str  # required per OpenAPI / design
     payment_no: Optional[str] = None
     remark: Optional[str] = None
     allocations: list[AllocationIn] = Field(default_factory=list)

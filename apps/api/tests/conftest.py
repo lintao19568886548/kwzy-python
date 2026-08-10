@@ -6,8 +6,11 @@ import os
 os.environ["DATABASE_URL"] = "sqlite+pysqlite:///:memory:"
 os.environ["APP_ENV"] = "test"
 os.environ["DEBUG"] = "false"
+# Explicit local/test anonymous identity for fixtures that omit JWT.
+os.environ["ALLOW_ANON_DEV"] = "true"
 # Test fixture credential only — not a production password
 os.environ["LOCAL_ADMIN_PASSWORD"] = "admin123"
+os.environ["JWT_SECRET"] = "test-jwt-secret-not-for-production"
 
 import pytest
 from fastapi.testclient import TestClient

@@ -25,20 +25,36 @@ class PaymentRepository:
             return stmt.where(Payment.park_id.in_(list(self.ctx.park_ids)))
         return stmt.where(False)
 
-    def list(self, *, offset: int = 0, limit: int = 20, party_id: Optional[int] = None) -> Sequence[Payment]:
+    def list(
+        self,
+        *,
+        offset: int = 0,
+        limit: int = 20,
+        party_id: Optional[int] = None,
+        park_id: Optional[int] = None,
+    ) -> Sequence[Payment]:
         stmt = self._scope(select(Payment))
         if party_id is not None:
             stmt = stmt.where(Payment.party_id == int(party_id))
+        if park_id is not None:
+            stmt = stmt.where(Payment.park_id == int(park_id))
         return list(self.session.scalars(stmt.order_by(Payment.id.desc()).offset(offset).limit(limit)).all())
 
-    def count(self, *, party_id: Optional[int] = None) -> int:
+    def count(self, *, party_id: Optional[int] = None, park_id: Optional[int] = None) -> int:
         vis = self._scope(select(Payment.id))
         if party_id is not None:
             vis = vis.where(Payment.party_id == int(party_id))
+        if park_id is not None:
+            vis = vis.where(Payment.park_id == int(park_id))
         return int(self.session.scalar(select(func.count()).select_from(vis.subquery())) or 0)
 
-    def get_by_id(self, payment_id: int) -> Optional[Payment]:
-        return self.session.scalars(self._scope(select(Payment).where(Payment.id == payment_id))).first()
+    def get_by_id(self, payment_id: int, *, for_update: bool = False) -> Optional[Payment]:
+        stmt = self._scope(select(Payment).where(Payment.id == payment_id))
+        if for_update:
+            dialect = self.session.bind.dialect.name if self.session.bind is not None else ""
+            if dialect == "postgresql":
+                stmt = stmt.with_for_update()
+        return self.session.scalars(stmt).first()
 
     def next_seq(self) -> int:
         n = self.session.scalar(

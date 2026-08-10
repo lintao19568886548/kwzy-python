@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Header, Query
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database.session import get_db
@@ -26,18 +26,28 @@ def list_payments(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=200),
     party_id: Optional[int] = None,
+    park_id: Optional[int] = None,
     svc: PaymentService = Depends(_svc),
 ) -> dict:
     """功能说明：GET /payments 列表。"""
 
-    return ok(svc.list_payments(page=page, page_size=page_size, party_id=party_id))
+    return ok(
+        svc.list_payments(page=page, page_size=page_size, party_id=party_id, park_id=park_id)
+    )
 
 
 @router.post("/payments")
-def create_payment(body: PaymentCreate, svc: PaymentService = Depends(_svc)) -> dict:
+def create_payment(
+    body: PaymentCreate,
+    svc: PaymentService = Depends(_svc),
+    idempotency_key: Optional[str] = Header(default=None, alias="Idempotency-Key"),
+) -> dict:
     """功能说明：POST /payments 收款登记+核销。"""
 
-    return ok(svc.create_payment(body.model_dump()), message="created")
+    return ok(
+        svc.create_payment(body.model_dump(), idempotency_key=idempotency_key),
+        message="created",
+    )
 
 
 @router.get("/payments/{payment_id}", dependencies=[Depends(require_permissions("payment:read"))])
