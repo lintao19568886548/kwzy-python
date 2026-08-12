@@ -194,6 +194,151 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiEnvelopeOk'
 
+  /auth/password:
+    post:
+      tags: [Auth]
+      summary: 修改当前用户密码
+      operationId: authChangePassword
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [old_password, new_password]
+              properties:
+                old_password: { type: string }
+                new_password: { type: string, minLength: 6 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiEnvelopeOk'
+
+  /auth/menus:
+    get:
+      tags: [Auth]
+      summary: 当前用户动态菜单
+      operationId: authMenus
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiEnvelopeOk'
+
+  /system/users:
+    get:
+      tags: [System]
+      summary: 用户列表
+      operationId: systemUsersList
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [System]
+      summary: 创建用户
+      operationId: systemUsersCreate
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+
+  /system/users/{user_id}:
+    put:
+      tags: [System]
+      summary: 更新用户
+      operationId: systemUsersUpdate
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+    delete:
+      tags: [System]
+      summary: 停用用户
+      operationId: systemUsersDisable
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+
+  /system/roles:
+    get:
+      tags: [System]
+      summary: 角色列表
+      operationId: systemRolesList
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [System]
+      summary: 创建角色
+      operationId: systemRolesCreate
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+
+  /system/roles/{role_id}:
+    put:
+      tags: [System]
+      summary: 更新角色
+      operationId: systemRolesUpdate
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: role_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+
+  /system/permissions:
+    get:
+      tags: [System]
+      summary: 权限码字典
+      operationId: systemPermissionsList
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+
+  /system/menus:
+    get:
+      tags: [System]
+      summary: 菜单列表
+      operationId: systemMenusList
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [System]
+      summary: 创建菜单
+      operationId: systemMenusCreate
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+
   /parks:
     get:
       tags: [Parks]

@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import Boolean, ForeignKey, String, UniqueConstraint
+from datetime import datetime
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.database.base import (
@@ -45,6 +47,7 @@ class User(Base, PrimaryKeyMixin, TimestampMixin):
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="ACTIVE")
     home_path: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     all_parks: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    token_version: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     tenant: Mapped["Tenant"] = relationship(back_populates="users")
     park_scopes: Mapped[List["UserParkScope"]] = relationship(back_populates="user")
@@ -149,3 +152,52 @@ class RoleParkScope(Base, PrimaryKeyMixin):
     park_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("parks.id"), nullable=False)
 
     role: Mapped["Role"] = relationship(back_populates="park_scopes")
+
+
+class RefreshToken(Base, PrimaryKeyMixin, TimestampMixin):
+    """Hashed refresh tokens (opaque to clients)."""
+
+    __tablename__ = "refresh_tokens"
+    __table_args__ = (UniqueConstraint("token_hash", name="uk_refresh_token_hash"),)
+
+    tenant_id: Mapped[int] = mapped_column(
+        FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True
+    )
+    user_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=False, index=True)
+    token_hash: Mapped[str] = mapped_column(String(128), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    revoked_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    replaced_by_hash: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+
+
+class Menu(Base, PrimaryKeyMixin, TimestampMixin):
+    """Tenant navigation menu node."""
+
+    __tablename__ = "menus"
+
+    tenant_id: Mapped[int] = mapped_column(
+        FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True
+    )
+    parent_id: Mapped[Optional[int]] = mapped_column(FK_TYPE, ForeignKey("menus.id"), nullable=True)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    path: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+    component: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    icon: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    menu_type: Mapped[str] = mapped_column(String(32), nullable=False, default="MENU")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="ACTIVE")
+    permission_code: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    remark: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+
+class RoleMenu(Base, PrimaryKeyMixin):
+    """Role to menu grant."""
+
+    __tablename__ = "role_menus"
+    __table_args__ = (UniqueConstraint("role_id", "menu_id", name="uk_role_menu"),)
+
+    tenant_id: Mapped[int] = mapped_column(
+        FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True
+    )
+    role_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("roles.id"), nullable=False)
+    menu_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("menus.id"), nullable=False)

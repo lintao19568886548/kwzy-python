@@ -18,8 +18,10 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.security import hash_password
 from app.infrastructure.database.models.identity import (
+    Menu,
     Permission,
     Role,
+    RoleMenu,
     RolePermission,
     Tenant,
     User,
@@ -48,6 +50,12 @@ DEFAULT_PERMISSIONS = (
     ("bill:issue", "签发/作废账单", "billing"),
     ("payment:read", "查看收款登记", "collection"),
     ("payment:write", "登记收款与核销", "collection"),
+    ("identity.user.read", "查看用户", "identity"),
+    ("identity.user.write", "维护用户", "identity"),
+    ("identity.role.read", "查看角色", "identity"),
+    ("identity.role.write", "维护角色", "identity"),
+    ("identity.menu.read", "查看菜单", "identity"),
+    ("identity.menu.write", "维护菜单", "identity"),
 )
 
 
@@ -159,6 +167,73 @@ def ensure_default_tenant(session: Session) -> Tenant | None:
     ).first()
     if user_role is None:
         session.add(UserRole(tenant_id=tenant.id, user_id=user.id, role_id=role.id))
+
+    # 默认导航菜单（幂等按 path）
+    dashboard = session.scalars(
+        select(Menu).where(Menu.tenant_id == tenant.id, Menu.path == "/dashboard")
+    ).first()
+    if dashboard is None:
+        dashboard = Menu(
+            tenant_id=tenant.id,
+            name="工作台",
+            path="/dashboard",
+            component="Dashboard",
+            sort_order=1,
+            menu_type="MENU",
+            status="ACTIVE",
+        )
+        session.add(dashboard)
+        session.flush()
+    system = session.scalars(
+        select(Menu).where(Menu.tenant_id == tenant.id, Menu.path == "/system")
+    ).first()
+    if system is None:
+        system = Menu(
+            tenant_id=tenant.id,
+            name="系统管理",
+            path="/system",
+            component="Layout",
+            sort_order=90,
+            menu_type="DIR",
+            status="ACTIVE",
+        )
+        session.add(system)
+        session.flush()
+        session.add(
+            Menu(
+                tenant_id=tenant.id,
+                parent_id=system.id,
+                name="用户管理",
+                path="/system/users",
+                component="system/Users",
+                sort_order=1,
+                menu_type="MENU",
+                status="ACTIVE",
+                permission_code="identity.user.read",
+            )
+        )
+        session.add(
+            Menu(
+                tenant_id=tenant.id,
+                parent_id=system.id,
+                name="角色管理",
+                path="/system/roles",
+                component="system/Roles",
+                sort_order=2,
+                menu_type="MENU",
+                status="ACTIVE",
+                permission_code="identity.role.read",
+            )
+        )
+
+    # ADMIN 角色绑定全部菜单
+    all_menus = list(session.scalars(select(Menu).where(Menu.tenant_id == tenant.id)).all())
+    for menu in all_menus:
+        link = session.scalars(
+            select(RoleMenu).where(RoleMenu.role_id == role.id, RoleMenu.menu_id == menu.id)
+        ).first()
+        if link is None:
+            session.add(RoleMenu(tenant_id=tenant.id, role_id=role.id, menu_id=menu.id))
 
     session.commit()
     session.refresh(tenant)
