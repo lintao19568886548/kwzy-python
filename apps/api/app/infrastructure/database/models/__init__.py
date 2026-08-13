@@ -31,6 +31,7 @@ from app.infrastructure.database.models.party import (
     PartyRiskEvent,
     PartyRole,
 )
+from app.infrastructure.database.models.workbench import WorkItem
 
 __all__ = [
     "Tenant",
@@ -64,4 +65,5 @@ __all__ = [
     "PaymentAllocation",
     "NumberSequence",
     "IdempotencyKey",
+    "WorkItem",
 ]

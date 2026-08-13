@@ -50,6 +50,8 @@ DEFAULT_PERMISSIONS = (
     ("bill:issue", "签发/作废账单", "billing"),
     ("payment:read", "查看收款登记", "collection"),
     ("payment:write", "登记收款与核销", "collection"),
+    ("work_item:read", "查看工作台待办", "workbench"),
+    ("work_item:write", "维护工作台待办", "workbench"),
     ("identity.user.read", "查看用户", "identity"),
     ("identity.user.write", "维护用户", "identity"),
     ("identity.role.read", "查看角色", "identity"),

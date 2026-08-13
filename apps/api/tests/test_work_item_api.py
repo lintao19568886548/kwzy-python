@@ -1,0 +1,170 @@
+"""Workbench work-items API tests."""
+
+from __future__ import annotations
+
+from app.core.security import create_access_token
+
+
+def _h(*, permissions: list[str] | None = None, park_scope_mode: str = "ALL", park_ids: list | None = None) -> dict:
+    token = create_access_token(
+        subject="admin",
+        claims={
+            "uid": 1,
+            "tenant_id": 1,
+            "permissions": permissions or ["*"],
+            "park_ids": park_ids or [],
+            "park_scope_mode": park_scope_mode,
+        },
+    )
+    return {"Authorization": f"Bearer {token}"}
+
+
+def test_work_item_create_list_complete_reopen(client) -> None:
+    h = _h()
+    park = client.post(
+        "/api/v1/parks", headers=h, json={"name": "待办园", "address": "t"}
+    ).json()["data"]
+
+    created = client.post(
+        "/api/v1/work-items",
+        headers=h,
+        json={
+            "title": "跟进合同续签",
+            "description": "客户本月到期",
+            "park_id": park["id"],
+            "priority": "HIGH",
+            "item_type": "CONTRACT_FOLLOW",
+            "due_at": "2026-08-20T10:00:00",
+        },
+    )
+    assert created.status_code == 200, created.text
+    body = created.json()
+    assert body["code"] == "OK"
+    item = body["data"]
+    assert item["status"] == "OPEN"
+    assert item["priority"] == "HIGH"
+    assert item["source_type"] == "MANUAL"
+    assert item["source_id"].startswith("m-")
+    wid = item["id"]
+
+    listed = client.get("/api/v1/work-items", headers=h, params={"status": "OPEN"})
+    assert listed.status_code == 200
+    data = listed.json()["data"]
+    assert data["total"] >= 1
+    assert any(x["id"] == wid for x in data["items"])
+
+    got = client.get(f"/api/v1/work-items/{wid}", headers=h)
+    assert got.status_code == 200
+    assert got.json()["data"]["title"] == "跟进合同续签"
+
+    done = client.post(f"/api/v1/work-items/{wid}/complete", headers=h)
+    assert done.status_code == 200, done.text
+    assert done.json()["data"]["status"] == "DONE"
+    assert done.json()["data"]["completed_at"] is not None
+    assert done.json()["data"]["completed_by"] == 1
+
+    # idempotent complete
+    again = client.post(f"/api/v1/work-items/{wid}/complete", headers=h)
+    assert again.status_code == 200
+    assert again.json()["data"]["status"] == "DONE"
+
+    reopened = client.post(f"/api/v1/work-items/{wid}/reopen", headers=h)
+    assert reopened.status_code == 200
+    assert reopened.json()["data"]["status"] == "OPEN"
+    assert reopened.json()["data"]["completed_at"] is None
+
+    cancelled = client.post(f"/api/v1/work-items/{wid}/cancel", headers=h)
+    assert cancelled.status_code == 200
+    assert cancelled.json()["data"]["status"] == "CANCELLED"
+
+    # cannot complete cancelled
+    bad = client.post(f"/api/v1/work-items/{wid}/complete", headers=h)
+    assert bad.status_code == 400
+    assert bad.json()["code"] == "WORK_ITEM_STATUS_INVALID"
+
+
+def test_work_item_permission_denied(client) -> None:
+    h = _h(permissions=["park:read"])
+    r = client.get("/api/v1/work-items", headers=h)
+    assert r.status_code == 403
+    assert r.json()["code"] == "PERMISSION_DENIED"
+
+    r2 = client.post(
+        "/api/v1/work-items",
+        headers=h,
+        json={"title": "无权限创建"},
+    )
+    assert r2.status_code == 403
+
+
+def test_work_item_park_scope_denied_on_create(client) -> None:
+    h_all = _h()
+    park = client.post(
+        "/api/v1/parks", headers=h_all, json={"name": "外园", "address": "x"}
+    ).json()["data"]
+
+    h_scoped = _h(
+        permissions=["work_item:read", "work_item:write"],
+        park_scope_mode="LIST",
+        park_ids=[99999],
+    )
+    r = client.post(
+        "/api/v1/work-items",
+        headers=h_scoped,
+        json={"title": "跨园", "park_id": park["id"]},
+    )
+    assert r.status_code == 403
+    assert r.json()["code"] == "PARK_SCOPE_DENIED"
+
+
+def test_work_item_ensure_from_source_idempotent(client, db_session) -> None:
+    """来源幂等 upsert（应用服务内部 API，供事件调用）。"""
+
+    from app.modules.workbench.application.work_item_service import WorkItemService
+    from app.shared.tenant_context import ParkScopeMode, TenantContext
+
+    ctx = TenantContext(
+        tenant_id=1,
+        user_id=1,
+        username="admin",
+        permissions=["*"],
+        park_scope_mode=ParkScopeMode.ALL,
+    )
+    svc = WorkItemService(db_session, ctx)
+    first = svc.ensure_from_source(
+        source_type="BILL",
+        source_id="42",
+        item_type="BILL_UNPAID",
+        title="账单未结清",
+        priority="URGENT",
+    )
+    assert first["status"] == "OPEN"
+    assert first["source_type"] == "BILL"
+    second = svc.ensure_from_source(
+        source_type="BILL",
+        source_id="42",
+        item_type="BILL_UNPAID",
+        title="账单未结清（更新）",
+        priority="HIGH",
+    )
+    assert second["id"] == first["id"]
+    assert second["title"] == "账单未结清（更新）"
+    assert second["priority"] == "HIGH"
+
+    # complete then ensure reopens
+    svc.complete_work_item(int(first["id"]))
+    third = svc.ensure_from_source(
+        source_type="BILL",
+        source_id="42",
+        item_type="BILL_UNPAID",
+        title="账单未结清",
+    )
+    assert third["id"] == first["id"]
+    assert third["status"] == "OPEN"
+
+
+def test_work_item_not_found(client) -> None:
+    h = _h()
+    r = client.get("/api/v1/work-items/999999", headers=h)
+    assert r.status_code == 404
+    assert r.json()["code"] == "WORK_ITEM_NOT_FOUND"
