@@ -2252,6 +2252,64 @@ paths:
       operationId: exportPartiesCsv
       security: [{ bearerAuth: [] }]
       responses: { '200': { description: CSV } }
+
+  /attachments:
+    get:
+      tags: [AI]
+      summary: 附件列表
+      operationId: listAttachments
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [AI]
+      summary: 上传附件
+      operationId: uploadAttachment
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+  /attachments/{attachment_id}/content:
+    get:
+      tags: [AI]
+      summary: 下载附件
+      operationId: downloadAttachment
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: attachment_id, in: path, required: true, schema: { type: integer } }
+      responses: { '200': { description: OK } }
+  /attachments/{attachment_id}:
+    delete:
+      tags: [AI]
+      summary: 软删附件
+      operationId: deleteAttachment
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: attachment_id, in: path, required: true, schema: { type: integer } }
+      responses: { '200': { description: OK } }
+  /approvals/{approval_id}/withdraw:
+    post:
+      tags: [Auth]
+      summary: 撤回审批
+      operationId: withdrawApproval
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: approval_id, in: path, required: true, schema: { type: integer } }
+      responses: { '200': { description: OK } }
+  /approvals/{approval_id}/history:
+    get:
+      tags: [Auth]
+      summary: 审批历史
+      operationId: approvalHistory
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: approval_id, in: path, required: true, schema: { type: integer } }
+      responses: { '200': { description: OK } }
+
+  /integrations/outbox:
+    get:
+      tags: [AI]
+      summary: 集成出站记录
+      operationId: listIntegrationOutbox
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
 components:
   securitySchemes:
     bearerAuth:
@@ -3238,6 +3296,8 @@ components:
         status: { type: string }
         result_meta: { type: object, additionalProperties: true, nullable: true }
         error_message: { type: string, nullable: true }
+
+
 
 
 

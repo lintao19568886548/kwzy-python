@@ -62,6 +62,8 @@ DEFAULT_PERMISSIONS = (
     ("approval:read", "查看审批", "workflow"),
     ("approval:write", "提交审批", "workflow"),
     ("approval:decide", "审批决定", "workflow"),
+    ("attachment:read", "查看附件", "attachment"),
+    ("attachment:write", "上传删除附件", "attachment"),
     ("identity.user.read", "查看用户", "identity"),
     ("identity.user.write", "维护用户", "identity"),
     ("identity.role.read", "查看角色", "identity"),

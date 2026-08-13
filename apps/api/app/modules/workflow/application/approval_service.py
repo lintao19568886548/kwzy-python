@@ -1,4 +1,4 @@
-"""功能说明：最小审批申请服务（PENDING→APPROVED/REJECTED）。"""
+"""功能说明：审批申请/决定/撤回与历史。"""
 
 from __future__ import annotations
 
@@ -44,8 +44,7 @@ class ApprovalService:
         title = str(data.get("title") or "").strip()
         if not biz_type or not biz_id or not title:
             raise AppError("biz_type/biz_id/title 必填", code="VALIDATION_ERROR", status_code=400)
-        existing = self.repo.get_by_biz(biz_type, biz_id)
-        if existing is not None:
+        if self.repo.get_by_biz(biz_type, biz_id) is not None:
             raise AppError("该业务已存在审批单", code="APPROVAL_DUPLICATE", status_code=409)
         try:
             model = self.repo.create(
@@ -54,6 +53,12 @@ class ApprovalService:
                 biz_id=biz_id,
                 title=title,
                 applicant_user_id=self.ctx.user_id or None,
+                remark=data.get("remark"),
+            )
+            self.repo.add_event(
+                approval_id=int(model.id),
+                action="SUBMIT",
+                actor_user_id=self.ctx.user_id or None,
                 remark=data.get("remark"),
             )
             self.audit.record(
@@ -83,6 +88,12 @@ class ApprovalService:
         model.approver_user_id = self.ctx.user_id or None
         model.decision_remark = remark
         self.repo.save(model)
+        self.repo.add_event(
+            approval_id=int(model.id),
+            action="APPROVE" if approve else "REJECT",
+            actor_user_id=self.ctx.user_id or None,
+            remark=remark,
+        )
         self.audit.record(
             action="approve" if approve else "reject",
             resource_type="APPROVAL",
@@ -92,6 +103,45 @@ class ApprovalService:
         )
         self.session.commit()
         return self._to_dict(model)
+
+    def withdraw(self, approval_id: int, *, remark: Optional[str] = None) -> dict:
+        if not self.ctx.has_permission("approval:write"):
+            raise AppError("无审批撤回权限", code="PERMISSION_DENIED", status_code=403)
+        model = self.repo.get_by_id(approval_id)
+        if model is None:
+            raise AppError("审批单不存在", code="APPROVAL_NOT_FOUND", status_code=404)
+        if model.status != "PENDING":
+            raise AppError("仅待审可撤回", code="APPROVAL_STATUS_INVALID", status_code=400)
+        if model.applicant_user_id and int(model.applicant_user_id) != int(self.ctx.user_id or 0):
+            if not self.ctx.has_permission("approval:decide"):
+                raise AppError("仅申请人可撤回", code="PERMISSION_DENIED", status_code=403)
+        model.status = "WITHDRAWN"
+        self.repo.save(model)
+        self.repo.add_event(
+            approval_id=int(model.id),
+            action="WITHDRAW",
+            actor_user_id=self.ctx.user_id or None,
+            remark=remark,
+        )
+        self.session.commit()
+        return self._to_dict(model)
+
+    def history(self, approval_id: int) -> list[dict]:
+        if not self.ctx.has_permission("approval:read"):
+            raise AppError("无审批查看权限", code="PERMISSION_DENIED", status_code=403)
+        model = self.repo.get_by_id(approval_id)
+        if model is None:
+            raise AppError("审批单不存在", code="APPROVAL_NOT_FOUND", status_code=404)
+        return [
+            {
+                "id": e.id,
+                "action": e.action,
+                "actor_user_id": e.actor_user_id,
+                "remark": e.remark,
+                "created_at": e.created_at.isoformat() if e.created_at else None,
+            }
+            for e in self.repo.list_events(approval_id)
+        ]
 
     def _to_dict(self, m) -> dict[str, Any]:
         return {

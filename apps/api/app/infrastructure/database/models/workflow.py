@@ -13,9 +13,7 @@ from app.infrastructure.database.base import FK_TYPE, Base, PrimaryKeyMixin, Tim
 class ApprovalRequest(Base, PrimaryKeyMixin, TimestampMixin):
     __tablename__ = "approval_requests"
     __table_args__ = (
-        UniqueConstraint(
-            "tenant_id", "biz_type", "biz_id", name="uk_approval_biz"
-        ),
+        UniqueConstraint("tenant_id", "biz_type", "biz_id", name="uk_approval_biz"),
     )
 
     tenant_id: Mapped[int] = mapped_column(
@@ -32,3 +30,15 @@ class ApprovalRequest(Base, PrimaryKeyMixin, TimestampMixin):
     approver_user_id: Mapped[Optional[int]] = mapped_column(FK_TYPE, ForeignKey("users.id"))
     remark: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     decision_remark: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+
+class ApprovalEvent(Base, PrimaryKeyMixin, TimestampMixin):
+    __tablename__ = "approval_events"
+
+    tenant_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("tenants.id"), nullable=False)
+    approval_id: Mapped[int] = mapped_column(
+        FK_TYPE, ForeignKey("approval_requests.id"), nullable=False, index=True
+    )
+    action: Mapped[str] = mapped_column(String(32), nullable=False)
+    actor_user_id: Mapped[Optional[int]] = mapped_column(FK_TYPE, ForeignKey("users.id"))
+    remark: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

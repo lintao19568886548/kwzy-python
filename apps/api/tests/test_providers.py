@@ -6,11 +6,15 @@ from app.infrastructure.platform.providers import (
     FakeNotificationProvider,
     FakeSmsProvider,
     InMemoryFileStorage,
+    LocalDiskFileStorage,
     NotifyMessage,
     ProductionSmsProvider,
+    ProductionWeChatNotifyProvider,
     SmsMessage,
+    get_file_storage,
     get_sms_provider,
 )
+from pathlib import Path
 
 
 def test_fake_sms_idempotent() -> None:
@@ -44,3 +48,25 @@ def test_notify_fake() -> None:
     res = n.notify(NotifyMessage(channel="in_app", subject="hi", body="x", user_id=1))
     assert res["ok"] is True
     assert len(n.messages) == 1
+
+
+def test_wechat_production_fail_closed() -> None:
+    p = ProductionWeChatNotifyProvider("", "")
+    r = p.notify(NotifyMessage(channel="wechat", subject="s", body="b"))
+    assert r["ok"] is False
+
+
+def test_local_disk_storage(tmp_path: Path) -> None:
+    s = LocalDiskFileStorage(str(tmp_path))
+    s.put_bytes(object_key="a/b.txt", data=b"xyz")
+    assert s.get_bytes("a/b.txt") == b"xyz"
+    try:
+        s.put_bytes(object_key="../x.txt", data=b"no")
+        assert False, "should reject path escape"
+    except ValueError:
+        pass
+
+
+def test_get_file_storage_auto_local() -> None:
+    s = get_file_storage(app_env="test", provider="auto", local_root="./data/t")
+    assert isinstance(s, LocalDiskFileStorage)

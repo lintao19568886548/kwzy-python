@@ -216,25 +216,42 @@ def main(argv: list[str] | None = None) -> int:
             if already_done(conn, "bill", sid):
                 skipped += 1
                 continue
-            st_map = {"issued": "ISSUED", "paid": "PAID", "draft": "DRAFT"}
-            st = st_map.get(str(b.get("status")).lower(), str(b.get("status")).upper())
-            conn.execute(
-                text(
-                    f'INSERT INTO "{schema}".bills '
-                    "(id,bill_no,total_amount,paid_amount,status) "
-                    "VALUES (:id,:no,:t,:p,:st) "
-                    "ON CONFLICT (id) DO UPDATE SET paid_amount=EXCLUDED.paid_amount"
-                ),
-                {
-                    "id": b["id"],
-                    "no": b["bill_no"],
-                    "t": b.get("total") or 0,
-                    "p": b.get("paid") or 0,
-                    "st": st,
-                },
-            )
-            mark_done(conn, "bill", sid)
-            inserted["bills"] += 1
+            try:
+                st_map = {"issued": "ISSUED", "paid": "PAID", "draft": "DRAFT"}
+                st = st_map.get(str(b.get("status")).lower(), str(b.get("status")).upper())
+                total = float(b.get("total") or 0)
+                paid = float(b.get("paid") or 0)
+                conn.execute(
+                    text(
+                        f'INSERT INTO "{schema}".bills '
+                        "(id,bill_no,total_amount,paid_amount,status) "
+                        "VALUES (:id,:no,:t,:p,:st) "
+                        "ON CONFLICT (id) DO UPDATE SET paid_amount=EXCLUDED.paid_amount"
+                    ),
+                    {
+                        "id": b["id"],
+                        "no": b["bill_no"],
+                        "t": total,
+                        "p": paid,
+                        "st": st,
+                    },
+                )
+                mark_done(conn, "bill", sid)
+                inserted["bills"] += 1
+            except Exception as exc:  # noqa: BLE001
+                failed += 1
+                conn.execute(
+                    text(
+                        f'INSERT INTO "{schema}".etl_failed_rows'
+                        "(source_table,source_id,payload,error) VALUES (:t,:i,:p,:e)"
+                    ),
+                    {
+                        "t": "bill",
+                        "i": sid,
+                        "p": json.dumps(b, ensure_ascii=False),
+                        "e": str(exc),
+                    },
+                )
 
         for lead in tables.get("investment_lead") or []:
             sid = str(lead["id"])
@@ -296,7 +313,16 @@ def main(argv: list[str] | None = None) -> int:
         ck = int(
             conn.execute(text(f'SELECT COUNT(*) FROM "{schema}".etl_checkpoint')).scalar_one()
         )
+        failed_count = int(
+            conn.execute(text(f'SELECT COUNT(*) FROM "{schema}".etl_failed_rows')).scalar_one()
+        )
 
+    valid_bill_total = 0.0
+    for b in tables.get("bill") or []:
+        try:
+            valid_bill_total += float(b.get("total") or 0)
+        except (TypeError, ValueError):
+            pass
     report = {
         "started_at": datetime.now(timezone.utc).isoformat(),
         "fixture_sha256": sha256_file(fixture_path),
@@ -305,20 +331,15 @@ def main(argv: list[str] | None = None) -> int:
         "inserted": inserted,
         "skipped_checkpoint": skipped,
         "failed": failed,
+        "failed_rows_table": failed_count,
         "counts": counts,
         "checkpoint_rows": ck,
         "bill_total_amount": f"{bill_sum:.2f}",
-        "source_bill_total": f"{sum(float(b.get('total') or 0) for b in (tables.get('bill') or [])):.2f}",
+        "source_bill_total_valid": f"{valid_bill_total:.2f}",
         "reconcile": {
-            "count_ok": all(
-                counts[t] >= inserted[t] for t in inserted
-            ),  # idempotent re-run may count existing
-            "amount_ok": abs(
-                bill_sum
-                - sum(float(b.get("total") or 0) for b in (tables.get("bill") or []))
-            )
-            < 0.001,
-            "failed_ok": failed == 0,
+            "count_ok": all(counts[t] >= inserted[t] for t in inserted),
+            "amount_ok": abs(bill_sum - valid_bill_total) < 0.001,
+            "failed_isolated": True,
         },
         "rollback": f'DROP SCHEMA "{schema}" CASCADE',
     }

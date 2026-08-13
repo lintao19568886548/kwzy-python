@@ -105,6 +105,7 @@ def test_step1_runtime_paths_covered_by_openapi() -> None:
         "/system/org-units",
         "/system/params",
         "/approvals",
+        "/attachments",
     )
     for marker in required_markers:
         assert any(marker in p for p in paths) or any(
