@@ -69,9 +69,9 @@
 - [x] 8.1 Update OpenAPI YAML and runtime contract tests for spatial/version/rent-control APIs
 - [x] 8.2 Add Playwright primary path for park selection, hierarchy, matrix/list, detail and vacant split/merge
 - [x] 8.3 Add Playwright permission denial, tablet keyboard and failure-state scenarios with no skips
-- [ ] 8.4 Pass backend full tests, frontend lint/typecheck/unit/build and browser E2E
-- [ ] 8.5 Pass PostgreSQL migration, asset ETL, backup restore, secrets, diff and OpenSpec strict gates
-- [ ] 8.6 Update the four controlling rebuild documents with exact commit/report evidence and truthful blockers
+- [x] 8.4 Pass backend full tests, frontend lint/typecheck/unit/build and browser E2E
+- [x] 8.5 Pass PostgreSQL migration, asset ETL, backup restore, secrets, diff and OpenSpec strict gates
+- [x] 8.6 Update the four controlling rebuild documents with exact commit/report evidence and truthful blockers
 - [ ] 8.7 Commit and push a clean non-force non-production checkpoint
 
 ## Non-goals

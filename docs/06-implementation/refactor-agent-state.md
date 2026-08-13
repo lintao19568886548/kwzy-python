@@ -4,15 +4,15 @@
 
 | 字段 | 当前值 |
 | --- | --- |
-| 更新时间 | 2026-08-13 17:15（Asia/Shanghai） |
+| 更新时间 | 2026-08-13 18:05（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `main` |
-| 已验证 HEAD | `0c8d5c5641ef3ae7a718e3dcedb0cfddc342c49a` |
-| 远程同步 | Identity 实现检查点 `HEAD == origin/main`（写本文前已核对） |
-| 工作树 | 本次精确证据回填为 documentation-only，待提交 |
-| Alembic | 唯一 head `h4c02d7e9a86` |
-| 当前阶段 | Identity/System/Admin 本地可执行项闭合；转入资产与租控纵切 |
-| 当前 OpenSpec | `complete-identity-system-admin`；本地可做项接近闭合，真实旧数据项保持外部门禁 |
+| 已验证 HEAD | `b25eb079655d8d3417fc7a40d3b8741f36ea0698` |
+| 远程同步 | 验收时 `origin/main=6d1264cf1e434b1cab65f88ab7a29e4489930555`；资产代码与证据提交待非强推送 |
+| 工作树 | 精确证据与 OpenSpec 任务状态回填中；仅文档变化 |
+| Alembic | 唯一 head `i5d13e8f0b97` |
+| 当前阶段 | 资产与租控纵切本地验收通过；收口证据/归档后转招商 CRM |
+| 当前 OpenSpec | `implement-asset-rent-control-v2` 收口中；`complete-identity-system-admin` 的真实旧数据项保持外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -32,39 +32,46 @@
 - [x] 完成合成 Identity 用户/角色/菜单/授权关系的 dry-run、首次 apply、幂等复跑、对账与 rollback 演练。
 - [x] 提交并推送 `0c8d5c5 feat: harden identity and system administration`。
 - [x] 在 clean `0c8d5c5` 上复跑包含 Identity ETL 的 19 项全量门禁，19/19 exit 0。
+- [x] 完成 Park→AREA/BUILDING/FLOOR 空间树及同园区、父子类型、同级编码、循环和依赖保护。
+- [x] 完成出租单元 current-only 版本链、乐观锁、结构版本、拆分/合并、血缘与 Lease 占用并发串行化。
+- [x] 完成租控摘要、矩阵/列表、详情下钻及 PC 空间/单元管理工作台，并完成真实浏览器视觉检查。
+- [x] 完成资产字段映射、旧接口处置和独立 schema 合成 ETL 的 dry/apply/idempotency/reconcile/rollback。
+- [x] 提交 `b25eb07 feat: implement asset rent control v2`，并在该 clean SHA 上复跑 20 项全量门禁，20/20 exit 0。
 
 ## 最新机器证据
 
 | 项 | 结果 |
 | --- | --- |
-| 精确提交报告 | `infra/local-staging/out/acceptance_20260813_171242.json`（gitignored，本机），19/19 PASS |
-| 时间/提交 | 2026-08-13 17:07:04–17:12:42 +08:00；337884 ms；`0c8d5c5641ef3ae7a718e3dcedb0cfddc342c49a` |
-| PostgreSQL 16 | fresh base→`h4c02d7e9a86` PASS；head→-1→head PASS |
-| pytest | 143 passed，1 dependency deprecation warning |
+| 精确提交报告 | `infra/local-staging/out/acceptance_20260813_180435.json`（gitignored，本机），20/20 PASS |
+| 时间/提交 | 2026-08-13 17:59:30–18:04:35 +08:00；305563 ms；`b25eb079655d8d3417fc7a40d3b8741f36ea0698` |
+| PostgreSQL 16 | fresh base→`i5d13e8f0b97` PASS；head→-1→head PASS |
+| pytest | 151 passed，1 dependency deprecation warning |
 | 前端 | lint PASS；typecheck PASS；Vitest 4 passed；production build PASS |
-| Playwright | 25 passed / 0 failed / 0 skipped；含 cookie/session 和完整 System Admin 管理链 |
-| OpenAPI | 3 contract tests + YAML strict PASS；运行时 87 paths / 122 operations |
-| OpenSpec | strict 32 passed / 0 failed |
-| ETL | core fast + acceptance PASS；Identity 独立 6 表/关系 dry/apply/idempotency/reconcile/rollback PASS；真实旧数据未演练 |
-| 备份恢复 | PASS，dump 838139 bytes，restore 47 tables |
-| 扩展 secrets scan | PASS，496 tracked/untracked non-ignored files |
-| runner SHA256 | `B56FD0AF9BA9B6AC0BE0220AA91C28EC2DE6719D65890722EB66E584A3EA4C71` |
+| Playwright | 28 passed / 0 failed / 0 skipped；新增租控主链、只读/失败态和平板键盘场景 |
+| OpenAPI | 3 contract tests + YAML strict PASS；运行时 104 paths / 142 operations |
+| OpenSpec | strict 33 passed / 0 failed |
+| ETL | core fast + acceptance、Identity、Asset 均 PASS；Asset 为 4 nodes/4 units/2 lineages，面积 280/180/40，对账零孤儿零重复并回滚干净；真实旧数据未演练 |
+| 备份恢复 | PASS，dump 850221 bytes，restore 48 tables |
+| 扩展 secrets scan | PASS，518 tracked/untracked non-ignored files |
+| runner SHA256 | `6B192E6DBA9ACABC6220694CB0C7AE36A511A0719D1072CB956D676CF72A7C88` |
 
 ## 已确认的产品级阻塞
 
 - `apps/employee-mobile` 不存在；员工移动端未实现。
 - `apps/tenant-miniprogram` 不存在；租户微信小程序未实现。
 - `analytics`、`ai_assist`、`finance`、`tenant_ops` 仍是未挂载的空响应或 stub，不能计为能力。
-- 资产版本链、完整 CRM/锁房、合同变更链、自动计费/对账催缴、IoT/巡检、HR/供应链、完整驾驶舱均未闭环。
+- 资产与租控本次定义范围已闭合；集团层、GIS/CAD/BIM 地图与更深组合经营分析仍未实现。
+- 完整 CRM/锁房、合同变更链、自动计费/对账催缴、IoT/巡检、HR/供应链、完整驾驶舱均未闭环。
 - 外部短信/微信/邮件/OSS/支付/签章/发票/IoT 无真实凭据，生产联调均 `NOT_LIVE`。
 - ETL 只验证合成 fixture；缺少经授权的脱敏旧库快照、字段闭合签字和新旧结果对账。
 - 无登记的远程预发环境；性能基线、容灾/监控/告警和生产 Runbook 尚未完成。
 
 ## 下一恢复点
 
-1. 提交并推送本次 documentation-only 证据回填。
-2. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档。
-3. 建立并实施下一条资产与租控纵切；继续沿主路线图推进三端和全业务闭环。
+1. 提交并推送本次资产代码与 documentation-only 证据回填，核对 `HEAD == origin/main`。
+2. 勾选 8.7 后同步主规格并归档 `implement-asset-rent-control-v2`；严格校验并再次非强推送。
+3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档。
+4. 建立并实施招商 CRM 纵切；继续沿主路线图推进三端和全业务闭环。
 
 ## 不可变安全约束
 
