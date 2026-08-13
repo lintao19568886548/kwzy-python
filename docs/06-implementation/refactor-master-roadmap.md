@@ -1,7 +1,7 @@
 # 瞰维智管 V2 全量重建主路线图
 
-> 更新时间：2026-08-13 17:00（Asia/Shanghai）
-> 当前稳定基线：`main@d9c0b0b1a35a3a25dd205d765ef2e7f36e5c74e6`；Identity 候选工作树待提交
+> 更新时间：2026-08-13 17:15（Asia/Shanghai）
+> 当前已验证基线：`main@0c8d5c5641ef3ae7a718e3dcedb0cfddc342c49a`
 > 总体状态：**IN_PROGRESS — 核心样板纵切本地 PASS，不等于 V2 全产品完成**
 
 ## 1. 权威顺序与恢复协议
@@ -12,8 +12,8 @@
 
 ## 2. 当前真实基线
 
-- 已有：FastAPI 模块化单体、PostgreSQL 16/Alembic、Vue 3 PC 管理端、核心身份/园区/Party/合同/账单/收款/待办/线索/简版工单与催缴案件；Identity 候选补齐安全会话、二次验证和授权管理闭环。
-- 已验证候选：PG16 fresh upgrade、downgrade/upgrade、143 pytest、4 Vitest、25 Playwright、OpenAPI strict、OpenSpec strict、core/Identity fixture ETL、备份恢复、secrets scan；最终整套报告待行尾清理后重跑。
+- 已有：FastAPI 模块化单体、PostgreSQL 16/Alembic、Vue 3 PC 管理端、核心身份/园区/Party/合同/账单/收款/待办/线索/简版工单与催缴案件；Identity 已补齐安全会话、二次验证和授权管理的本地核心闭环。
+- 已验证 `0c8d5c5`：19/19 门禁，PG16 fresh upgrade/down-up、143 pytest、4 Vitest、25 Playwright、OpenAPI/OpenSpec strict、core/Identity fixture ETL、47 表恢复、496 文件 secrets scan 均通过。
 - 未拥有：员工移动端、租户微信小程序、统一资产层级与出租单元版本链、完整合同变更链、自动计费/到账匹配、设备巡检/IoT、完整经营驾驶舱、HR/供应链、真实 AI 业务能力和生产外部联调。
 - 迁移现状：只有合成 fixture 的工具演练；未获得旧生产库授权，也未完成脱敏真实快照演练。
 

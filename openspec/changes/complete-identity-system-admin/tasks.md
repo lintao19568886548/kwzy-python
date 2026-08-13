@@ -71,9 +71,9 @@
 - [x] 7.2 Pass Alembic unique-head, base-to-head and one-step down/up checks for new schema
 - [x] 7.3 Pass PC Playwright system-admin and authentication/session scenarios with no skips
 - [x] 7.4 Update OpenAPI/YAML contracts and pass strict contract validation
-- [ ] 7.5 Update the four controlling rebuild documents with exact commit/test evidence and truthful blockers
+- [x] 7.5 Update the four controlling rebuild documents with exact commit/test evidence and truthful blockers
 - [x] 7.6 Pass lint, typecheck, build, secrets scan and `openspec validate --all --strict`
-- [ ] 7.7 Commit and push a clean non-force checkpoint; do not deploy production
+- [x] 7.7 Commit and push a clean non-force checkpoint; do not deploy production
 
 ## Non-goals for this change
 

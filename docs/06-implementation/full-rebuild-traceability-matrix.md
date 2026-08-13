@@ -1,7 +1,7 @@
 # 瞰维智管 V2 全系统重建追踪矩阵
 
-> 更新时间：2026-08-13 17:00（Asia/Shanghai）
-> 稳定被测代码：`d9c0b0b1a35a3a25dd205d765ef2e7f36e5c74e6`；Identity 候选工作树待提交与最终复跑
+> 更新时间：2026-08-13 17:15（Asia/Shanghai）
+> 被测代码：`0c8d5c5641ef3ae7a718e3dcedb0cfddc342c49a`；报告 `acceptance_20260813_171242.json`，19/19 PASS
 > 结论：**核心样板纵切本地 PASS；V2 全产品仍为 BLOCKED。**
 
 ## 1. 状态定义
@@ -24,8 +24,8 @@
 | PC | `apps/web`：12 个鉴权业务页面，另有 login/forbidden | 没有用户要求的全产品导航和多角色工作台 |
 | 员工移动端 | 不存在 `apps/employee-mobile` | `NOT_STARTED` |
 | 租户小程序 | 不存在 `apps/tenant-miniprogram` | `NOT_STARTED` |
-| 数据库 | PostgreSQL 16；Identity 候选 Alembic 唯一 head `h4c02d7e9a86` | fresh upgrade + down/up 已验证 |
-| 自动化 | Identity 候选 143 pytest、4 Vitest、25 Playwright、32 OpenSpec strict | 证明当前窄范围，不外推为全产品完成 |
+| 数据库 | PostgreSQL 16；Alembic 唯一 head `h4c02d7e9a86` | fresh upgrade + down/up 已验证 |
+| 自动化 | 143 pytest、4 Vitest、25 Playwright、32 OpenSpec strict，496 文件 secrets scan | 证明当前窄范围，不外推为全产品完成 |
 | 迁移 | core fixture fast/acceptance + Identity 六表/关系 dry/apply/idempotency/reconcile/rollback | 无旧生产连接，无真实脱敏快照对账 |
 
 ## 3. 产品端追踪

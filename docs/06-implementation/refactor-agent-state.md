@@ -4,14 +4,14 @@
 
 | 字段 | 当前值 |
 | --- | --- |
-| 更新时间 | 2026-08-13 17:00（Asia/Shanghai） |
+| 更新时间 | 2026-08-13 17:15（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `main` |
-| 已验证 HEAD | `d9c0b0b1a35a3a25dd205d765ef2e7f36e5c74e6` |
-| 远程同步 | `HEAD == origin/main`（写本文前已核对） |
-| 工作树 | Identity/System/Admin 纵切候选变更尚待提交 |
-| Alembic | 候选唯一 head `h4c02d7e9a86` |
-| 当前阶段 | Identity/System/Admin 核心纵切收口；V2 全量仍持续推进 |
+| 已验证 HEAD | `0c8d5c5641ef3ae7a718e3dcedb0cfddc342c49a` |
+| 远程同步 | Identity 实现检查点 `HEAD == origin/main`（写本文前已核对） |
+| 工作树 | 本次精确证据回填为 documentation-only，待提交 |
+| Alembic | 唯一 head `h4c02d7e9a86` |
+| 当前阶段 | Identity/System/Admin 本地可执行项闭合；转入资产与租控纵切 |
 | 当前 OpenSpec | `complete-identity-system-admin`；本地可做项接近闭合，真实旧数据项保持外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
@@ -30,13 +30,15 @@
 - [x] 完成用户/角色/菜单/园区授权的事务审计、跨租户校验、会话吊销和 PC 管理体验。
 - [x] 发布 74 条旧 Identity 接口处置表与字段映射，禁止把未替代长尾接口记为完成。
 - [x] 完成合成 Identity 用户/角色/菜单/授权关系的 dry-run、首次 apply、幂等复跑、对账与 rollback 演练。
+- [x] 提交并推送 `0c8d5c5 feat: harden identity and system administration`。
+- [x] 在 clean `0c8d5c5` 上复跑包含 Identity ETL 的 19 项全量门禁，19/19 exit 0。
 
 ## 最新机器证据
 
 | 项 | 结果 |
 | --- | --- |
-| 稳定基线报告 | `infra/local-staging/out/acceptance_20260813_160036.json`（gitignored，本机），18/18 PASS |
-| Identity 候选报告 | `infra/local-staging/out/acceptance_20260813_165323.json`；功能门禁全绿，仅文档行尾检查失败，待清理后整套复跑 |
+| 精确提交报告 | `infra/local-staging/out/acceptance_20260813_171242.json`（gitignored，本机），19/19 PASS |
+| 时间/提交 | 2026-08-13 17:07:04–17:12:42 +08:00；337884 ms；`0c8d5c5641ef3ae7a718e3dcedb0cfddc342c49a` |
 | PostgreSQL 16 | fresh base→`h4c02d7e9a86` PASS；head→-1→head PASS |
 | pytest | 143 passed，1 dependency deprecation warning |
 | 前端 | lint PASS；typecheck PASS；Vitest 4 passed；production build PASS |
@@ -45,7 +47,8 @@
 | OpenSpec | strict 32 passed / 0 failed |
 | ETL | core fast + acceptance PASS；Identity 独立 6 表/关系 dry/apply/idempotency/reconcile/rollback PASS；真实旧数据未演练 |
 | 备份恢复 | PASS，dump 838139 bytes，restore 47 tables |
-| secrets scan | PASS，483 tracked files |
+| 扩展 secrets scan | PASS，496 tracked/untracked non-ignored files |
+| runner SHA256 | `B56FD0AF9BA9B6AC0BE0220AA91C28EC2DE6719D65890722EB66E584A3EA4C71` |
 
 ## 已确认的产品级阻塞
 
@@ -59,10 +62,9 @@
 
 ## 下一恢复点
 
-1. 清理总控 Markdown 行尾并在 clean PostgreSQL 16 上复跑含 Identity ETL 的全量门禁。
-2. 提交、推送 Identity/System/Admin 非生产检查点；把报告与精确 commit 回填四份总控文档。
-3. `complete-identity-system-admin` 的真实 schema dump 和旧密码样本保持 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充。
-4. 建立并实施下一条资产与租控纵切；继续沿主路线图推进三端和全业务闭环。
+1. 提交并推送本次 documentation-only 证据回填。
+2. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档。
+3. 建立并实施下一条资产与租控纵切；继续沿主路线图推进三端和全业务闭环。
 
 ## 不可变安全约束
 

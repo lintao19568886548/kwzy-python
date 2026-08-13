@@ -1,7 +1,7 @@
 # 瞰维智管 V2 重建验收状态
 
-> 更新时间：2026-08-13 17:00（Asia/Shanghai）
-> 结论：**稳定核心样板纵切本地验收通过；Identity 候选功能门禁通过、最终整套报告待复跑；V2 全量重建未完成。**
+> 更新时间：2026-08-13 17:15（Asia/Shanghai）
+> 结论：**Identity/System/Admin 本地可执行范围在精确提交上验收通过；V2 全量重建未完成。**
 > 本文撤销把旧 Java 代码级替代、全前端替代或全系统重建写成 COMPLETE 的历史表述。
 
 ## 1. 已验证提交与复现证据
@@ -9,35 +9,34 @@
 | 项 | 值 |
 | --- | --- |
 | 分支 | `main` |
-| 被测 HEAD | `d9c0b0b1a35a3a25dd205d765ef2e7f36e5c74e6` |
+| 被测 HEAD | `0c8d5c5641ef3ae7a718e3dcedb0cfddc342c49a` |
 | 被测时远程 | `HEAD == origin/main` |
 | 被测时工作树 | clean |
-| Identity 候选 Alembic head | `h4c02d7e9a86` |
+| Alembic 唯一 head | `h4c02d7e9a86` |
 | 验收脚本 | `infra/local-staging/run_full_acceptance.ps1` |
-| 脚本 SHA256 | `BBA0FE42D41F59AFE8D5D98BC3FA8FBE07358688799D9C20E29AB2AA476BE27C` |
-| 机器报告 | `infra/local-staging/out/acceptance_20260813_160036.json`（gitignored，本机） |
-| 开始/结束 | 2026-08-13 15:55:31 / 16:00:36 +08:00 |
-| 总耗时 | 305170 ms（约 5m05s） |
-| 稳定基线总结果 | 18 steps / 18 exit 0 |
-| Identity 候选报告 | `acceptance_20260813_165323.json`：143 pytest、25 Playwright 等功能门禁通过；仅 `git diff --check` 因本总控文档行尾失败 |
+| 脚本 SHA256 | `B56FD0AF9BA9B6AC0BE0220AA91C28EC2DE6719D65890722EB66E584A3EA4C71` |
+| 机器报告 | `infra/local-staging/out/acceptance_20260813_171242.json`（gitignored，本机） |
+| 开始/结束 | 2026-08-13 17:07:04 / 17:12:42 +08:00 |
+| 总耗时 | 337884 ms（约 5m38s） |
+| 总结果 | 19 steps / 19 exit 0 |
 
 ## 2. 已通过的本地门禁
 
 | 门禁 | 结果 |
 | --- | --- |
-| PostgreSQL 16 fresh upgrade | base → `h4c02d7e9a86 (head)` PASS（Identity 候选） |
+| PostgreSQL 16 fresh upgrade | base → `h4c02d7e9a86 (head)` PASS |
 | downgrade/upgrade | head → -1 → head PASS |
-| 后端测试 | 143 passed，1 个依赖弃用 warning（Identity 候选） |
+| 后端测试 | 143 passed，1 个依赖弃用 warning |
 | fixture ETL fast | PASS |
 | fixture ETL acceptance | PASS；64244 OK、1 个预置脏行隔离、PG reconcile=true |
 | Identity ETL | 合成 users/roles/menus/user-role/role-menu/role-park：dry/apply/idempotency/reconcile/rollback PASS |
-| 备份恢复 | PASS；dump 838139 bytes；恢复 47 tables（Identity 候选） |
+| 备份恢复 | PASS；dump 838144 bytes；恢复 47 tables |
 | 前端静态质量 | ESLint PASS；vue-tsc PASS；production build PASS |
 | 前端单测 | 4 passed / 2 files |
 | 浏览器 E2E | 25 passed / 0 failed / 0 skipped；含跨租户、cookie/session、System Admin 与严格 fake SMS/outbox |
 | OpenAPI | 3 contract tests PASS；YAML strict PASS；运行时 87 paths / 122 operations |
-| OpenSpec | 32 passed / 0 failed（Identity 候选；本文更新后再次复跑） |
-| secrets scan | PASS；483 tracked files |
+| OpenSpec | 32 passed / 0 failed |
+| secrets scan | PASS；496 tracked/untracked non-ignored files |
 | 资源清理 | 专用 PG16 容器/网络/卷清理 PASS；不再误杀 8000 无关服务 |
 
 以上证据只证明当前已挂载的核心纵切；不能证明未实现模块、员工移动端、租户小程序或真实外部平台。
@@ -95,5 +94,7 @@ KWZY_OPERATIONS_READINESS=BLOCKED
 KWZY_FULL_REBUILD_ACCEPTANCE=BLOCKED
 KWZY_PRODUCTION_DEPLOYMENT=AWAITING_HUMAN_APPROVAL
 ```
+
+验收脚本的原始结尾标识同样保持真实：`KWZY_IMPLEMENTED_SCOPE_LOCAL_ACCEPTANCE=PASS`、`KWZY_PC_CORE_SLICE_ACCEPTANCE=PASS`、`KWZY_FULL_FRONTEND_REPLACEMENT=BLOCKED_MOBILE_AND_MINIPROGRAM_NOT_IMPLEMENTED`。
 
 这些状态会随每个业务纵切的真实证据更新。只有 `full-rebuild-traceability-matrix.md` 无未处置能力、三端关键旅程全绿、脱敏真实迁移/安全/性能/运维门禁全部成立时，才可输出最终 PASS。
