@@ -168,3 +168,76 @@ def test_work_item_not_found(client) -> None:
     r = client.get("/api/v1/work-items/999999", headers=h)
     assert r.status_code == 404
     assert r.json()["code"] == "WORK_ITEM_NOT_FOUND"
+
+
+def test_bill_issue_opens_and_payment_closes_collect_todo(client) -> None:
+    """账单签发自动开待办；全额核销自动完成；冲正重新打开。"""
+
+    h = _h()
+    park = client.post(
+        "/api/v1/parks", headers=h, json={"name": "待办联动园", "address": "t"}
+    ).json()["data"]
+    party = client.post(
+        "/api/v1/parties",
+        headers=h,
+        json={"name": "待办主体", "party_type": "ORGANIZATION"},
+    ).json()["data"]
+    bill = client.post(
+        "/api/v1/bills",
+        headers=h,
+        json={
+            "park_id": park["id"],
+            "party_id": party["id"],
+            "period_start": "2026-03-01",
+            "period_end": "2026-03-31",
+            "lines": [{"fee_code": "RENT", "quantity": "1", "unit_price": "100"}],
+        },
+    ).json()["data"]
+
+    issued = client.post(f"/api/v1/bills/{bill['id']}/issue", headers=h)
+    assert issued.status_code == 200, issued.text
+
+    todos = client.get(
+        "/api/v1/work-items",
+        headers=h,
+        params={"item_type": "BILL_UNPAID", "status": "OPEN"},
+    ).json()["data"]
+    match = [x for x in todos["items"] if x["source_type"] == "BILL" and x["source_id"] == str(bill["id"])]
+    assert len(match) == 1
+    assert match[0]["status"] == "OPEN"
+    assert "待收款" in match[0]["title"]
+
+    pay = client.post(
+        "/api/v1/payments",
+        headers=h,
+        json={
+            "park_id": park["id"],
+            "party_id": party["id"],
+            "amount": "100",
+            "method": "TRANSFER",
+            "paid_at": "2026-03-15T10:00:00",
+            "allocations": [{"bill_id": bill["id"], "amount": "100"}],
+        },
+    )
+    assert pay.status_code == 200, pay.text
+    pid = pay.json()["data"]["id"]
+
+    done_list = client.get(
+        "/api/v1/work-items",
+        headers=h,
+        params={"item_type": "BILL_UNPAID"},
+    ).json()["data"]
+    match2 = [x for x in done_list["items"] if x["source_id"] == str(bill["id"])]
+    assert len(match2) == 1
+    assert match2[0]["status"] == "DONE"
+
+    rev = client.post(f"/api/v1/payments/{pid}/reverse", headers=h)
+    assert rev.status_code == 200, rev.text
+    reopen = client.get(
+        "/api/v1/work-items",
+        headers=h,
+        params={"item_type": "BILL_UNPAID", "status": "OPEN"},
+    ).json()["data"]
+    match3 = [x for x in reopen["items"] if x["source_id"] == str(bill["id"])]
+    assert len(match3) == 1
+    assert match3[0]["status"] == "OPEN"

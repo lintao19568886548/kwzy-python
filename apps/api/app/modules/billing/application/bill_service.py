@@ -27,9 +27,12 @@ from app.modules.billing.infrastructure.bill_repository import BillLineRepositor
 from app.modules.billing.infrastructure.mappers import BillLineMapper, BillMapper
 from app.modules.park_property.infrastructure.park_repository import ParkRepository
 from app.modules.party.infrastructure.party_repository import PartyRepository
+from app.modules.workbench.application.work_item_service import WorkItemService
 from app.shared.tenant_context import TenantContext
 
 logger = logging.getLogger(__name__)
+
+BILL_COLLECT_ITEM_TYPE = "BILL_UNPAID"
 
 
 class BillService:
@@ -43,6 +46,43 @@ class BillService:
         self.parks = ParkRepository(session, ctx)
         self.parties = PartyRepository(session, ctx)
         self.audit = AuditRecorder(session, ctx)
+        self.work_items = WorkItemService(session, ctx)
+
+    def _open_collect_todo(self, model) -> None:
+        """签发后幂等打开「账单待收款」待办（同事务 flush）。"""
+
+        bill_no = model.bill_no or str(model.id)
+        title = f"账单待收款 {bill_no}"
+        due = None
+        if model.due_date is not None:
+            due = datetime.combine(model.due_date, datetime.min.time()).isoformat()
+        self.work_items.ensure_from_source(
+            source_type="BILL",
+            source_id=str(model.id),
+            item_type=BILL_COLLECT_ITEM_TYPE,
+            title=title,
+            description=f"party_id={model.party_id} open collect",
+            park_id=int(model.park_id) if model.park_id is not None else None,
+            priority="HIGH",
+            due_at=due,
+            commit=False,
+        )
+
+    def _close_collect_todo_paid(self, bill_id: int) -> None:
+        self.work_items.complete_by_source(
+            source_type="BILL",
+            source_id=str(bill_id),
+            item_type=BILL_COLLECT_ITEM_TYPE,
+            commit=False,
+        )
+
+    def _cancel_collect_todo(self, bill_id: int) -> None:
+        self.work_items.cancel_by_source(
+            source_type="BILL",
+            source_id=str(bill_id),
+            item_type=BILL_COLLECT_ITEM_TYPE,
+            commit=False,
+        )
 
     def _require(self, bill_id: int, *, for_update: bool = False):
         m = self.bills.get_by_id(bill_id, for_update=for_update)
@@ -294,6 +334,7 @@ class BillService:
             park_id=model.park_id,
             detail={},
         )
+        self._open_collect_todo(model)
         result = self.get_bill(bill_id)
         if idem_key:
             complete_idempotent(
@@ -320,6 +361,7 @@ class BillService:
             raise AppError(str(exc), code="BILL_STATUS_INVALID", status_code=400) from exc
         model.overdue_since = None
         self.bills.save(model)
+        self._cancel_collect_todo(bill_id)
         self.audit.record(
             action="void",
             resource_type="BILL",
@@ -366,6 +408,10 @@ class BillService:
         model.status = status_from_paid(total, paid, model.status if model.status != "DRAFT" else "ISSUED")
         if model.status == "PAID":
             model.overdue_since = None
+            self._close_collect_todo_paid(bill_id)
+        elif model.status in {"ISSUED", "PARTIALLY_PAID"}:
+            # 冲正或部分未结：重新打开收款待办
+            self._open_collect_todo(model)
         self.bills.save(model)
 
     def lock_bills_ordered(self, bill_ids: list[int]) -> dict[int, Any]:

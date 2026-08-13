@@ -211,7 +211,7 @@ class WorkItemService:
         )
         return self._to_dict(model)
 
-    def complete_work_item(self, work_item_id: int) -> dict[str, Any]:
+    def complete_work_item(self, work_item_id: int, *, commit: bool = True) -> dict[str, Any]:
         if not self.ctx.has_permission("work_item:write"):
             raise AppError("无待办维护权限", code="PERMISSION_DENIED", status_code=403)
         model = self._require(work_item_id, for_update=True)
@@ -230,7 +230,8 @@ class WorkItemService:
             park_id=model.park_id,
             detail={},
         )
-        self.session.commit()
+        if commit:
+            self.session.commit()
         log_business_success(
             logger,
             "待办完成",
@@ -242,7 +243,7 @@ class WorkItemService:
         )
         return self._to_dict(model)
 
-    def cancel_work_item(self, work_item_id: int) -> dict[str, Any]:
+    def cancel_work_item(self, work_item_id: int, *, commit: bool = True) -> dict[str, Any]:
         if not self.ctx.has_permission("work_item:write"):
             raise AppError("无待办维护权限", code="PERMISSION_DENIED", status_code=403)
         model = self._require(work_item_id, for_update=True)
@@ -259,10 +260,11 @@ class WorkItemService:
             park_id=model.park_id,
             detail={},
         )
-        self.session.commit()
+        if commit:
+            self.session.commit()
         return self._to_dict(model)
 
-    def reopen_work_item(self, work_item_id: int) -> dict[str, Any]:
+    def reopen_work_item(self, work_item_id: int, *, commit: bool = True) -> dict[str, Any]:
         if not self.ctx.has_permission("work_item:write"):
             raise AppError("无待办维护权限", code="PERMISSION_DENIED", status_code=403)
         model = self._require(work_item_id, for_update=True)
@@ -279,7 +281,8 @@ class WorkItemService:
             park_id=model.park_id,
             detail={},
         )
-        self.session.commit()
+        if commit:
+            self.session.commit()
         return self._to_dict(model)
 
     def ensure_from_source(
@@ -294,11 +297,13 @@ class WorkItemService:
         priority: str = "MEDIUM",
         assignee_user_id: Optional[int] = None,
         due_at: Any = None,
+        commit: bool = True,
     ) -> dict[str, Any]:
         """功能说明：按业务来源幂等打开/复开待办（供账单/合同等域事件调用）。
 
         不单独校验 work_item:write——调用方须已在自身用例中完成鉴权；
         仍强制 tenant 与 park 存在性。
+        commit=False 时仅 flush，由调用方统一提交（同事务挂接）。
         """
 
         source_type = str(source_type or "").strip()
@@ -339,7 +344,8 @@ class WorkItemService:
                 existing.completed_at = None
                 existing.completed_by = None
             self.items.save(existing)
-            self.session.commit()
+            if commit:
+                self.session.commit()
             return self._to_dict(existing)
 
         try:
@@ -366,9 +372,11 @@ class WorkItemService:
                     "item_type": item_type,
                 },
             )
-            self.session.commit()
+            if commit:
+                self.session.commit()
         except IntegrityError:
-            self.session.rollback()
+            if commit:
+                self.session.rollback()
             # 并发插入：再读一次
             existing = self.items.get_by_source(
                 source_type=source_type,
@@ -383,3 +391,73 @@ class WorkItemService:
                 )
             return self._to_dict(existing)
         return self._to_dict(model)
+
+    def complete_by_source(
+        self,
+        *,
+        source_type: str,
+        source_id: str,
+        item_type: str,
+        commit: bool = True,
+    ) -> Optional[dict[str, Any]]:
+        """按来源完成待办；不存在则静默跳过。"""
+
+        existing = self.items.get_by_source(
+            source_type=source_type,
+            source_id=source_id,
+            item_type=item_type,
+            for_update=True,
+        )
+        if existing is None:
+            return None
+        if existing.status == "DONE":
+            return self._to_dict(existing)
+        if existing.status == "CANCELLED":
+            return self._to_dict(existing)
+        existing.status = "DONE"
+        existing.completed_at = utc_now()
+        existing.completed_by = self.ctx.user_id or None
+        self.items.save(existing)
+        self.audit.record(
+            action="complete",
+            resource_type="WORK_ITEM",
+            resource_id=existing.id,
+            park_id=existing.park_id,
+            detail={"via": "source"},
+        )
+        if commit:
+            self.session.commit()
+        return self._to_dict(existing)
+
+    def cancel_by_source(
+        self,
+        *,
+        source_type: str,
+        source_id: str,
+        item_type: str,
+        commit: bool = True,
+    ) -> Optional[dict[str, Any]]:
+        """按来源取消待办；不存在或已终态则静默跳过。"""
+
+        existing = self.items.get_by_source(
+            source_type=source_type,
+            source_id=source_id,
+            item_type=item_type,
+            for_update=True,
+        )
+        if existing is None:
+            return None
+        if existing.status in {"CANCELLED", "DONE"}:
+            return self._to_dict(existing)
+        existing.status = "CANCELLED"
+        self.items.save(existing)
+        self.audit.record(
+            action="cancel",
+            resource_type="WORK_ITEM",
+            resource_id=existing.id,
+            park_id=existing.park_id,
+            detail={"via": "source"},
+        )
+        if commit:
+            self.session.commit()
+        return self._to_dict(existing)

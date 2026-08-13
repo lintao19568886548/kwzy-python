@@ -21,7 +21,7 @@
 | BP-OPS-001 | 01-old-system-analysis | 运维工单 | 工程 | tenant_ops | STUB | PENDING | SHOULD |
 | BP-AI-001 | 01-old-system-analysis | AI 辅助 | 多角色 | ai_assist | STUB | PENDING | INNOVATION |
 | BP-DASH-001 | 01-old-system-analysis | 经营看板 | 老板/总经理 | analytics | STUB | PENDING | SHOULD |
-| BP-TODO-001 | 01-old-system-analysis/06 | 自动待办闭环 | 多角色 | workbench | PARTIAL（CRUD+来源幂等 ensure；事件驱动聚合未接） | IN_PROGRESS | INNOVATION |
+| BP-TODO-001 | 01-old-system-analysis/06 | 自动待办闭环 | 多角色 | workbench | PARTIAL（CRUD+ensure；账单签发/核销/冲正/作废已挂接） | IN_PROGRESS | INNOVATION |
 | BP-ETL-001 | 03-database | 旧数据迁移工具 | 运维 | platform | MISSING | BLOCKED_FIELD_MAP | MUST |
 
 ## 统计（启动）
