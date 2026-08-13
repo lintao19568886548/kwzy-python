@@ -54,11 +54,16 @@ apps/web/dist/
 *.tsbuildinfo
 
 
+# Local acceptance / ETL / Playwright artifacts (generated, never commit)
+infra/local-staging/out/
 tools/etl/out/
-apps/api/local_staging.db
+apps/web/playwright-report/
+apps/web/test-results/
+apps/web/blob-report/
 playwright-report/
 test-results/
+blob-report/
 
-
+apps/api/local_staging.db
 apps/api/data/attachments/
 
