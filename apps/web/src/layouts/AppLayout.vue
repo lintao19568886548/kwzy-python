@@ -1,39 +1,72 @@
 <script setup lang="ts">
-import { useRouter } from "vue-router";
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 
-function logout() {
-  auth.logout();
-  router.push({ name: "login" });
+type NavItem = { to: string; label: string; testid: string; permission?: string | string[] };
+
+const allNav: NavItem[] = [
+  { to: "/workbench", label: "工作台", testid: "nav-workbench", permission: "work_item:read" },
+  { to: "/todos", label: "待办", testid: "nav-todos", permission: "work_item:read" },
+  { to: "/leads", label: "招商", testid: "nav-leads", permission: "lead:read" },
+  { to: "/work-orders", label: "工单", testid: "nav-work-orders", permission: "work_order:read" },
+  { to: "/parks", label: "园区", testid: "nav-parks", permission: "park:read" },
+  { to: "/parties", label: "主体", testid: "nav-parties", permission: "party:read" },
+  { to: "/leases", label: "合同", testid: "nav-leases", permission: "lease:read" },
+  { to: "/bills", label: "账单", testid: "nav-bills", permission: "bill:read" },
+  { to: "/payments", label: "收款", testid: "nav-payments", permission: "payment:read" },
+  { to: "/collection", label: "催缴", testid: "nav-collection", permission: "collection:read" },
+  { to: "/approvals", label: "审批", testid: "nav-approvals", permission: "approval:read" },
+  {
+    to: "/system",
+    label: "系统",
+    testid: "nav-system",
+    permission: ["identity.user.read", "identity.org.read"],
+  },
+];
+
+const navItems = computed(() =>
+  allNav.filter((item) => {
+    if (!item.permission) return true;
+    return auth.can(item.permission) || auth.can("*");
+  })
+);
+
+const denied = computed(() => route.query.denied === "1");
+
+async function logout() {
+  await auth.logout();
+  await router.push({ name: "login" });
 }
 </script>
 
 <template>
-  <div class="shell">
+  <div class="shell" data-testid="app-shell">
     <aside class="side card">
       <div class="brand">KWZY 园区</div>
-      <nav>
-        <router-link to="/workbench">工作台</router-link>
-        <router-link to="/todos">待办</router-link>
-        <router-link to="/leads">招商</router-link>
-        <router-link to="/work-orders">工单</router-link>
-        <router-link to="/parties">主体</router-link>
-        <router-link to="/leases">合同</router-link>
-        <router-link to="/bills">账单</router-link>
-        <router-link to="/payments">收款</router-link>
-        <router-link to="/collection">催缴</router-link>
-        <router-link to="/approvals">审批</router-link>
-        <router-link to="/system">系统</router-link>
+      <nav data-testid="main-nav">
+        <router-link
+          v-for="item in navItems"
+          :key="item.to"
+          :to="item.to"
+          :data-testid="item.testid"
+        >
+          {{ item.label }}
+        </router-link>
       </nav>
       <div class="side-foot">
-        <div class="muted">{{ auth.username || "已登录" }}</div>
-        <button class="btn-ghost btn" type="button" @click="logout">退出</button>
+        <div class="muted" data-testid="auth-username">{{ auth.username || "已登录" }}</div>
+        <button class="btn-ghost btn" type="button" data-testid="logout-btn" @click="logout">
+          退出
+        </button>
       </div>
     </aside>
     <main class="main">
+      <p v-if="denied" class="error" data-testid="denied-banner">无权限访问目标页面，已重定向</p>
       <router-view />
     </main>
   </div>

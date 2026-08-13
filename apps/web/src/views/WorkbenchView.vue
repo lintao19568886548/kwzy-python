@@ -27,41 +27,41 @@ onMounted(load);
   <section>
     <header class="head">
       <div>
-        <h2>运营工作台</h2>
+        <h2 data-testid="workbench-title">运营工作台</h2>
         <p class="muted">待办、逾期风险与经营信号一屏掌握</p>
       </div>
-      <button class="btn btn-ghost" type="button" @click="load">刷新</button>
+      <button class="btn btn-ghost" type="button" data-testid="workbench-refresh" @click="load">刷新</button>
     </header>
 
     <p v-if="loading" class="muted">加载中…</p>
-    <p v-else-if="error" class="error">{{ error }}</p>
+    <p v-else-if="error" class="error" data-testid="workbench-error">{{ error }}</p>
     <template v-else-if="data">
-      <div class="grid-metrics">
+      <div class="grid-metrics" data-testid="workbench-metrics">
         <div class="card metric">
           <span class="muted">开放待办</span>
-          <strong>{{ data.metrics.open_todos }}</strong>
+          <strong data-testid="metric-open-todos">{{ data.metrics.open_todos }}</strong>
         </div>
         <div class="card metric">
           <span class="muted">已逾期待办</span>
-          <strong>{{ data.metrics.overdue_todos }}</strong>
+          <strong data-testid="metric-overdue-todos">{{ data.metrics.overdue_todos }}</strong>
         </div>
         <div class="card metric">
           <span class="muted">7 日内到期</span>
-          <strong>{{ data.metrics.due_soon_todos }}</strong>
+          <strong data-testid="metric-due-soon">{{ data.metrics.due_soon_todos }}</strong>
         </div>
         <div class="card metric">
           <span class="muted">未结账单</span>
-          <strong>{{ data.metrics.unpaid_bills }}</strong>
+          <strong data-testid="metric-unpaid-bills">{{ data.metrics.unpaid_bills }}</strong>
         </div>
         <div class="card metric">
           <span class="muted">即将到期合同</span>
-          <strong>{{ data.metrics.expiring_contracts }}</strong>
+          <strong data-testid="metric-expiring">{{ data.metrics.expiring_contracts }}</strong>
         </div>
       </div>
 
       <div class="card list">
         <h3>最近待办</h3>
-        <table class="table">
+        <table class="table" data-testid="workbench-todo-table">
           <thead>
             <tr>
               <th>标题</th>
@@ -72,7 +72,7 @@ onMounted(load);
             </tr>
           </thead>
           <tbody>
-            <tr v-for="t in data.recent_todos" :key="t.id">
+            <tr v-for="t in data.recent_todos" :key="t.id" :data-testid="`wb-todo-${t.id}`">
               <td>{{ t.title }}</td>
               <td><span class="badge">{{ t.item_type }}</span></td>
               <td>{{ t.priority }}</td>

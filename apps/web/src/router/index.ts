@@ -13,6 +13,8 @@ import WorkOrdersView from "@/views/WorkOrdersView.vue";
 import SystemAdminView from "@/views/SystemAdminView.vue";
 import CollectionCasesView from "@/views/CollectionCasesView.vue";
 import ApprovalsView from "@/views/ApprovalsView.vue";
+import ParksView from "@/views/ParksView.vue";
+import ForbiddenView from "@/views/ForbiddenView.vue";
 
 const routes: RouteRecordRaw[] = [
   { path: "/login", name: "login", component: LoginView, meta: { public: true } },
@@ -21,6 +23,11 @@ const routes: RouteRecordRaw[] = [
     component: AppLayout,
     children: [
       { path: "", redirect: "/workbench" },
+      {
+        path: "forbidden",
+        name: "forbidden",
+        component: ForbiddenView,
+      },
       {
         path: "workbench",
         name: "workbench",
@@ -51,6 +58,12 @@ const routes: RouteRecordRaw[] = [
         name: "approvals",
         component: ApprovalsView,
         meta: { permission: "approval:read" },
+      },
+      {
+        path: "parks",
+        name: "parks",
+        component: ParksView,
+        meta: { permission: "park:read" },
       },
       {
         path: "parties",
@@ -86,17 +99,27 @@ export const router = createRouter({
   routes,
 });
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore();
+  // Ensure permissions loaded when only token is present (hard navigation / refresh)
+  if (auth.accessToken && auth.permissions.length === 0 && !auth.username) {
+    try {
+      await auth.fetchMe();
+    } catch {
+      auth.clearSession();
+    }
+  }
   if (!to.meta.public && !auth.isAuthed) {
     return { name: "login", query: { redirect: to.fullPath } };
   }
   if (to.name === "login" && auth.isAuthed) {
-    return { name: "workbench" };
+    if (auth.can("work_item:read") || auth.can("*")) return { name: "workbench" };
+    if (auth.can("party:read")) return { name: "parties" };
+    return { name: "forbidden" };
   }
   const perm = to.meta.permission as string | string[] | undefined;
   if (perm && auth.isAuthed && !auth.can(perm) && !auth.can("*")) {
-    return { name: "workbench", query: { denied: "1" } };
+    return { name: "forbidden", query: { denied: "1", from: String(to.fullPath) } };
   }
   return true;
 });
