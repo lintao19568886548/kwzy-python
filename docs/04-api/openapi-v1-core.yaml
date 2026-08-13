@@ -20,6 +20,7 @@ tags:
   - name: Bills
   - name: Payments
   - name: Collection
+  - name: WorkItems
   - name: Leads
   - name: AI
 
@@ -1850,6 +1851,133 @@ paths:
                     type: array
                     items: { type: integer, format: int64 }
 
+  /work-items:
+    get:
+      tags: [WorkItems]
+      summary: 工作台待办列表
+      operationId: listWorkItems
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema: { type: string, enum: [OPEN, DONE, CANCELLED] }
+        - name: park_id
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: assignee_user_id
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: item_type
+          in: query
+          schema: { type: string }
+        - name: mine
+          in: query
+          schema: { type: boolean, default: false }
+          description: 仅当前用户指派
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkItemPage'
+    post:
+      tags: [WorkItems]
+      summary: 人工创建待办
+      operationId: createWorkItem
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkItemCreate'
+      responses:
+        '200':
+          description: OK（统一 envelope）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkItem'
+
+  /work-items/{work_item_id}:
+    get:
+      tags: [WorkItems]
+      summary: 待办详情
+      operationId: getWorkItem
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: work_item_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkItem'
+
+  /work-items/{work_item_id}/complete:
+    post:
+      tags: [WorkItems]
+      summary: 完成待办
+      operationId: completeWorkItem
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: work_item_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkItem'
+
+  /work-items/{work_item_id}/cancel:
+    post:
+      tags: [WorkItems]
+      summary: 取消待办
+      operationId: cancelWorkItem
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: work_item_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkItem'
+
+  /work-items/{work_item_id}/reopen:
+    post:
+      tags: [WorkItems]
+      summary: 重新打开待办
+      operationId: reopenWorkItem
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: work_item_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkItem'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2614,6 +2742,49 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Payment'
+
+    WorkItem:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        tenant_id: { type: integer, format: int64 }
+        park_id: { type: integer, format: int64, nullable: true }
+        item_type: { type: string }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        status: { type: string, enum: [OPEN, DONE, CANCELLED] }
+        priority: { type: string, enum: [LOW, MEDIUM, HIGH, URGENT] }
+        assignee_user_id: { type: integer, format: int64, nullable: true }
+        due_at: { type: string, format: date-time, nullable: true }
+        source_type: { type: string }
+        source_id: { type: string }
+        completed_at: { type: string, format: date-time, nullable: true }
+        completed_by: { type: integer, format: int64, nullable: true }
+        sort_order: { type: integer }
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+    WorkItemCreate:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, maxLength: 255 }
+        description: { type: string, nullable: true }
+        park_id: { type: integer, format: int64, nullable: true }
+        item_type: { type: string, default: MANUAL }
+        priority: { type: string, default: MEDIUM, enum: [LOW, MEDIUM, HIGH, URGENT] }
+        assignee_user_id: { type: integer, format: int64, nullable: true }
+        due_at: { type: string, format: date-time, nullable: true }
+        sort_order: { type: integer, default: 0 }
+    WorkItemPage:
+      type: object
+      properties:
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkItem'
 
     CollectionCase:
       type: object
