@@ -11,9 +11,10 @@
 | --- | ---: | --- |
 | 后端核心主链（Auth/Park/Party/Lease/Bill/Payment） | ~85% | API+测试有，催缴案件/SMS 仍缺 |
 | Identity/System/Admin | ~70% | 会话+用户/角色/菜单 API 有；组织/字典/参数/管理 UI 缺 |
-| Workbench | ~65% | CRUD+账单/合同挂接+summary；定时任务/多角色分配不全 |
-| 旧 Java 全域覆盖 | ~25% | 招商/工单/报表/审批/通知大量未替代 |
-| 前端替换 | ~5% | 本迭代脚手架起步，主旅程未闭合 |
+| Workbench | ~70% | CRUD+账单/合同/线索挂接+summary |
+| Investment leads | ~60% | v1 CRUD+转化+待办；雷达/渠道 DEFER |
+| 旧 Java 全域覆盖 | ~30% | 工单/报表/审批/通知仍大量未替代 |
+| 前端替换 | ~15% | 脚手架+主链列表+招商页；表单/E2E 未全 |
 | 数据映射/ETL | ~10% | 骨架与 dry-run 起步，字段未闭合 |
 | 预发布/生产 | 0% | NOT_EXECUTED |
 
@@ -36,7 +37,7 @@
 | --- | --- |
 | 远程 | `https://github.com/lintao19568886548/kwzy-python.git` |
 | 起点 main | `bc174e5` |
-| Alembic head | `c9a57b2d0f31`（唯一） |
+| Alembic head | `d0b68c3e1a42`（唯一，revises c9a57b2d0f31） |
 | Python | 3.10.11 + apps/api `.venv` |
 | pytest collect | 115 tests（含 skip PG 类） |
 | 最近全量 | ~100 passed / 15 skipped（Workbench 前） |
@@ -55,7 +56,7 @@
 | billing | 02 bill | bill | bill/* | bills* | Bill/BillLine | BillService | /bills* | 骨架 | PARTIAL | test_bill_* | COMPLETE(v1) | REDESIGN | 滞纳金/AI 出账 DEFER |
 | collection | 02 payment | payment | payment/* | payments* | Payment* | PaymentService | /payments* | 骨架 | PARTIAL | test_payment_* | COMPLETE(v1 登记) | REDESIGN | 催缴案件/SMS STUB |
 | workbench | 01 dashboard | dashboard | workbench | work_items | WorkItem | WorkItem+Summary | /work-items /workbench/* | 工作台页 | N/A | test_work_item_* | PARTIAL→IN_PROGRESS | INNOVATION | 定时扫描需运维调度 |
-| investment | 01 招商 | investment | investment/* | leads? | — | stub | stub /leads | 无 | MISSING | 无 | STUB | REDESIGN | 需独立 change |
+| investment | 01 招商 | investment | investment/* | leads | Lead | LeadService | /leads* | LeadsView | PARTIAL | test_lead_api | PARTIAL(v1) | REDESIGN | 雷达/企微 DEFER |
 | tenant_ops | 01 工单 | workorder | ops/* | — | — | stub | stub | 无 | MISSING | 无 | STUB | REDESIGN | 需独立 change |
 | analytics | 01 看板 | dashboard | analytics | — | — | stub | 未挂 main | 无 | MISSING | 无 | STUB | REDESIGN | summary 已在 workbench |
 | finance | 01 财务 | finance | finance | — | — | stub | 未挂 main | 无 | MISSING | 无 | DEFER | DEFER | 与 Bill/Payment 边界需 ADR |

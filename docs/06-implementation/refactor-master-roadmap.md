@@ -25,8 +25,9 @@
 | Phase06 Party/Lease/Bill/Payment | COMPLETE（scoped v1，main） |
 | V2.3.2 Identity 证据 | READY_FOR_HUMAN_REVIEW（artifacts，非实现完成） |
 | Identity 实现 | PARTIAL（会话+用户角色菜单 API） |
-| Workbench | IN_PROGRESS（CRUD+账单/合同+summary） |
-| 前端替换 | NOT_COMPLETE（脚手架起步） |
+| Workbench | PARTIAL（CRUD+账单/合同/线索+summary） |
+| Investment leads | PARTIAL（v1 API+转化，雷达 DEFER） |
+| 前端替换 | NOT_COMPLETE（脚手架+主链/招商列表） |
 | 数据迁移工具 | NOT_READY（骨架起步） |
 | 预发布验收 | NOT_RUN |
 | 生产部署 | NOT_EXECUTED |
