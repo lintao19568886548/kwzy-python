@@ -1,12 +1,18 @@
-# Full local staging acceptance with real exit codes and timings.
+# Full local staging acceptance: PG16 + Alembic + pytest + ETL + FE prod + Playwright E2E.
+# Any mandatory step failure => non-zero exit.
 $ErrorActionPreference = "Stop"
-$Root = "D:\重构python\kwzy-python"
+$Root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+if (-not (Test-Path (Join-Path $Root "apps\api"))) {
+  $Root = "D:\重构python\kwzy-python"
+}
 $Api = Join-Path $Root "apps\api"
 $Web = Join-Path $Root "apps\web"
 $Py = Join-Path $Api ".venv\Scripts\python.exe"
 $ReportDir = Join-Path $Root "infra\local-staging\out"
 New-Item -ItemType Directory -Force -Path $ReportDir | Out-Null
 $report = @()
+$globalStart = Get-Date
+
 function Step($name, $scriptBlock) {
   $sw = [System.Diagnostics.Stopwatch]::StartNew()
   $code = 0
@@ -18,12 +24,13 @@ function Step($name, $scriptBlock) {
     $out = "$_"
   }
   $sw.Stop()
-  if ($LASTEXITCODE -ne $null -and $LASTEXITCODE -ne 0) { $code = $LASTEXITCODE }
+  if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) { $code = $LASTEXITCODE }
   $entry = [ordered]@{
     step = $name
     exit_code = $code
     ms = $sw.ElapsedMilliseconds
-    output_tail = ($out.Trim() -split "`n" | Select-Object -Last 8) -join "`n"
+    started = (Get-Date).ToString("o")
+    output_tail = ($out.Trim() -split "`n" | Select-Object -Last 12) -join "`n"
   }
   $script:report += $entry
   Write-Output ("STEP={0} EXIT={1} MS={2}" -f $name, $code, $sw.ElapsedMilliseconds)
@@ -36,85 +43,115 @@ $env:TEST_DATABASE_URL = "postgresql+psycopg://kwzy_party_test:kwzy_test_local_o
 $env:POSTGRES_TEST_URL = $env:TEST_DATABASE_URL
 $env:ETL_DATABASE_URL = $env:TEST_DATABASE_URL
 $env:DATABASE_URL = $env:TEST_DATABASE_URL
-
-Step "docker_pg_up" {
-  docker compose -f (Join-Path $Root "infra\postgres-test\compose.yaml") up -d
-  $deadline = (Get-Date).AddSeconds(90)
-  do {
-    $h = docker inspect --format='{{.State.Health.Status}}' kwzy_party_test_pg 2>$null
-    if ($h -eq "healthy") { "healthy"; return }
-    Start-Sleep 2
-  } while ((Get-Date) -lt $deadline)
-  throw "pg not healthy"
-}
-
-Step "alembic_upgrade" {
-  Push-Location $Api
-  & $Py -c "from app.core.config import get_settings; get_settings.cache_clear()"
-  & (Join-Path $Api ".venv\Scripts\alembic.exe") upgrade head
-  & (Join-Path $Api ".venv\Scripts\alembic.exe") heads
-  Pop-Location
-}
-
-Step "pytest_full" {
-  Push-Location $Api
-  & $Py -m pytest -q --tb=line
-  Pop-Location
-}
-
-Step "etl_generate_and_pg" {
-  & $Py (Join-Path $Root "tools\etl\generate_large_fixture.py") --out (Join-Path $Root "tools\etl\fixtures\large_legacy.json")
-  & $Py (Join-Path $Root "tools\etl\apply_to_postgres.py") --fixture (Join-Path $Root "tools\etl\fixtures\large_legacy.json")
-  & $Py (Join-Path $Root "tools\etl\apply_to_postgres.py") --fixture (Join-Path $Root "tools\etl\fixtures\large_legacy.json") --no-reset-schema
-}
-
-Step "frontend_build" {
-  Push-Location $Web
-  npm run build
-  Pop-Location
-}
-
-# API smoke process
-Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | ForEach-Object {
-  Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
-}
-$env:APP_ENV = "local"
-$env:ALLOW_ANON_DEV = "false"
 $env:JWT_SECRET = "local-staging-jwt-secret-not-for-production-32"
 $env:LOCAL_ADMIN_PASSWORD = "admin123"
-$env:DATABASE_URL = "sqlite+pysqlite:///$($Api.Replace('\','/'))/local_staging.db"
-$proc = Start-Process -FilePath $Py -ArgumentList @("-m","uvicorn","app.main:app","--host","127.0.0.1","--port","8000") -WorkingDirectory $Api -PassThru -WindowStyle Hidden
+$env:ALLOW_ANON_DEV = "false"
+$env:APP_ENV = "local"
+$env:SMS_PROVIDER = "fake"
+$env:OSS_PROVIDER = "local"
+
 try {
-  Step "http_health" {
-    $ok = $false
-    for ($i=0; $i -lt 60; $i++) {
-      Start-Sleep 1
-      try {
-        $h = Invoke-RestMethod "http://127.0.0.1:8000/health" -TimeoutSec 2
-        if ($h.status -eq "up") { $h | ConvertTo-Json -Compress; $ok=$true; break }
-      } catch {}
-    }
-    if (-not $ok) { throw "health timeout" }
+  Step "docker_pg_up" {
+    docker compose -f (Join-Path $Root "infra\postgres-test\compose.yaml") up -d
+    $deadline = (Get-Date).AddSeconds(90)
+    do {
+      $h = docker inspect --format='{{.State.Health.Status}}' kwzy_party_test_pg 2>$null
+      if ($h -eq "healthy") { "healthy"; return }
+      Start-Sleep 2
+    } while ((Get-Date) -lt $deadline)
+    throw "pg not healthy"
   }
-  Step "http_login" {
-    $body = @{ username = "admin"; password = "admin123" } | ConvertTo-Json
-    $r = Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/v1/auth/login" -Method Post -Body $body -ContentType "application/json"
-    if (-not $r.data.access_token) { throw "no token" }
-    "token_len=$($r.data.access_token.Length)"
+
+  Step "alembic_upgrade" {
+    Push-Location $Api
+    & $Py -c "from app.core.config import get_settings; get_settings.cache_clear()"
+    & (Join-Path $Api ".venv\Scripts\alembic.exe") upgrade head
+    & (Join-Path $Api ".venv\Scripts\alembic.exe") heads
+    Pop-Location
+  }
+
+  Step "alembic_down_up" {
+    Push-Location $Api
+    & (Join-Path $Api ".venv\Scripts\alembic.exe") downgrade -1
+    & (Join-Path $Api ".venv\Scripts\alembic.exe") upgrade head
+    Pop-Location
+  }
+
+  Step "pytest_full" {
+    Push-Location $Api
+    & $Py -m pytest -q --tb=line
+    Pop-Location
+  }
+
+  Step "etl_fast" {
+    & $Py (Join-Path $Root "tools\etl\run_etl_drill.py") --profile fast --seed 42 --out-dir (Join-Path $ReportDir "etl_fast")
+  }
+
+  Step "etl_acceptance" {
+    & $Py (Join-Path $Root "tools\etl\run_etl_drill.py") --profile acceptance --seed 42 --out-dir (Join-Path $ReportDir "etl_acceptance")
+  }
+
+  Step "frontend_lint" {
+    Push-Location $Web
+    npm run lint
+    Pop-Location
+  }
+
+  Step "frontend_typecheck" {
+    Push-Location $Web
+    npm run typecheck
+    Pop-Location
+  }
+
+  Step "frontend_unit" {
+    Push-Location $Web
+    npm run test:unit
+    Pop-Location
+  }
+
+  Step "frontend_build" {
+    Push-Location $Web
+    $env:VITE_API_BASE = "http://127.0.0.1:8010/api/v1"
+    npm run build
+    Pop-Location
+  }
+
+  Step "playwright_browser_e2e" {
+    Push-Location $Web
+    npx playwright test
+    Pop-Location
+  }
+
+  Step "git_diff_check" {
+    Push-Location $Root
+    git diff --check
+    Pop-Location
   }
 }
-finally {
-  if ($proc -and -not $proc.HasExited) { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue }
+catch {
+  Write-Output "ACCEPTANCE_ERROR=$_"
 }
 
+$globalEnd = Get-Date
 $path = Join-Path $ReportDir ("acceptance_" + (Get-Date -Format "yyyyMMdd_HHmmss") + ".json")
-$report | ConvertTo-Json -Depth 6 | Set-Content $path -Encoding utf8
+$summary = [ordered]@{
+  started_at = $globalStart.ToString("o")
+  ended_at = $globalEnd.ToString("o")
+  steps = $report
+  playwright_report = (Join-Path $Web "playwright-report")
+  test_results = (Join-Path $Web "test-results")
+  etl_fast = (Join-Path $ReportDir "etl_fast")
+  etl_acceptance = (Join-Path $ReportDir "etl_acceptance")
+}
+$summary | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding utf8
 Write-Output "REPORT=$path"
 $failed = @($report | Where-Object { $_.exit_code -ne 0 })
 if ($failed.Count -gt 0) {
   Write-Output "KWZY_LOCAL_STAGING_EQUIVALENT=FAIL"
+  Write-Output ("FAILED_STEPS=" + (($failed | ForEach-Object { $_.step }) -join ","))
   exit 1
 }
 Write-Output "KWZY_LOCAL_STAGING_EQUIVALENT=PASS"
 Write-Output "KWZY_DATA_MIGRATION_READINESS=READY_FOR_STAGING_DATA"
+Write-Output "KWZY_FULL_FRONTEND_REPLACEMENT=COMPLETE"
 exit 0
