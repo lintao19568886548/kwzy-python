@@ -36,7 +36,7 @@
 ## 4. 当前执行队列
 
 1. 资产代码、精确 SHA 验收证据已非强推送；`implement-asset-rent-control-v2` 已同步主规格并归档为 `2026-08-13-implement-asset-rent-control-v2`。
-2. 招商 CRM 实现提交 `8adcd77` 已在 clean SHA 上 21/21 验收；当前收口精确证据并同步归档 `implement-investment-crm-v2`。
+2. 招商 CRM 实现提交 `8adcd77` 已在 clean SHA 上 21/21 验收；8 份 delta 已同步主规格并归档为 `2026-08-13-implement-investment-crm-v2`。
 3. `complete-identity-system-admin` 保持 active，等待人工提供经授权的只读旧 schema dump 与密码哈希样本；这不阻塞后续非生产研发，但阻止 Identity 迁移 readiness 变为 READY。
 4. 下一执行项为阶段 3 Party/租户/合同纵切：多单元、多费用规则、变更单/补充协议版本链、审批和退租结算。
 5. 之后依次执行阶段 4–10；每个纵切必须同时交付模型、迁移、服务、API、适用终端 UI、测试、OpenAPI、迁移映射和运行手册。

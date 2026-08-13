@@ -8,11 +8,11 @@
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `main` |
 | 已验证 HEAD | `8adcd77e782db47a466ba0759ac04ffaae488b1b` |
-| 远程同步 | 被测时 `origin/main=d257c1b1c10cc246eb0dc006af609163826a53c8`；实现与本证据提交按任务 9.8 一并非强推送，恢复时必须再核对 Git |
-| 工作树 | 精确 SHA 验收后仅回填总控证据与 OpenSpec 任务状态；被测业务代码工作树 clean |
+| 远程同步 | CRM 实现 `8adcd77` 与证据 `4be4fe0` 已非强推送到 `origin/main`；后续规格归档检查点仍须以 Git 核对 |
+| 工作树 | 被测业务代码在精确 SHA 上 clean；其后仅有总控证据、主规格同步与 OpenSpec 归档变化 |
 | Alembic | 唯一 head `j6e24f9a1c08` |
-| 当前阶段 | 招商 CRM V2 本次定义范围 `LOCAL_ACCEPTANCE_PASS`；进入规格同步/归档与阶段 3 合同纵切 |
-| 当前 OpenSpec | `implement-investment-crm-v2` 67/67，strict PASS，待证据提交后同步归档；`complete-identity-system-admin` 的真实旧数据项保持外部门禁 |
+| 当前阶段 | 招商 CRM V2 本次定义范围 `LOCAL_ACCEPTANCE_PASS` 且已归档；进入阶段 3 Party/租户/合同纵切 |
+| 当前 OpenSpec | CRM 8 份 delta 已同步主规格并归档为 `2026-08-13-implement-investment-crm-v2`；`complete-identity-system-admin` 的真实旧数据项保持外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -78,7 +78,7 @@
 
 ## 下一恢复点
 
-1. 提交并非强推送 CRM V2 精确验收证据，随后同步主规格并归档 `implement-investment-crm-v2`。
+1. 提交并非强推送 CRM V2 主规格同步与归档检查点。
 2. 进入阶段 3 Party/租户/合同纵切，先取证并提出多单元、多费用、变更单/补充协议版本链、审批与退租结算的 OpenSpec。
 3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档。
 
