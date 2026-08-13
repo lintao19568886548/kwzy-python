@@ -3,10 +3,10 @@
 | 字段 | 值 |
 | --- | --- |
 | 更新时间 | 2026-08-13 |
-| 当前分支 | `feat/investment-leads` |
-| 起点 main | `bed19b3` |
-| 当前阶段 | Investment leads v1 去 stub |
-| Alembic head | `d0b68c3e1a42` |
+| 当前分支 | `main` |
+| HEAD | 主链 E2E + local staging 后 |
+| 当前阶段 | 验收缺口收敛中 |
+| Alembic head | `e1c79d4f2b53` |
 | 部署 | **未部署** |
 | 生产迁移 | **NOT_EXECUTED** |
 | 全系统 COMPLETE | **未达** |

@@ -32,6 +32,7 @@ async function load() {
 }
 
 async function complete(id: number) {
+  if (!window.confirm("确认完成该待办？")) return;
   await http.post(`/work-items/${id}/complete`);
   await load();
 }
