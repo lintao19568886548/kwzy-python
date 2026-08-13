@@ -33,6 +33,14 @@ from app.infrastructure.database.models.party import (
 )
 from app.infrastructure.database.models.workbench import WorkItem
 from app.infrastructure.database.models.investment import Lead
+from app.infrastructure.database.models.system_config import (
+    DictItem,
+    DictType,
+    OrgUnit,
+    SystemParam,
+)
+from app.infrastructure.database.models.facility_ops import WorkOrder
+from app.infrastructure.database.models.collection_case import CollectionCase
 
 __all__ = [
     "Tenant",
@@ -68,4 +76,10 @@ __all__ = [
     "IdempotencyKey",
     "WorkItem",
     "Lead",
+    "OrgUnit",
+    "DictType",
+    "DictItem",
+    "SystemParam",
+    "WorkOrder",
+    "CollectionCase",
 ]

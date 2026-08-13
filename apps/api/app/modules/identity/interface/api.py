@@ -7,18 +7,24 @@ from sqlalchemy.orm import Session
 
 from app.infrastructure.database.session import get_db
 from app.modules.identity.application.auth_service import AuthService
+from app.modules.identity.application.config_admin_service import ConfigAdminService
 from app.modules.identity.application.menu_admin_service import MenuAdminService
 from app.modules.identity.application.role_admin_service import RoleAdminService
 from app.modules.identity.application.user_admin_service import UserAdminService
 from app.modules.identity.schemas import (
+    DictItemCreateRequest,
+    DictTypeCreateRequest,
     LoginRequest,
     LoginResponse,
     LogoutRequest,
     MenuCreateRequest,
+    OrgUnitCreateRequest,
+    OrgUnitUpdateRequest,
     PasswordChangeRequest,
     RefreshRequest,
     RoleCreateRequest,
     RoleUpdateRequest,
+    SystemParamUpsertRequest,
     UserCreateRequest,
     UserInfo,
     UserUpdateRequest,
@@ -240,3 +246,115 @@ def create_menu(
         permission_code=body.permission_code,
     )
     return ok(data)
+
+
+@router.get("/system/org-units")
+def list_org_units(
+    ctx: TenantContext = Depends(require_permissions("identity.org.read")),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(ConfigAdminService(db).list_org_units(tenant_id=ctx.tenant_id))
+
+
+@router.post("/system/org-units")
+def create_org_unit(
+    body: OrgUnitCreateRequest,
+    ctx: TenantContext = Depends(require_permissions("identity.org.write")),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(
+        ConfigAdminService(db).create_org_unit(tenant_id=ctx.tenant_id, data=body.model_dump()),
+        message="created",
+    )
+
+
+@router.patch("/system/org-units/{org_id}")
+def update_org_unit(
+    org_id: int,
+    body: OrgUnitUpdateRequest,
+    ctx: TenantContext = Depends(require_permissions("identity.org.write")),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(
+        ConfigAdminService(db).update_org_unit(
+            tenant_id=ctx.tenant_id,
+            org_id=org_id,
+            data=body.model_dump(exclude_unset=True),
+        ),
+        message="updated",
+    )
+
+
+@router.get("/system/dict-types")
+def list_dict_types(
+    ctx: TenantContext = Depends(require_permissions("identity.dict.read")),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(ConfigAdminService(db).list_dict_types(tenant_id=ctx.tenant_id))
+
+
+@router.post("/system/dict-types")
+def create_dict_type(
+    body: DictTypeCreateRequest,
+    ctx: TenantContext = Depends(require_permissions("identity.dict.write")),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(
+        ConfigAdminService(db).create_dict_type(tenant_id=ctx.tenant_id, data=body.model_dump()),
+        message="created",
+    )
+
+
+@router.get("/system/dict-types/{type_code}/items")
+def list_dict_items(
+    type_code: str,
+    ctx: TenantContext = Depends(require_permissions("identity.dict.read")),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(
+        ConfigAdminService(db).list_dict_items(tenant_id=ctx.tenant_id, type_code=type_code)
+    )
+
+
+@router.post("/system/dict-types/{type_code}/items")
+def create_dict_item(
+    type_code: str,
+    body: DictItemCreateRequest,
+    ctx: TenantContext = Depends(require_permissions("identity.dict.write")),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(
+        ConfigAdminService(db).create_dict_item(
+            tenant_id=ctx.tenant_id, type_code=type_code, data=body.model_dump()
+        ),
+        message="created",
+    )
+
+
+@router.get("/system/params")
+def list_params(
+    ctx: TenantContext = Depends(require_permissions("identity.param.read")),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(ConfigAdminService(db).list_params(tenant_id=ctx.tenant_id))
+
+
+@router.put("/system/params")
+def upsert_param(
+    body: SystemParamUpsertRequest,
+    ctx: TenantContext = Depends(require_permissions("identity.param.write")),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(
+        ConfigAdminService(db).upsert_param(tenant_id=ctx.tenant_id, data=body.model_dump()),
+        message="saved",
+    )
+
+
+@router.get("/system/params/{param_key}")
+def get_param(
+    param_key: str,
+    ctx: TenantContext = Depends(require_permissions("identity.param.read")),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(ConfigAdminService(db).get_param(tenant_id=ctx.tenant_id, param_key=param_key))
