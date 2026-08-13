@@ -98,6 +98,7 @@ def test_step1_runtime_paths_covered_by_openapi() -> None:
         "/bills",
         "/payments",
         "/work-items",
+        "/workbench/summary",
     )
     for marker in required_markers:
         assert any(marker in p for p in paths) or any(

@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database.session import get_db
+from app.modules.workbench.application.summary_service import WorkbenchSummaryService
 from app.modules.workbench.application.work_item_service import WorkItemService
 from app.modules.workbench.interface.schemas import WorkItemCreate
 from app.shared.deps import get_tenant_context, require_permissions
@@ -22,6 +23,44 @@ def _svc(
     ctx: TenantContext = Depends(get_tenant_context),
 ) -> WorkItemService:
     return WorkItemService(db, ctx)
+
+
+def _summary_svc(
+    db: Session = Depends(get_db),
+    ctx: TenantContext = Depends(get_tenant_context),
+) -> WorkbenchSummaryService:
+    return WorkbenchSummaryService(db, ctx)
+
+
+@router.get(
+    "/workbench/summary",
+    dependencies=[Depends(require_permissions("work_item:read"))],
+)
+def workbench_summary(
+    park_id: Optional[int] = None,
+    expiring_within_days: int = Query(90, ge=1, le=365),
+    todo_limit: int = Query(10, ge=1, le=50),
+    svc: WorkbenchSummaryService = Depends(_summary_svc),
+) -> dict:
+    """功能说明：运营工作台聚合指标与最近待办。"""
+
+    return ok(
+        svc.summary(
+            park_id=park_id,
+            expiring_within_days=expiring_within_days,
+            todo_limit=todo_limit,
+        )
+    )
+
+
+@router.post("/workbench/jobs/sync-lease-todos")
+def sync_lease_todos(
+    within_days: int = Query(90, ge=1, le=365),
+    svc: WorkbenchSummaryService = Depends(_summary_svc),
+) -> dict:
+    """功能说明：扫描即将到期合同并幂等补齐待办。"""
+
+    return ok(svc.sync_lease_expiring_todos(within_days=within_days), message="synced")
 
 
 @router.get("/work-items", dependencies=[Depends(require_permissions("work_item:read"))])

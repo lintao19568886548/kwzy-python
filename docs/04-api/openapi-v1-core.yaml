@@ -1851,6 +1851,59 @@ paths:
                     type: array
                     items: { type: integer, format: int64 }
 
+  /workbench/summary:
+    get:
+      tags: [WorkItems]
+      summary: 运营工作台聚合指标
+      operationId: workbenchSummary
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: park_id
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: expiring_within_days
+          in: query
+          schema: { type: integer, default: 90, minimum: 1, maximum: 365 }
+        - name: todo_limit
+          in: query
+          schema: { type: integer, default: 10, minimum: 1, maximum: 50 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: string }
+                  message: { type: string }
+                  data:
+                    type: object
+                    properties:
+                      as_of: { type: string, format: date }
+                      metrics:
+                        type: object
+                        properties:
+                          open_todos: { type: integer }
+                          overdue_todos: { type: integer }
+                          due_soon_todos: { type: integer }
+                          unpaid_bills: { type: integer }
+                          expiring_contracts: { type: integer }
+
+  /workbench/jobs/sync-lease-todos:
+    post:
+      tags: [WorkItems]
+      summary: 扫描即将到期合同并幂等补齐待办
+      operationId: syncLeaseTodos
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: within_days
+          in: query
+          schema: { type: integer, default: 90 }
+      responses:
+        '200':
+          description: OK
+
   /work-items:
     get:
       tags: [WorkItems]

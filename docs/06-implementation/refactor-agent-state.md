@@ -3,40 +3,27 @@
 | 字段 | 值 |
 | --- | --- |
 | 更新时间 | 2026-08-13 |
-| 当前分支 | `main` |
-| main HEAD | 含 workbench merge + bill 待办挂接 |
-| 当前阶段 | Workbench 待办 + 账单事件闭环 |
-| 当前领域 | workbench / billing 联动 |
-| Alembic head | `c9a57b2d0f31`（revises `b8f46a1c9e20`） |
+| 当前分支 | `feat/full-rebuild-continue` |
+| 起点 main | `bc174e5` |
+| 当前阶段 | 全量基线 + Phase A Workbench 补全 + FE/ETL 骨架 |
+| Alembic head | `c9a57b2d0f31` |
 | 部署 | **未部署** |
 | 生产迁移 | **NOT_EXECUTED** |
 | 全系统 COMPLETE | **未达** |
 
-## 本迭代完成
+## 本批完成/进行中
 
-- `WorkItem` ORM + Alembic `c9a57b2d0f31`（已 merge main）
-- REST：`/work-items` list·create·get·complete·cancel·reopen
-- 权限：`work_item:read` / `work_item:write`
-- `ensure_from_source` / `complete_by_source` / `cancel_by_source`（commit 可选）
-- 账单：issue 开待办、PAID 完成、冲正复开、void 取消
-- OpenAPI + pytest
-
-## 已确认基线
-
-- Party / Lease / Bill / Payment / Identity / Workbench 已在 main
-- 旧 Java 根：`D:\重构python\kwzg-Java-main`（只读）
-- origin：`https://github.com/lintao19568886548/kwzy-python.git`
-
-## 下一步
-
-1. 合同到期自动待办
-2. Analytics workbench 聚合真实 todos 计数
-3. FE 工作台页
-4. 招商/工单等领域推进
-5. 全量代码验收前禁止 KWZY_*_COMPLETE
+- [x] 全量追踪矩阵 `full-rebuild-traceability-matrix.md`
+- [x] 合同激活 → `CONTRACT_EXPIRING` 待办；终止 → 取消
+- [x] `/workbench/summary` 聚合指标
+- [x] `/workbench/jobs/sync-lease-todos` 扫描补齐
+- [ ] 前端 `apps/web` 脚手架与登录/工作台
+- [ ] ETL dry-run 骨架
+- [ ] 招商/工单去 stub
 
 ## 永久门禁
 
 - 无 force push / reset --hard
 - 无生产 DB / 真实密钥
 - 无 STUB 冒充 COMPLETE
+- 不把「部分后端」写成「全系统完成」

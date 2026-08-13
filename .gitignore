@@ -45,3 +45,11 @@ Thumbs.db
 # Logs & caches
 *.log
 .cache/
+
+# Node
+node_modules/
+apps/web/dist/
+
+
+*.tsbuildinfo
+

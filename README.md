@@ -10,26 +10,31 @@
 | 02 领域设计 | ✅ 完成 |
 | 03 核心库表 DDL v1 | ✅ 完成 |
 | 04 OpenAPI 主链草稿 | ✅ 完成 |
-| 05 模块化单体 API 骨架 | ✅ 完成（stub） |
+| 05 模块化单体 API 骨架 | ✅ 主链已实现（非全域） |
 | 05 架构冻结评审 | ✅ 条件通过 |
 | 05.1 P0 设计修订包 | ✅ 完成 |
 | 06 Step1 Identity+Park+Unit | ✅ 完成并审查 |
 | 06 Step1 基础加固（RBAC/错误/日志/审计） | ✅ 完成 |
+| 06 Party/Lease/Bill/Payment | ✅ v1 scoped 完成 |
+| 06 Workbench 待办 | ⏳ 进行中（账单+合同挂接+summary） |
+| 06 前端 `apps/web` | ⏳ 脚手架 |
+| 06 ETL | ⏳ 骨架 dry-run |
 | 07 工程规范冻结 | ✅ 完成 |
-| 06 后续 Party/Lease/Bill… | ⏳ 待指令 |
+| 全系统验收 | ❌ BLOCKED（见 docs/06-implementation） |
 
 ## 目录
 
 ```text
 kwzy-python/
-├── docs/
-│   ├── 01-old-system-analysis/   # 旧系统八阶段分析
-│   ├── 02-domain-design/         # 领域设计
-│   ├── 03-database/              # DDL + 说明
-│   └── 04-api/                   # OpenAPI
-└── apps/
-    └── api/                      # FastAPI 模块化单体
+├── docs/                 # 分析、领域、DDL、OpenAPI、实现与规范
+├── apps/
+│   ├── api/              # FastAPI 模块化单体
+│   └── web/              # Vue3 创新前端（脚手架）
+├── tools/etl/            # 迁移映射与 dry-run
+└── openspec/             # 变更管理
 ```
+
+追踪矩阵：`docs/06-implementation/full-rebuild-traceability-matrix.md`
 
 ## 快速开始 API
 
