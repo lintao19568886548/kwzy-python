@@ -214,7 +214,9 @@ print('OPENAPI_YAML_STRICT=PASS')
 
   Step "cleanup_test_resources" {
     # stop e2e leftover ports
-    foreach ($port in 8010, 4173, 8000) {
+    # E2E owns only 8010 (API) and 4173 (web). Never stop an arbitrary service
+    # on the developer's conventional port 8000.
+    foreach ($port in 8010, 4173) {
       Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | ForEach-Object {
         Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
       }

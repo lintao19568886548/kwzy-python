@@ -108,26 +108,41 @@ test.describe("work orders and collection", () => {
     await page.locator(`[data-testid=collection-row-${caseId}]`).getByTestId("collection-close-btn").click();
     await expect(page.getByTestId("collection-success")).toContainText(/关闭/, { timeout: 15000 });
 
-    // fake provider outbox list reachable
-    const outbox = await apiJson(request, "get", "/integrations/outbox?page=1&page_size=20", {
-      token,
-    });
-    // may be 200 with empty list or require different path — assert not 5xx if route exists
-    expect([200, 404, 403]).toContain(outbox.status);
-    if (outbox.status === 200) {
-      expect(outbox.body).toBeTruthy();
-    }
-
-    // trigger fake notify if available
-    const notify = await apiJson(request, "post", "/integrations/notify", {
+    // Exercise the configured NOT_LIVE SMS adapter with its real contract. A
+    // missing route, permission failure, or invalid payload must fail the E2E.
+    const idempotencyKey = `e2e-collection-sms-${caseId}`;
+    const sms = await apiJson(request, "post", "/integrations/sms/send", {
       token,
       data: {
-        channel: "SMS",
-        target: "13800000000",
+        to: "13800138000",
         template_code: "E2E",
-        payload: { msg: "e2e" },
+        params: { case_id: caseId, bill_id: billId },
+        idempotency_key: idempotencyKey,
       },
     });
-    expect([200, 201, 400, 404, 422]).toContain(notify.status);
+    expect(sms.status).toBe(200);
+    const smsData = (
+      sms.body as { data: { provider: string; message_id: string; deduped: boolean } }
+    ).data;
+    expect(smsData.provider).toBe("fake");
+    expect(smsData.message_id).toBeTruthy();
+    expect(smsData.deduped).toBe(false);
+
+    const outbox = await apiJson(request, "get", "/integrations/outbox", { token });
+    expect(outbox.status).toBe(200);
+    const outboxItems = (
+      outbox.body as {
+        data: Array<{ channel: string; provider: string; status: string; external_id: string }>;
+      }
+    ).data;
+    expect(
+      outboxItems.some(
+        (item) =>
+          item.channel === "sms" &&
+          item.provider === "fake" &&
+          item.status === "SUCCESS" &&
+          item.external_id === smsData.message_id
+      )
+    ).toBe(true);
   });
 });
