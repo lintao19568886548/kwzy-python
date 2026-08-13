@@ -53,3 +53,9 @@ apps/web/dist/
 
 *.tsbuildinfo
 
+
+tools/etl/out/
+apps/api/local_staging.db
+playwright-report/
+test-results/
+

@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "source": "synthetic_desensitized",
+    "pii": false,
+    "note": "Generated fixture; no real customer data"
+  },
+  "tables": {
+    "sys_user": [
+      {"id": 1, "username": "u_demo", "password": "legacy_hash", "real_name": "用户甲", "phone": "13800000001", "status": 1}
+    ],
+    "rental_contract": [
+      {"id": 10, "contract_no": "LEGACY-C-001", "start_date": "2025-01-01", "end_date": "2025-12-31", "status": "active", "deposit": "1000.00", "park_id": 1, "party_id": 1}
+    ],
+    "bill": [
+      {"id": 20, "bill_no": "LEGACY-B-001", "total": "500.00", "paid": "0.00", "status": "issued", "park_id": 1, "party_id": 1}
+    ],
+    "investment_lead": [
+      {"id": 30, "name": "线索甲", "mobile": "13900000002", "status": "new", "park_id": 1}
+    ],
+    "work_order": [
+      {"id": 40, "title": "电路检修", "status": "open", "park_id": 1}
+    ]
+  }
+}

@@ -31,13 +31,20 @@ async function onSubmit() {
     <form class="card form" @submit.prevent="onSubmit">
       <h1>KWZY 智慧园区</h1>
       <p class="muted">创新运营台 · 登录后进入工作台</p>
-      <label>
+      <label for="login-username">
         用户名
-        <input v-model="username" class="input" autocomplete="username" required />
+        <input
+          id="login-username"
+          v-model="username"
+          class="input"
+          autocomplete="username"
+          required
+        />
       </label>
-      <label>
+      <label for="login-password">
         密码
         <input
+          id="login-password"
           v-model="password"
           class="input"
           type="password"

@@ -1,12 +1,14 @@
-import axios from "axios";
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/stores/auth";
 
 export const http = axios.create({
-  baseURL: "/api/v1",
+  baseURL: import.meta.env.VITE_API_BASE || "/api/v1",
   timeout: 20000,
 });
 
-http.interceptors.request.use((config) => {
+let refreshing: Promise<void> | null = null;
+
+http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const auth = useAuthStore();
   if (auth.accessToken) {
     config.headers.Authorization = `Bearer ${auth.accessToken}`;
@@ -22,10 +24,35 @@ http.interceptors.response.use(
     }
     return resp;
   },
-  (err) => {
+  async (err: AxiosError<{ message?: string; code?: string }>) => {
+    const status = err.response?.status;
+    const original = err.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const auth = useAuthStore();
+
+    if (status === 401 && original && !original._retry && auth.refreshToken) {
+      original._retry = true;
+      try {
+        if (!refreshing) {
+          refreshing = auth.refresh().finally(() => {
+            refreshing = null;
+          });
+        }
+        await refreshing;
+        original.headers = original.headers || {};
+        original.headers.Authorization = `Bearer ${auth.accessToken}`;
+        return http.request(original);
+      } catch {
+        auth.clearSession();
+      }
+    }
+
+    if (status === 401 || status === 403) {
+      // permission expired — leave session clear on 401 after refresh fail
+    }
+
     const msg =
-      err?.response?.data?.message ||
-      err?.response?.data?.code ||
+      err.response?.data?.message ||
+      err.response?.data?.code ||
       err.message ||
       "网络错误";
     return Promise.reject(new Error(msg));
