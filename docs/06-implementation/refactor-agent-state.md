@@ -4,15 +4,15 @@
 
 | 字段 | 当前值 |
 | --- | --- |
-| 更新时间 | 2026-08-13 19:50（Asia/Shanghai） |
+| 更新时间 | 2026-08-13 20:09（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `main` |
 | 已验证 HEAD | `8adcd77e782db47a466ba0759ac04ffaae488b1b` |
-| 远程同步 | CRM 实现 `8adcd77` 与证据 `4be4fe0` 已非强推送到 `origin/main`；后续规格归档检查点仍须以 Git 核对 |
-| 工作树 | 被测业务代码在精确 SHA 上 clean；其后仅有总控证据、主规格同步与 OpenSpec 归档变化 |
+| 远程同步 | CRM 实现 `8adcd77` 与证据 `4be4fe0` 已非强推送；CRM 归档 `080d5aa` 及后续合同规划因外发安全门禁保持本地，等待用户明确授权目标仓库 |
+| 工作树 | 被测业务代码仍精确绑定 clean `8adcd77`；其后变化仅为总控证据、主规格同步、OpenSpec 归档与合同 V2 规划 |
 | Alembic | 唯一 head `j6e24f9a1c08` |
-| 当前阶段 | 招商 CRM V2 本次定义范围 `LOCAL_ACCEPTANCE_PASS` 且已归档；进入阶段 3 Party/租户/合同纵切 |
-| 当前 OpenSpec | CRM 8 份 delta 已同步主规格并归档为 `2026-08-13-implement-investment-crm-v2`；`complete-identity-system-admin` 的真实旧数据项保持外部门禁 |
+| 当前阶段 | 招商 CRM V2 本次定义范围 `LOCAL_ACCEPTANCE_PASS` 且已归档；合同 V2 规划 4/4 工件完成，3/102 任务，进入实施 |
+| 当前 OpenSpec | 基础 `implement-lease-contract` 已同步 5 份主规格并归档；`implement-contract-lifecycle-v2` strict PASS；Identity 真实旧数据项保持外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -47,6 +47,9 @@
 - [x] 重建 PC 招商工作台并完成桌面/平板、键盘焦点、只读/403/409/503 恢复、管理分配/合并等 6 条 CRM E2E；修复共享平板导航和系统管理异步成功提示竞态。
 - [x] 完成独立 PostgreSQL CRM 合成 ETL：dry/apply/idempotent/reconcile/rollback，5 leads/4 activities/4 assignments/1 merge/1 PII quarantine，原始 PII 未落库。
 - [x] 提交 `8adcd77 feat: implement investment crm v2`，并在该 clean SHA 上完成 21 项全量门禁，21/21 exit 0。
+- [x] 将 CRM 8 份 delta 同步主规格并归档 `2026-08-13-implement-investment-crm-v2`；归档后 OpenSpec strict 44/44 PASS。
+- [x] 将已落地基础合同 5 份 delta 同步主规格并归档 `2026-08-13-implement-lease-contract`，消除合同 V2 增量基线缺口。
+- [x] 完成 `implement-contract-lifecycle-v2` proposal/design、10 份 delta specs 和 102 项任务；change strict 与全量 OpenSpec 49/49 PASS。
 
 ## 最新机器证据
 
@@ -78,9 +81,10 @@
 
 ## 下一恢复点
 
-1. 提交并非强推送 CRM V2 主规格同步与归档检查点。
-2. 进入阶段 3 Party/租户/合同纵切，先取证并提出多单元、多费用、变更单/补充协议版本链、审批与退租结算的 OpenSpec。
-3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档。
+1. 提交本地合同基础规格归档与 V2 规划检查点；远端推送等待用户明确授权 GitHub 目标，不绕过安全门禁。
+2. 按 tasks 1.4→8 实现处置映射、schema/version、费用计划、审批文档、变更/占用、退租结算和查询 API。
+3. 随后完成 PC 工作台、合成 ETL、OpenAPI/E2E/全量精确 SHA 验收；真实资金、签章、旧数据与生产继续外部门禁。
+4. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档。
 
 ## 不可变安全约束
 

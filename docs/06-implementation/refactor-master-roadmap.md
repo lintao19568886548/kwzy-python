@@ -1,6 +1,6 @@
 # 瞰维智管 V2 全量重建主路线图
 
-> 更新时间：2026-08-13 19:50（Asia/Shanghai）
+> 更新时间：2026-08-13 20:09（Asia/Shanghai）
 > 当前已验证基线：`main@8adcd77e782db47a466ba0759ac04ffaae488b1b`
 > 总体状态：**IN_PROGRESS — 资产/租控与招商 CRM 定义纵切本地 PASS，不等于 V2 全产品完成**
 
@@ -38,8 +38,9 @@
 1. 资产代码、精确 SHA 验收证据已非强推送；`implement-asset-rent-control-v2` 已同步主规格并归档为 `2026-08-13-implement-asset-rent-control-v2`。
 2. 招商 CRM 实现提交 `8adcd77` 已在 clean SHA 上 21/21 验收；8 份 delta 已同步主规格并归档为 `2026-08-13-implement-investment-crm-v2`。
 3. `complete-identity-system-admin` 保持 active，等待人工提供经授权的只读旧 schema dump 与密码哈希样本；这不阻塞后续非生产研发，但阻止 Identity 迁移 readiness 变为 READY。
-4. 下一执行项为阶段 3 Party/租户/合同纵切：多单元、多费用规则、变更单/补充协议版本链、审批和退租结算。
-5. 之后依次执行阶段 4–10；每个纵切必须同时交付模型、迁移、服务、API、适用终端 UI、测试、OpenAPI、迁移映射和运行手册。
+4. 阶段 3 已完成基础 Lease 规格同步归档与 `implement-contract-lifecycle-v2` 规划（4/4 工件、3/102 任务、strict PASS）；当前进入 schema/version、费用计划、审批文档、变更占用、退租结算和查询 API 实施。
+5. CRM 归档及合同规划检查点暂留本地；向 GitHub 继续非强推送需用户明确确认该仓库的数据外发授权。
+6. 之后依次执行阶段 4–10；每个纵切必须同时交付模型、迁移、服务、API、适用终端 UI、测试、OpenAPI、迁移映射和运行手册。
 
 ## 5. 每个纵切的固定循环
 
