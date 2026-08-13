@@ -44,9 +44,12 @@ from app.modules.lease.infrastructure.mappers import (
 from app.modules.park_property.infrastructure.park_repository import ParkRepository
 from app.modules.park_property.infrastructure.unit_repository import UnitRepository
 from app.modules.party.infrastructure.party_repository import PartyRepository
+from app.modules.workbench.application.work_item_service import WorkItemService
 from app.shared.tenant_context import TenantContext
 
 logger = logging.getLogger(__name__)
+
+LEASE_EXPIRING_ITEM_TYPE = "CONTRACT_EXPIRING"
 
 
 class LeaseService:
@@ -68,6 +71,34 @@ class LeaseService:
         self.parties = PartyRepository(session, ctx)
         self.occupancy = OccupancyService(session, ctx)
         self.audit = AuditRecorder(session, ctx)
+        self.work_items = WorkItemService(session, ctx)
+
+    def _open_expiring_todo(self, model) -> None:
+        """激活后幂等打开合同到期待办（不侵入合同状态机）。"""
+
+        cno = model.contract_no or str(model.id)
+        due = None
+        if model.end_date is not None:
+            due = datetime.combine(model.end_date, datetime.min.time()).isoformat()
+        self.work_items.ensure_from_source(
+            source_type="LEASE",
+            source_id=str(model.id),
+            item_type=LEASE_EXPIRING_ITEM_TYPE,
+            title=f"合同即将到期 {cno}",
+            description=f"end_date={model.end_date} party_id={model.party_id}",
+            park_id=int(model.park_id) if model.park_id is not None else None,
+            priority="HIGH",
+            due_at=due,
+            commit=False,
+        )
+
+    def _close_expiring_todo(self, contract_id: int) -> None:
+        self.work_items.cancel_by_source(
+            source_type="LEASE",
+            source_id=str(contract_id),
+            item_type=LEASE_EXPIRING_ITEM_TYPE,
+            commit=False,
+        )
 
     def _require_contract(self, contract_id: int):
         model = self.contracts.get_by_id(contract_id)
@@ -478,6 +509,7 @@ class LeaseService:
         self.contracts.save(model)
         for unit, _ in unit_area:
             self.occupancy.recompute_unit_used_area(unit)
+        self._open_expiring_todo(model)
 
         self.audit.record(
             action="activate",
@@ -520,6 +552,7 @@ class LeaseService:
             unit = self.units.get_by_id(uid)
             if unit is not None:
                 self.occupancy.recompute_unit_used_area(unit)
+        self._close_expiring_todo(contract_id)
 
         self.audit.record(
             action="breach" if breached else "terminate",

@@ -170,6 +170,76 @@ def test_work_item_not_found(client) -> None:
     assert r.json()["code"] == "WORK_ITEM_NOT_FOUND"
 
 
+def test_lease_activate_opens_and_terminate_closes_expiring_todo(client) -> None:
+    """合同激活打开到期待办；终止取消待办。"""
+
+    h = _h()
+    park = client.post(
+        "/api/v1/parks", headers=h, json={"name": "合同待办园", "address": "t"}
+    ).json()["data"]
+    unit = client.post(
+        "/api/v1/units",
+        headers=h,
+        json={
+            "park_id": park["id"],
+            "name": "T-1",
+            "code": "T1",
+            "rentable_area": 50,
+            "status": "VACANT",
+        },
+    ).json()["data"]
+    party = client.post(
+        "/api/v1/parties",
+        headers=h,
+        json={"name": "到期主体", "party_type": "ORGANIZATION"},
+    ).json()["data"]
+    lease = client.post(
+        "/api/v1/leases",
+        headers=h,
+        json={
+            "park_id": park["id"],
+            "party_id": party["id"],
+            "start_date": "2026-01-01",
+            "end_date": "2026-09-30",
+            "deposit_amount": "1000",
+            "units": [
+                {"unit_id": unit["id"], "occupied_area": "40", "unit_rent_price": "30"}
+            ],
+        },
+    )
+    assert lease.status_code == 200, lease.text
+    cid = lease.json()["data"]["id"]
+    assert client.post(f"/api/v1/leases/{cid}/submit", headers=h).status_code == 200
+    act = client.post(f"/api/v1/leases/{cid}/activate", headers=h)
+    assert act.status_code == 200, act.text
+
+    todos = client.get(
+        "/api/v1/work-items",
+        headers=h,
+        params={"item_type": "CONTRACT_EXPIRING", "status": "OPEN"},
+    ).json()["data"]
+    match = [x for x in todos["items"] if x["source_id"] == str(cid)]
+    assert len(match) == 1
+    assert match[0]["source_type"] == "LEASE"
+
+    summary = client.get("/api/v1/workbench/summary", headers=h)
+    assert summary.status_code == 200, summary.text
+    metrics = summary.json()["data"]["metrics"]
+    assert metrics["open_todos"] >= 1
+    assert "expiring_contracts" in metrics
+
+    term = client.post(f"/api/v1/leases/{cid}/terminate", headers=h)
+    assert term.status_code == 200, term.text
+    after = client.get(
+        "/api/v1/work-items",
+        headers=h,
+        params={"item_type": "CONTRACT_EXPIRING"},
+    ).json()["data"]
+    match2 = [x for x in after["items"] if x["source_id"] == str(cid)]
+    assert len(match2) == 1
+    assert match2[0]["status"] == "CANCELLED"
+
+
 def test_bill_issue_opens_and_payment_closes_collect_todo(client) -> None:
     """账单签发自动开待办；全额核销自动完成；冲正重新打开。"""
 

@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
 from typing import Optional, Sequence
 
@@ -88,6 +89,44 @@ class LeaseContractRepository:
             vis = vis.where(LeaseContract.party_id == int(party_id))
         stmt = select(func.count()).select_from(vis.subquery())
         return int(self.session.scalar(stmt) or 0)
+
+    def list_expiring(
+        self,
+        *,
+        within_days: int = 90,
+        as_of: Optional[date] = None,
+        limit: int = 200,
+    ) -> Sequence[LeaseContract]:
+        """功能说明：ACTIVE 且 end_date 在 as_of~as_of+within_days 内的合同。"""
+
+        today = as_of or date.today()
+        if within_days < 0:
+            within_days = 0
+        from datetime import timedelta
+
+        end_limit = today + timedelta(days=int(within_days))
+        stmt = self._scope_filter(select(LeaseContract)).where(
+            LeaseContract.status.in_(["ACTIVE", "EXPIRING"]),
+            LeaseContract.end_date >= today,
+            LeaseContract.end_date <= end_limit,
+        )
+        return list(
+            self.session.scalars(
+                stmt.order_by(LeaseContract.end_date.asc()).limit(limit)
+            ).all()
+        )
+
+    def count_expiring(self, *, within_days: int = 90, as_of: Optional[date] = None) -> int:
+        today = as_of or date.today()
+        from datetime import timedelta
+
+        end_limit = today + timedelta(days=int(within_days))
+        vis = self._scope_filter(select(LeaseContract.id)).where(
+            LeaseContract.status.in_(["ACTIVE", "EXPIRING"]),
+            LeaseContract.end_date >= today,
+            LeaseContract.end_date <= end_limit,
+        )
+        return int(self.session.scalar(select(func.count()).select_from(vis.subquery())) or 0)
 
     def get_by_id(self, contract_id: int) -> Optional[LeaseContract]:
         """功能说明：按 ID 加载可见合同。"""

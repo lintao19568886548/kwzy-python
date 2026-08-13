@@ -1,0 +1,76 @@
+# 旧库 → 新库 表级映射草案（非最终闭合）
+# strategy: REDESIGN 领域拆分；不 1:1 照搬表名
+version: "1.0"
+dialect_source: mysql
+dialect_target: postgresql
+tables:
+  - source: sys_user
+    target: users
+    strategy: REDESIGN
+    status: PARTIAL
+    notes: 密码哈希算法升级；tenant_id 注入；token_version 新增
+    key_fields:
+      - source: id
+        target: id
+        rule: keep_or_remap
+      - source: username
+        target: username
+        rule: direct
+      - source: password
+        target: password_hash
+        rule: rehash_on_login_or_migrate
+        risk: HIGH
+
+  - source: sys_role
+    target: roles
+    strategy: REDESIGN
+    status: PARTIAL
+
+  - source: park / project
+    target: parks
+    strategy: REDESIGN
+    status: PARTIAL
+    notes: 旧项目/园区命名不一致，需样例数据确认
+
+  - source: room / unit
+    target: units
+    strategy: REDESIGN
+    status: PARTIAL
+
+  - source: customer / enterprise
+    target: parties
+    strategy: REDESIGN
+    status: PARTIAL
+    notes: PERSON/ORGANIZATION 拆分；地址子表
+
+  - source: rental_contract
+    target: lease_contracts
+    strategy: REDESIGN
+    status: PARTIAL
+    notes: 与入驻方分离
+
+  - source: bill / bill_detail
+    target: bills / bill_lines
+    strategy: REDESIGN
+    status: PARTIAL
+
+  - source: payment / receipt
+    target: payments / payment_allocations
+    strategy: REDESIGN
+    status: PARTIAL
+
+  - source: workbench_todo / dashboard_todo
+    target: work_items
+    strategy: INNOVATION
+    status: PARTIAL
+    notes: 新唯一键 source 幂等；非 1:1
+
+unmapped_domains:
+  domains:
+    - investment_leads
+    - work_orders
+    - approval_flows
+    - sms_logs
+    - attachments
+  status: OPEN
+  disposition: DEFER_or_next_change

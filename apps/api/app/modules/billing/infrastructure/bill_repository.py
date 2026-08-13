@@ -61,6 +61,14 @@ class BillRepository:
             vis = vis.where(Bill.party_id == int(party_id))
         return int(self.session.scalar(select(func.count()).select_from(vis.subquery())) or 0)
 
+    def count_open_receivable(self) -> int:
+        """功能说明：统计已签发未结清账单（ISSUED/PARTIALLY_PAID）。"""
+
+        vis = self._scope(select(Bill.id)).where(
+            Bill.status.in_(["ISSUED", "PARTIALLY_PAID"])
+        )
+        return int(self.session.scalar(select(func.count()).select_from(vis.subquery())) or 0)
+
     def get_by_id(self, bill_id: int, *, for_update: bool = False) -> Optional[Bill]:
         stmt = self._scope(select(Bill).where(Bill.id == bill_id))
         if for_update:
