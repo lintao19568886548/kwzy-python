@@ -50,3 +50,19 @@ def test_approval_create_and_decide(client) -> None:
     )
     assert again.status_code == 409
     assert again.json()["code"] == "APPROVAL_DUPLICATE"
+
+    # 新单撤回
+    created2 = client.post(
+        "/api/v1/approvals",
+        headers=h,
+        json={"biz_type": "BILL", "biz_id": "7", "title": "作废审批"},
+    )
+    assert created2.status_code == 200
+    aid2 = created2.json()["data"]["id"]
+    wd = client.post(f"/api/v1/approvals/{aid2}/withdraw", headers=h, json={"remark": "撤销"})
+    assert wd.status_code == 200
+    assert wd.json()["data"]["status"] == "WITHDRAWN"
+    hist = client.get(f"/api/v1/approvals/{aid2}/history", headers=h)
+    assert hist.status_code == 200
+    actions = [x["action"] for x in hist.json()["data"]]
+    assert "SUBMIT" in actions and "WITHDRAW" in actions

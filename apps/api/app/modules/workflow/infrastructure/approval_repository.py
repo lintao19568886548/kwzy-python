@@ -7,7 +7,7 @@ from typing import Optional, Sequence
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.infrastructure.database.models.workflow import ApprovalRequest
+from app.infrastructure.database.models.workflow import ApprovalEvent, ApprovalRequest
 from app.shared.tenant_context import ParkScopeMode, TenantContext
 
 
@@ -87,3 +87,34 @@ class ApprovalRepository:
         self.session.add(model)
         self.session.flush()
         return model
+
+    def add_event(
+        self,
+        *,
+        approval_id: int,
+        action: str,
+        actor_user_id: Optional[int],
+        remark: Optional[str],
+    ) -> ApprovalEvent:
+        ev = ApprovalEvent(
+            tenant_id=self.ctx.tenant_id,
+            approval_id=approval_id,
+            action=action,
+            actor_user_id=actor_user_id,
+            remark=remark,
+        )
+        self.session.add(ev)
+        self.session.flush()
+        return ev
+
+    def list_events(self, approval_id: int) -> Sequence[ApprovalEvent]:
+        return list(
+            self.session.scalars(
+                select(ApprovalEvent)
+                .where(
+                    ApprovalEvent.tenant_id == self.ctx.tenant_id,
+                    ApprovalEvent.approval_id == approval_id,
+                )
+                .order_by(ApprovalEvent.id.asc())
+            ).all()
+        )

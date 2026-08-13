@@ -72,3 +72,23 @@ def reject(
         svc.decide(approval_id, approve=False, remark=body.remark if body else None),
         message="rejected",
     )
+
+
+@router.post("/approvals/{approval_id}/withdraw")
+def withdraw(
+    approval_id: int,
+    body: ApprovalDecision | None = None,
+    svc: ApprovalService = Depends(_svc),
+) -> dict:
+    return ok(
+        svc.withdraw(approval_id, remark=body.remark if body else None),
+        message="withdrawn",
+    )
+
+
+@router.get(
+    "/approvals/{approval_id}/history",
+    dependencies=[Depends(require_permissions("approval:read"))],
+)
+def approval_history(approval_id: int, svc: ApprovalService = Depends(_svc)) -> dict:
+    return ok(svc.history(approval_id))

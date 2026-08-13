@@ -1,0 +1,1749 @@
+{
+  "meta": {
+    "source": "synthetic_desensitized",
+    "pii": false,
+    "tenants": 3,
+    "note": "schema-driven generator; no real customers"
+  },
+  "tables": {
+    "sys_user": [
+      {
+        "id": 1,
+        "username": "u_t1_0",
+        "password": "x",
+        "real_name": "用户1-0",
+        "phone": "13801000000",
+        "status": 0,
+        "tenant_id": 1
+      },
+      {
+        "id": 2,
+        "username": "u_t1_1",
+        "password": "x",
+        "real_name": "用户1-1",
+        "phone": "13801000001",
+        "status": 1,
+        "tenant_id": 1
+      },
+      {
+        "id": 3,
+        "username": "u_t1_2",
+        "password": "x",
+        "real_name": "用户1-2",
+        "phone": "13801000002",
+        "status": 1,
+        "tenant_id": 1
+      },
+      {
+        "id": 4,
+        "username": "u_t1_3",
+        "password": "x",
+        "real_name": "用户1-3",
+        "phone": "13801000003",
+        "status": 1,
+        "tenant_id": 1
+      },
+      {
+        "id": 5,
+        "username": "u_t1_4",
+        "password": "x",
+        "real_name": "用户1-4",
+        "phone": "13801000004",
+        "status": 0,
+        "tenant_id": 1
+      },
+      {
+        "id": 6,
+        "username": "u_t2_0",
+        "password": "x",
+        "real_name": "用户2-0",
+        "phone": "13802000000",
+        "status": 0,
+        "tenant_id": 2
+      },
+      {
+        "id": 7,
+        "username": "u_t2_1",
+        "password": "x",
+        "real_name": "用户2-1",
+        "phone": "13802000001",
+        "status": 1,
+        "tenant_id": 2
+      },
+      {
+        "id": 8,
+        "username": "u_t2_2",
+        "password": "x",
+        "real_name": "用户2-2",
+        "phone": "13802000002",
+        "status": 1,
+        "tenant_id": 2
+      },
+      {
+        "id": 9,
+        "username": "u_t2_3",
+        "password": "x",
+        "real_name": "用户2-3",
+        "phone": "13802000003",
+        "status": 1,
+        "tenant_id": 2
+      },
+      {
+        "id": 10,
+        "username": "u_t2_4",
+        "password": "x",
+        "real_name": "用户2-4",
+        "phone": "13802000004",
+        "status": 0,
+        "tenant_id": 2
+      },
+      {
+        "id": 11,
+        "username": "u_t3_0",
+        "password": "x",
+        "real_name": "用户3-0",
+        "phone": "13803000000",
+        "status": 0,
+        "tenant_id": 3
+      },
+      {
+        "id": 12,
+        "username": "u_t3_1",
+        "password": "x",
+        "real_name": "用户3-1",
+        "phone": "13803000001",
+        "status": 1,
+        "tenant_id": 3
+      },
+      {
+        "id": 13,
+        "username": "u_t3_2",
+        "password": "x",
+        "real_name": "用户3-2",
+        "phone": "13803000002",
+        "status": 1,
+        "tenant_id": 3
+      },
+      {
+        "id": 14,
+        "username": "u_t3_3",
+        "password": "x",
+        "real_name": "用户3-3",
+        "phone": "13803000003",
+        "status": 1,
+        "tenant_id": 3
+      },
+      {
+        "id": 15,
+        "username": "u_t3_4",
+        "password": "x",
+        "real_name": "用户3-4",
+        "phone": "13803000004",
+        "status": 0,
+        "tenant_id": 3
+      }
+    ],
+    "rental_contract": [
+      {
+        "id": 1,
+        "contract_no": "L-T1-P100-0",
+        "start_date": "2024-01-01",
+        "end_date": "2026-06-30",
+        "status": "active",
+        "deposit": "1819.00",
+        "park_id": 100,
+        "party_id": 1,
+        "tenant_id": 1
+      },
+      {
+        "id": 2,
+        "contract_no": "L-T1-P100-1",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "end",
+        "deposit": "9024.00",
+        "park_id": 100,
+        "party_id": 2,
+        "tenant_id": 1
+      },
+      {
+        "id": 3,
+        "contract_no": "L-T1-P100-2",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "draft",
+        "deposit": "5572.00",
+        "park_id": 100,
+        "party_id": 3,
+        "tenant_id": 1
+      },
+      {
+        "id": 4,
+        "contract_no": "L-T1-P100-3",
+        "start_date": "2024-01-01",
+        "end_date": "2026-06-30",
+        "status": "active",
+        "deposit": "18870.00",
+        "park_id": 100,
+        "party_id": 4,
+        "tenant_id": 1
+      },
+      {
+        "id": 5,
+        "contract_no": "L-T1-P100-4",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "14825.00",
+        "park_id": 100,
+        "party_id": 5,
+        "tenant_id": 1
+      },
+      {
+        "id": 6,
+        "contract_no": "L-T1-P100-5",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "1976.00",
+        "park_id": 100,
+        "party_id": 6,
+        "tenant_id": 1
+      },
+      {
+        "id": 7,
+        "contract_no": "L-T1-P101-0",
+        "start_date": "2024-01-01",
+        "end_date": "2026-06-30",
+        "status": "end",
+        "deposit": "12270.00",
+        "park_id": 101,
+        "party_id": 7,
+        "tenant_id": 1
+      },
+      {
+        "id": 8,
+        "contract_no": "L-T1-P101-1",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "end",
+        "deposit": "2423.00",
+        "park_id": 101,
+        "party_id": 8,
+        "tenant_id": 1
+      },
+      {
+        "id": 9,
+        "contract_no": "L-T1-P101-2",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "18571.00",
+        "park_id": 101,
+        "party_id": 9,
+        "tenant_id": 1
+      },
+      {
+        "id": 10,
+        "contract_no": "L-T1-P101-3",
+        "start_date": "2024-01-01",
+        "end_date": "2026-06-30",
+        "status": "active",
+        "deposit": "13403.00",
+        "park_id": 101,
+        "party_id": 10,
+        "tenant_id": 1
+      },
+      {
+        "id": 11,
+        "contract_no": "L-T1-P101-4",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "19089.00",
+        "park_id": 101,
+        "party_id": 11,
+        "tenant_id": 1
+      },
+      {
+        "id": 12,
+        "contract_no": "L-T1-P101-5",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "end",
+        "deposit": "12850.00",
+        "park_id": 101,
+        "party_id": 12,
+        "tenant_id": 1
+      },
+      {
+        "id": 13,
+        "contract_no": "L-T2-P200-0",
+        "start_date": "2024-01-01",
+        "end_date": "2026-06-30",
+        "status": "end",
+        "deposit": "19250.00",
+        "park_id": 200,
+        "party_id": 13,
+        "tenant_id": 2
+      },
+      {
+        "id": 14,
+        "contract_no": "L-T2-P200-1",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "draft",
+        "deposit": "11626.00",
+        "park_id": 200,
+        "party_id": 14,
+        "tenant_id": 2
+      },
+      {
+        "id": 15,
+        "contract_no": "L-T2-P200-2",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "8505.00",
+        "park_id": 200,
+        "party_id": 15,
+        "tenant_id": 2
+      },
+      {
+        "id": 16,
+        "contract_no": "L-T2-P200-3",
+        "start_date": "2024-01-01",
+        "end_date": "2026-06-30",
+        "status": "active",
+        "deposit": "11336.00",
+        "park_id": 200,
+        "party_id": 16,
+        "tenant_id": 2
+      },
+      {
+        "id": 17,
+        "contract_no": "L-T2-P200-4",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "9773.00",
+        "park_id": 200,
+        "party_id": 17,
+        "tenant_id": 2
+      },
+      {
+        "id": 18,
+        "contract_no": "L-T2-P200-5",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "7913.00",
+        "park_id": 200,
+        "party_id": 18,
+        "tenant_id": 2
+      },
+      {
+        "id": 19,
+        "contract_no": "L-T2-P201-0",
+        "start_date": "2024-01-01",
+        "end_date": "2026-06-30",
+        "status": "draft",
+        "deposit": "14833.00",
+        "park_id": 201,
+        "party_id": 19,
+        "tenant_id": 2
+      },
+      {
+        "id": 20,
+        "contract_no": "L-T2-P201-1",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "13608.00",
+        "park_id": 201,
+        "party_id": 20,
+        "tenant_id": 2
+      },
+      {
+        "id": 21,
+        "contract_no": "L-T2-P201-2",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "16337.00",
+        "park_id": 201,
+        "party_id": 21,
+        "tenant_id": 2
+      },
+      {
+        "id": 22,
+        "contract_no": "L-T2-P201-3",
+        "start_date": "2024-01-01",
+        "end_date": "2026-06-30",
+        "status": "end",
+        "deposit": "19128.00",
+        "park_id": 201,
+        "party_id": 22,
+        "tenant_id": 2
+      },
+      {
+        "id": 23,
+        "contract_no": "L-T2-P201-4",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "4753.00",
+        "park_id": 201,
+        "party_id": 23,
+        "tenant_id": 2
+      },
+      {
+        "id": 24,
+        "contract_no": "L-T2-P201-5",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "end",
+        "deposit": "12146.00",
+        "park_id": 201,
+        "party_id": 24,
+        "tenant_id": 2
+      },
+      {
+        "id": 25,
+        "contract_no": "L-T3-P300-0",
+        "start_date": "2024-01-01",
+        "end_date": "2026-06-30",
+        "status": "end",
+        "deposit": "8846.00",
+        "park_id": 300,
+        "party_id": 25,
+        "tenant_id": 3
+      },
+      {
+        "id": 26,
+        "contract_no": "L-T3-P300-1",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "8892.00",
+        "park_id": 300,
+        "party_id": 26,
+        "tenant_id": 3
+      },
+      {
+        "id": 27,
+        "contract_no": "L-T3-P300-2",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "3806.00",
+        "park_id": 300,
+        "party_id": 27,
+        "tenant_id": 3
+      },
+      {
+        "id": 28,
+        "contract_no": "L-T3-P300-3",
+        "start_date": "2024-01-01",
+        "end_date": "2026-06-30",
+        "status": "active",
+        "deposit": "3267.00",
+        "park_id": 300,
+        "party_id": 28,
+        "tenant_id": 3
+      },
+      {
+        "id": 29,
+        "contract_no": "L-T3-P300-4",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "draft",
+        "deposit": "5207.00",
+        "park_id": 300,
+        "party_id": 29,
+        "tenant_id": 3
+      },
+      {
+        "id": 30,
+        "contract_no": "L-T3-P300-5",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "19015.00",
+        "park_id": 300,
+        "party_id": 30,
+        "tenant_id": 3
+      },
+      {
+        "id": 31,
+        "contract_no": "L-T3-P301-0",
+        "start_date": "2024-01-01",
+        "end_date": "2026-06-30",
+        "status": "active",
+        "deposit": "8501.00",
+        "park_id": 301,
+        "party_id": 31,
+        "tenant_id": 3
+      },
+      {
+        "id": 32,
+        "contract_no": "L-T3-P301-1",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "2029.00",
+        "park_id": 301,
+        "party_id": 32,
+        "tenant_id": 3
+      },
+      {
+        "id": 33,
+        "contract_no": "L-T3-P301-2",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "end",
+        "deposit": "3321.00",
+        "park_id": 301,
+        "party_id": 33,
+        "tenant_id": 3
+      },
+      {
+        "id": 34,
+        "contract_no": "L-T3-P301-3",
+        "start_date": "2024-01-01",
+        "end_date": "2026-06-30",
+        "status": "draft",
+        "deposit": "10125.00",
+        "park_id": 301,
+        "party_id": 34,
+        "tenant_id": 3
+      },
+      {
+        "id": 35,
+        "contract_no": "L-T3-P301-4",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "active",
+        "deposit": "8020.00",
+        "park_id": 301,
+        "party_id": 35,
+        "tenant_id": 3
+      },
+      {
+        "id": 36,
+        "contract_no": "L-T3-P301-5",
+        "start_date": "2024-01-01",
+        "end_date": "2025-12-31",
+        "status": "draft",
+        "deposit": "19711.00",
+        "park_id": 301,
+        "party_id": 36,
+        "tenant_id": 3
+      }
+    ],
+    "bill": [
+      {
+        "id": 1,
+        "bill_no": "B-T1-1",
+        "total": "100.50",
+        "paid": "100.50",
+        "status": "paid",
+        "park_id": 100,
+        "party_id": 1,
+        "tenant_id": 1
+      },
+      {
+        "id": 2,
+        "bill_no": "B-T1-2",
+        "total": "200.00",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 100,
+        "party_id": 2,
+        "tenant_id": 1
+      },
+      {
+        "id": 3,
+        "bill_no": "B-T1-3",
+        "total": "12345.67",
+        "paid": "12345.67",
+        "status": "paid",
+        "park_id": 100,
+        "party_id": 3,
+        "tenant_id": 1
+      },
+      {
+        "id": 4,
+        "bill_no": "B-T1-4",
+        "total": "12345.67",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 100,
+        "party_id": 4,
+        "tenant_id": 1
+      },
+      {
+        "id": 5,
+        "bill_no": "B-T1-5",
+        "total": "12345.67",
+        "paid": "12345.67",
+        "status": "paid",
+        "park_id": 100,
+        "party_id": 5,
+        "tenant_id": 1
+      },
+      {
+        "id": 6,
+        "bill_no": "B-T1-6",
+        "total": "200.00",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 100,
+        "party_id": 6,
+        "tenant_id": 1
+      },
+      {
+        "id": 7,
+        "bill_no": "B-T1-7",
+        "total": "12345.67",
+        "paid": "12345.67",
+        "status": "paid",
+        "park_id": 100,
+        "party_id": 7,
+        "tenant_id": 1
+      },
+      {
+        "id": 8,
+        "bill_no": "B-T1-8",
+        "total": "0.01",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 100,
+        "party_id": 8,
+        "tenant_id": 1
+      },
+      {
+        "id": 9,
+        "bill_no": "B-T1-9",
+        "total": "0.01",
+        "paid": "0.01",
+        "status": "paid",
+        "park_id": 100,
+        "party_id": 9,
+        "tenant_id": 1
+      },
+      {
+        "id": 10,
+        "bill_no": "B-T1-10",
+        "total": "12345.67",
+        "paid": "0.00",
+        "status": "draft",
+        "park_id": 100,
+        "party_id": 10,
+        "tenant_id": 1
+      },
+      {
+        "id": 11,
+        "bill_no": "B-T1-11",
+        "total": "100.50",
+        "paid": "100.50",
+        "status": "paid",
+        "park_id": 100,
+        "party_id": 11,
+        "tenant_id": 1
+      },
+      {
+        "id": 12,
+        "bill_no": "B-T1-12",
+        "total": "200.00",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 100,
+        "party_id": 12,
+        "tenant_id": 1
+      },
+      {
+        "id": 13,
+        "bill_no": "B-T1-13",
+        "total": "0.01",
+        "paid": "0.01",
+        "status": "paid",
+        "park_id": 100,
+        "party_id": 13,
+        "tenant_id": 1
+      },
+      {
+        "id": 14,
+        "bill_no": "B-T1-14",
+        "total": "12345.67",
+        "paid": "12345.67",
+        "status": "paid",
+        "park_id": 101,
+        "party_id": 1,
+        "tenant_id": 1
+      },
+      {
+        "id": 15,
+        "bill_no": "B-T1-15",
+        "total": "200.00",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 101,
+        "party_id": 2,
+        "tenant_id": 1
+      },
+      {
+        "id": 16,
+        "bill_no": "B-T1-16",
+        "total": "100.50",
+        "paid": "100.50",
+        "status": "paid",
+        "park_id": 101,
+        "party_id": 3,
+        "tenant_id": 1
+      },
+      {
+        "id": 17,
+        "bill_no": "B-T1-17",
+        "total": "100.50",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 101,
+        "party_id": 4,
+        "tenant_id": 1
+      },
+      {
+        "id": 18,
+        "bill_no": "B-T1-18",
+        "total": "200.00",
+        "paid": "200.00",
+        "status": "paid",
+        "park_id": 101,
+        "party_id": 5,
+        "tenant_id": 1
+      },
+      {
+        "id": 19,
+        "bill_no": "B-T1-19",
+        "total": "999.99",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 101,
+        "party_id": 6,
+        "tenant_id": 1
+      },
+      {
+        "id": 20,
+        "bill_no": "B-T1-20",
+        "total": "200.00",
+        "paid": "200.00",
+        "status": "paid",
+        "park_id": 101,
+        "party_id": 7,
+        "tenant_id": 1
+      },
+      {
+        "id": 21,
+        "bill_no": "B-T1-21",
+        "total": "100.50",
+        "paid": "0.00",
+        "status": "draft",
+        "park_id": 101,
+        "party_id": 8,
+        "tenant_id": 1
+      },
+      {
+        "id": 22,
+        "bill_no": "B-T1-22",
+        "total": "999.99",
+        "paid": "999.99",
+        "status": "paid",
+        "park_id": 101,
+        "party_id": 9,
+        "tenant_id": 1
+      },
+      {
+        "id": 23,
+        "bill_no": "B-T1-23",
+        "total": "0.01",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 101,
+        "party_id": 10,
+        "tenant_id": 1
+      },
+      {
+        "id": 24,
+        "bill_no": "B-T1-24",
+        "total": "999.99",
+        "paid": "999.99",
+        "status": "paid",
+        "park_id": 101,
+        "party_id": 11,
+        "tenant_id": 1
+      },
+      {
+        "id": 25,
+        "bill_no": "B-T1-25",
+        "total": "200.00",
+        "paid": "0.00",
+        "status": "draft",
+        "park_id": 101,
+        "party_id": 12,
+        "tenant_id": 1
+      },
+      {
+        "id": 26,
+        "bill_no": "B-T1-26",
+        "total": "999.99",
+        "paid": "999.99",
+        "status": "paid",
+        "park_id": 101,
+        "party_id": 13,
+        "tenant_id": 1
+      },
+      {
+        "id": 27,
+        "bill_no": "B-T2-27",
+        "total": "12345.67",
+        "paid": "12345.67",
+        "status": "paid",
+        "park_id": 200,
+        "party_id": 1,
+        "tenant_id": 2
+      },
+      {
+        "id": 28,
+        "bill_no": "B-T2-28",
+        "total": "999.99",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 200,
+        "party_id": 2,
+        "tenant_id": 2
+      },
+      {
+        "id": 29,
+        "bill_no": "B-T2-29",
+        "total": "0.01",
+        "paid": "0.01",
+        "status": "paid",
+        "park_id": 200,
+        "party_id": 3,
+        "tenant_id": 2
+      },
+      {
+        "id": 30,
+        "bill_no": "B-T2-30",
+        "total": "0.01",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 200,
+        "party_id": 4,
+        "tenant_id": 2
+      },
+      {
+        "id": 31,
+        "bill_no": "B-T2-31",
+        "total": "0.01",
+        "paid": "0.01",
+        "status": "paid",
+        "park_id": 200,
+        "party_id": 5,
+        "tenant_id": 2
+      },
+      {
+        "id": 32,
+        "bill_no": "B-T2-32",
+        "total": "200.00",
+        "paid": "0.00",
+        "status": "draft",
+        "park_id": 200,
+        "party_id": 6,
+        "tenant_id": 2
+      },
+      {
+        "id": 33,
+        "bill_no": "B-T2-33",
+        "total": "200.00",
+        "paid": "200.00",
+        "status": "paid",
+        "park_id": 200,
+        "party_id": 7,
+        "tenant_id": 2
+      },
+      {
+        "id": 34,
+        "bill_no": "B-T2-34",
+        "total": "200.00",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 200,
+        "party_id": 8,
+        "tenant_id": 2
+      },
+      {
+        "id": 35,
+        "bill_no": "B-T2-35",
+        "total": "12345.67",
+        "paid": "12345.67",
+        "status": "paid",
+        "park_id": 200,
+        "party_id": 9,
+        "tenant_id": 2
+      },
+      {
+        "id": 36,
+        "bill_no": "B-T2-36",
+        "total": "12345.67",
+        "paid": "0.00",
+        "status": "draft",
+        "park_id": 200,
+        "party_id": 10,
+        "tenant_id": 2
+      },
+      {
+        "id": 37,
+        "bill_no": "B-T2-37",
+        "total": "12345.67",
+        "paid": "12345.67",
+        "status": "paid",
+        "park_id": 200,
+        "party_id": 11,
+        "tenant_id": 2
+      },
+      {
+        "id": 38,
+        "bill_no": "B-T2-38",
+        "total": "0.01",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 200,
+        "party_id": 12,
+        "tenant_id": 2
+      },
+      {
+        "id": 39,
+        "bill_no": "B-T2-39",
+        "total": "0.01",
+        "paid": "0.01",
+        "status": "paid",
+        "park_id": 200,
+        "party_id": 13,
+        "tenant_id": 2
+      },
+      {
+        "id": 40,
+        "bill_no": "B-T2-40",
+        "total": "100.50",
+        "paid": "100.50",
+        "status": "paid",
+        "park_id": 201,
+        "party_id": 1,
+        "tenant_id": 2
+      },
+      {
+        "id": 41,
+        "bill_no": "B-T2-41",
+        "total": "999.99",
+        "paid": "0.00",
+        "status": "draft",
+        "park_id": 201,
+        "party_id": 2,
+        "tenant_id": 2
+      },
+      {
+        "id": 42,
+        "bill_no": "B-T2-42",
+        "total": "200.00",
+        "paid": "200.00",
+        "status": "paid",
+        "park_id": 201,
+        "party_id": 3,
+        "tenant_id": 2
+      },
+      {
+        "id": 43,
+        "bill_no": "B-T2-43",
+        "total": "0.01",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 201,
+        "party_id": 4,
+        "tenant_id": 2
+      },
+      {
+        "id": 44,
+        "bill_no": "B-T2-44",
+        "total": "999.99",
+        "paid": "999.99",
+        "status": "paid",
+        "park_id": 201,
+        "party_id": 5,
+        "tenant_id": 2
+      },
+      {
+        "id": 45,
+        "bill_no": "B-T2-45",
+        "total": "12345.67",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 201,
+        "party_id": 6,
+        "tenant_id": 2
+      },
+      {
+        "id": 46,
+        "bill_no": "B-T2-46",
+        "total": "12345.67",
+        "paid": "12345.67",
+        "status": "paid",
+        "park_id": 201,
+        "party_id": 7,
+        "tenant_id": 2
+      },
+      {
+        "id": 47,
+        "bill_no": "B-T2-47",
+        "total": "100.50",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 201,
+        "party_id": 8,
+        "tenant_id": 2
+      },
+      {
+        "id": 48,
+        "bill_no": "B-T2-48",
+        "total": "999.99",
+        "paid": "999.99",
+        "status": "paid",
+        "park_id": 201,
+        "party_id": 9,
+        "tenant_id": 2
+      },
+      {
+        "id": 49,
+        "bill_no": "B-T2-49",
+        "total": "12345.67",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 201,
+        "party_id": 10,
+        "tenant_id": 2
+      },
+      {
+        "id": 50,
+        "bill_no": "B-T2-50",
+        "total": "200.00",
+        "paid": "200.00",
+        "status": "paid",
+        "park_id": 201,
+        "party_id": 11,
+        "tenant_id": 2
+      },
+      {
+        "id": 51,
+        "bill_no": "B-T2-51",
+        "total": "200.00",
+        "paid": "0.00",
+        "status": "draft",
+        "park_id": 201,
+        "party_id": 12,
+        "tenant_id": 2
+      },
+      {
+        "id": 52,
+        "bill_no": "B-T2-52",
+        "total": "200.00",
+        "paid": "200.00",
+        "status": "paid",
+        "park_id": 201,
+        "party_id": 13,
+        "tenant_id": 2
+      },
+      {
+        "id": 53,
+        "bill_no": "B-T3-53",
+        "total": "200.00",
+        "paid": "200.00",
+        "status": "paid",
+        "park_id": 300,
+        "party_id": 1,
+        "tenant_id": 3
+      },
+      {
+        "id": 54,
+        "bill_no": "B-T3-54",
+        "total": "999.99",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 300,
+        "party_id": 2,
+        "tenant_id": 3
+      },
+      {
+        "id": 55,
+        "bill_no": "B-T3-55",
+        "total": "12345.67",
+        "paid": "12345.67",
+        "status": "paid",
+        "park_id": 300,
+        "party_id": 3,
+        "tenant_id": 3
+      },
+      {
+        "id": 56,
+        "bill_no": "B-T3-56",
+        "total": "0.01",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 300,
+        "party_id": 4,
+        "tenant_id": 3
+      },
+      {
+        "id": 57,
+        "bill_no": "B-T3-57",
+        "total": "12345.67",
+        "paid": "12345.67",
+        "status": "paid",
+        "park_id": 300,
+        "party_id": 5,
+        "tenant_id": 3
+      },
+      {
+        "id": 58,
+        "bill_no": "B-T3-58",
+        "total": "200.00",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 300,
+        "party_id": 6,
+        "tenant_id": 3
+      },
+      {
+        "id": 59,
+        "bill_no": "B-T3-59",
+        "total": "999.99",
+        "paid": "999.99",
+        "status": "paid",
+        "park_id": 300,
+        "party_id": 7,
+        "tenant_id": 3
+      },
+      {
+        "id": 60,
+        "bill_no": "B-T3-60",
+        "total": "0.01",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 300,
+        "party_id": 8,
+        "tenant_id": 3
+      },
+      {
+        "id": 61,
+        "bill_no": "B-T3-61",
+        "total": "999.99",
+        "paid": "999.99",
+        "status": "paid",
+        "park_id": 300,
+        "party_id": 9,
+        "tenant_id": 3
+      },
+      {
+        "id": 62,
+        "bill_no": "B-T3-62",
+        "total": "0.01",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 300,
+        "party_id": 10,
+        "tenant_id": 3
+      },
+      {
+        "id": 63,
+        "bill_no": "B-T3-63",
+        "total": "0.01",
+        "paid": "0.01",
+        "status": "paid",
+        "park_id": 300,
+        "party_id": 11,
+        "tenant_id": 3
+      },
+      {
+        "id": 64,
+        "bill_no": "B-T3-64",
+        "total": "100.50",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 300,
+        "party_id": 12,
+        "tenant_id": 3
+      },
+      {
+        "id": 65,
+        "bill_no": "B-T3-65",
+        "total": "200.00",
+        "paid": "200.00",
+        "status": "paid",
+        "park_id": 300,
+        "party_id": 13,
+        "tenant_id": 3
+      },
+      {
+        "id": 66,
+        "bill_no": "B-T3-66",
+        "total": "12345.67",
+        "paid": "12345.67",
+        "status": "paid",
+        "park_id": 301,
+        "party_id": 1,
+        "tenant_id": 3
+      },
+      {
+        "id": 67,
+        "bill_no": "B-T3-67",
+        "total": "0.01",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 301,
+        "party_id": 2,
+        "tenant_id": 3
+      },
+      {
+        "id": 68,
+        "bill_no": "B-T3-68",
+        "total": "0.01",
+        "paid": "0.01",
+        "status": "paid",
+        "park_id": 301,
+        "party_id": 3,
+        "tenant_id": 3
+      },
+      {
+        "id": 69,
+        "bill_no": "B-T3-69",
+        "total": "0.01",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 301,
+        "party_id": 4,
+        "tenant_id": 3
+      },
+      {
+        "id": 70,
+        "bill_no": "B-T3-70",
+        "total": "100.50",
+        "paid": "100.50",
+        "status": "paid",
+        "park_id": 301,
+        "party_id": 5,
+        "tenant_id": 3
+      },
+      {
+        "id": 71,
+        "bill_no": "B-T3-71",
+        "total": "100.50",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 301,
+        "party_id": 6,
+        "tenant_id": 3
+      },
+      {
+        "id": 72,
+        "bill_no": "B-T3-72",
+        "total": "0.01",
+        "paid": "0.01",
+        "status": "paid",
+        "park_id": 301,
+        "party_id": 7,
+        "tenant_id": 3
+      },
+      {
+        "id": 73,
+        "bill_no": "B-T3-73",
+        "total": "999.99",
+        "paid": "0.00",
+        "status": "draft",
+        "park_id": 301,
+        "party_id": 8,
+        "tenant_id": 3
+      },
+      {
+        "id": 74,
+        "bill_no": "B-T3-74",
+        "total": "0.01",
+        "paid": "0.01",
+        "status": "paid",
+        "park_id": 301,
+        "party_id": 9,
+        "tenant_id": 3
+      },
+      {
+        "id": 75,
+        "bill_no": "B-T3-75",
+        "total": "0.01",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 301,
+        "party_id": 10,
+        "tenant_id": 3
+      },
+      {
+        "id": 76,
+        "bill_no": "B-T3-76",
+        "total": "100.50",
+        "paid": "100.50",
+        "status": "paid",
+        "park_id": 301,
+        "party_id": 11,
+        "tenant_id": 3
+      },
+      {
+        "id": 77,
+        "bill_no": "B-T3-77",
+        "total": "100.50",
+        "paid": "0.00",
+        "status": "issued",
+        "park_id": 301,
+        "party_id": 12,
+        "tenant_id": 3
+      },
+      {
+        "id": 78,
+        "bill_no": "B-T3-78",
+        "total": "0.01",
+        "paid": "0.01",
+        "status": "paid",
+        "park_id": 301,
+        "party_id": 13,
+        "tenant_id": 3
+      },
+      {
+        "id": 79,
+        "bill_no": "BAD",
+        "total": "not-a-number",
+        "paid": "0",
+        "status": "weird",
+        "park_id": 1,
+        "party_id": 1,
+        "tenant_id": 1
+      }
+    ],
+    "investment_lead": [
+      {
+        "id": 1,
+        "name": "线索T1-0",
+        "mobile": "13901000000",
+        "status": "won",
+        "park_id": 100,
+        "tenant_id": 1
+      },
+      {
+        "id": 2,
+        "name": "线索T1-1",
+        "mobile": "13901000001",
+        "status": "won",
+        "park_id": 100,
+        "tenant_id": 1
+      },
+      {
+        "id": 3,
+        "name": "线索T1-2",
+        "mobile": "13901000002",
+        "status": "following",
+        "park_id": 100,
+        "tenant_id": 1
+      },
+      {
+        "id": 4,
+        "name": "线索T1-3",
+        "mobile": "13901000003",
+        "status": "following",
+        "park_id": 100,
+        "tenant_id": 1
+      },
+      {
+        "id": 5,
+        "name": "线索T1-4",
+        "mobile": "13901000004",
+        "status": "won",
+        "park_id": 100,
+        "tenant_id": 1
+      },
+      {
+        "id": 6,
+        "name": "线索T1-0",
+        "mobile": "13901000000",
+        "status": "following",
+        "park_id": 101,
+        "tenant_id": 1
+      },
+      {
+        "id": 7,
+        "name": "线索T1-1",
+        "mobile": "13901000001",
+        "status": "won",
+        "park_id": 101,
+        "tenant_id": 1
+      },
+      {
+        "id": 8,
+        "name": "线索T1-2",
+        "mobile": "13901000002",
+        "status": "new",
+        "park_id": 101,
+        "tenant_id": 1
+      },
+      {
+        "id": 9,
+        "name": "线索T1-3",
+        "mobile": "13901000003",
+        "status": "new",
+        "park_id": 101,
+        "tenant_id": 1
+      },
+      {
+        "id": 10,
+        "name": "线索T1-4",
+        "mobile": "13901000004",
+        "status": "following",
+        "park_id": 101,
+        "tenant_id": 1
+      },
+      {
+        "id": 11,
+        "name": "线索T2-0",
+        "mobile": "13902000000",
+        "status": "won",
+        "park_id": 200,
+        "tenant_id": 2
+      },
+      {
+        "id": 12,
+        "name": "线索T2-1",
+        "mobile": "13902000001",
+        "status": "following",
+        "park_id": 200,
+        "tenant_id": 2
+      },
+      {
+        "id": 13,
+        "name": "线索T2-2",
+        "mobile": "13902000002",
+        "status": "following",
+        "park_id": 200,
+        "tenant_id": 2
+      },
+      {
+        "id": 14,
+        "name": "线索T2-3",
+        "mobile": "13902000003",
+        "status": "new",
+        "park_id": 200,
+        "tenant_id": 2
+      },
+      {
+        "id": 15,
+        "name": "线索T2-4",
+        "mobile": "13902000004",
+        "status": "lost",
+        "park_id": 200,
+        "tenant_id": 2
+      },
+      {
+        "id": 16,
+        "name": "线索T2-0",
+        "mobile": "13902000000",
+        "status": "new",
+        "park_id": 201,
+        "tenant_id": 2
+      },
+      {
+        "id": 17,
+        "name": "线索T2-1",
+        "mobile": "13902000001",
+        "status": "new",
+        "park_id": 201,
+        "tenant_id": 2
+      },
+      {
+        "id": 18,
+        "name": "线索T2-2",
+        "mobile": "13902000002",
+        "status": "new",
+        "park_id": 201,
+        "tenant_id": 2
+      },
+      {
+        "id": 19,
+        "name": "线索T2-3",
+        "mobile": "13902000003",
+        "status": "new",
+        "park_id": 201,
+        "tenant_id": 2
+      },
+      {
+        "id": 20,
+        "name": "线索T2-4",
+        "mobile": "13902000004",
+        "status": "won",
+        "park_id": 201,
+        "tenant_id": 2
+      },
+      {
+        "id": 21,
+        "name": "线索T3-0",
+        "mobile": "13903000000",
+        "status": "new",
+        "park_id": 300,
+        "tenant_id": 3
+      },
+      {
+        "id": 22,
+        "name": "线索T3-1",
+        "mobile": "13903000001",
+        "status": "won",
+        "park_id": 300,
+        "tenant_id": 3
+      },
+      {
+        "id": 23,
+        "name": "线索T3-2",
+        "mobile": "13903000002",
+        "status": "new",
+        "park_id": 300,
+        "tenant_id": 3
+      },
+      {
+        "id": 24,
+        "name": "线索T3-3",
+        "mobile": "13903000003",
+        "status": "new",
+        "park_id": 300,
+        "tenant_id": 3
+      },
+      {
+        "id": 25,
+        "name": "线索T3-4",
+        "mobile": "13903000004",
+        "status": "new",
+        "park_id": 300,
+        "tenant_id": 3
+      },
+      {
+        "id": 26,
+        "name": "线索T3-0",
+        "mobile": "13903000000",
+        "status": "won",
+        "park_id": 301,
+        "tenant_id": 3
+      },
+      {
+        "id": 27,
+        "name": "线索T3-1",
+        "mobile": "13903000001",
+        "status": "new",
+        "park_id": 301,
+        "tenant_id": 3
+      },
+      {
+        "id": 28,
+        "name": "线索T3-2",
+        "mobile": "13903000002",
+        "status": "following",
+        "park_id": 301,
+        "tenant_id": 3
+      },
+      {
+        "id": 29,
+        "name": "线索T3-3",
+        "mobile": "13903000003",
+        "status": "following",
+        "park_id": 301,
+        "tenant_id": 3
+      },
+      {
+        "id": 30,
+        "name": "线索T3-4",
+        "mobile": "13903000004",
+        "status": "following",
+        "park_id": 301,
+        "tenant_id": 3
+      }
+    ],
+    "work_order": [
+      {
+        "id": 1,
+        "title": "工单T1-0",
+        "status": "open",
+        "park_id": 100,
+        "tenant_id": 1
+      },
+      {
+        "id": 2,
+        "title": "工单T1-1",
+        "status": "open",
+        "park_id": 100,
+        "tenant_id": 1
+      },
+      {
+        "id": 3,
+        "title": "工单T1-2",
+        "status": "open",
+        "park_id": 100,
+        "tenant_id": 1
+      },
+      {
+        "id": 4,
+        "title": "工单T1-3",
+        "status": "open",
+        "park_id": 100,
+        "tenant_id": 1
+      },
+      {
+        "id": 5,
+        "title": "工单T1-0",
+        "status": "doing",
+        "park_id": 101,
+        "tenant_id": 1
+      },
+      {
+        "id": 6,
+        "title": "工单T1-1",
+        "status": "doing",
+        "park_id": 101,
+        "tenant_id": 1
+      },
+      {
+        "id": 7,
+        "title": "工单T1-2",
+        "status": "open",
+        "park_id": 101,
+        "tenant_id": 1
+      },
+      {
+        "id": 8,
+        "title": "工单T1-3",
+        "status": "open",
+        "park_id": 101,
+        "tenant_id": 1
+      },
+      {
+        "id": 9,
+        "title": "工单T2-0",
+        "status": "open",
+        "park_id": 200,
+        "tenant_id": 2
+      },
+      {
+        "id": 10,
+        "title": "工单T2-1",
+        "status": "open",
+        "park_id": 200,
+        "tenant_id": 2
+      },
+      {
+        "id": 11,
+        "title": "工单T2-2",
+        "status": "open",
+        "park_id": 200,
+        "tenant_id": 2
+      },
+      {
+        "id": 12,
+        "title": "工单T2-3",
+        "status": "doing",
+        "park_id": 200,
+        "tenant_id": 2
+      },
+      {
+        "id": 13,
+        "title": "工单T2-0",
+        "status": "open",
+        "park_id": 201,
+        "tenant_id": 2
+      },
+      {
+        "id": 14,
+        "title": "工单T2-1",
+        "status": "open",
+        "park_id": 201,
+        "tenant_id": 2
+      },
+      {
+        "id": 15,
+        "title": "工单T2-2",
+        "status": "open",
+        "park_id": 201,
+        "tenant_id": 2
+      },
+      {
+        "id": 16,
+        "title": "工单T2-3",
+        "status": "done",
+        "park_id": 201,
+        "tenant_id": 2
+      },
+      {
+        "id": 17,
+        "title": "工单T3-0",
+        "status": "doing",
+        "park_id": 300,
+        "tenant_id": 3
+      },
+      {
+        "id": 18,
+        "title": "工单T3-1",
+        "status": "doing",
+        "park_id": 300,
+        "tenant_id": 3
+      },
+      {
+        "id": 19,
+        "title": "工单T3-2",
+        "status": "open",
+        "park_id": 300,
+        "tenant_id": 3
+      },
+      {
+        "id": 20,
+        "title": "工单T3-3",
+        "status": "open",
+        "park_id": 300,
+        "tenant_id": 3
+      },
+      {
+        "id": 21,
+        "title": "工单T3-0",
+        "status": "open",
+        "park_id": 301,
+        "tenant_id": 3
+      },
+      {
+        "id": 22,
+        "title": "工单T3-1",
+        "status": "doing",
+        "park_id": 301,
+        "tenant_id": 3
+      },
+      {
+        "id": 23,
+        "title": "工单T3-2",
+        "status": "open",
+        "park_id": 301,
+        "tenant_id": 3
+      },
+      {
+        "id": 24,
+        "title": "工单T3-3",
+        "status": "doing",
+        "park_id": 301,
+        "tenant_id": 3
+      }
+    ]
+  }
+}

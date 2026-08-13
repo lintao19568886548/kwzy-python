@@ -37,6 +37,25 @@ class Settings(BaseSettings):
     # Explicit opt-in for anonymous local/test identity (default closed).
     allow_anon_dev: bool = False
 
+    # External integrations (empty = fake/local; production may require when used)
+    sms_provider: str = "auto"  # auto|fake|production
+    sms_api_key: str = ""
+    sms_endpoint: str = ""
+    sms_timeout_seconds: int = 5
+    sms_max_retries: int = 2
+
+    wechat_provider: str = "auto"
+    wechat_app_id: str = ""
+    wechat_app_secret: str = ""
+
+    oss_provider: str = "auto"  # auto|local|s3
+    oss_local_root: str = "./data/attachments"
+    oss_endpoint: str = ""
+    oss_bucket: str = ""
+    oss_access_key: str = ""
+    oss_secret_key: str = ""
+    oss_max_bytes: int = 10 * 1024 * 1024
+
     @field_validator("app_env", mode="before")
     @classmethod
     def normalize_app_env(cls, value: object) -> str:
@@ -59,6 +78,17 @@ class Settings(BaseSettings):
                 raise ValueError(f"{self.app_env} requires explicit CORS_ORIGINS")
             if self.allow_anon_dev:
                 raise ValueError(f"{self.app_env} forbids ALLOW_ANON_DEV")
+            # 生产若显式选择 production provider 则必须有密钥
+            if self.sms_provider == "production" and not (self.sms_api_key or "").strip():
+                raise ValueError("production sms_provider requires SMS_API_KEY")
+            if self.wechat_provider == "production" and (
+                not self.wechat_app_id or not self.wechat_app_secret
+            ):
+                raise ValueError("production wechat_provider requires WECHAT_APP_ID/SECRET")
+            if self.oss_provider == "s3" and (
+                not self.oss_endpoint or not self.oss_bucket or not self.oss_access_key
+            ):
+                raise ValueError("oss_provider=s3 requires OSS endpoint/bucket/access_key")
         return self
 
     def allows_anonymous_dev_identity(self) -> bool:
