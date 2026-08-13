@@ -15,3 +15,9 @@ test("unauthenticated redirect to login", async ({ page }) => {
   await page.goto("/workbench");
   await expect(page).toHaveURL(/login/);
 });
+
+test("login form has accessible labels", async ({ page }) => {
+  await page.goto("/login");
+  await expect(page.locator("#login-username")).toBeVisible();
+  await expect(page.locator("#login-password")).toBeVisible();
+});
