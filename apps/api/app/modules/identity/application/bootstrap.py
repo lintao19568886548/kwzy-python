@@ -55,12 +55,22 @@ DEFAULT_PERMISSIONS = (
     ("lead:read", "查看招商线索", "investment"),
     ("lead:write", "维护招商线索", "investment"),
     ("lead:convert", "转化招商线索", "investment"),
+    ("work_order:read", "查看运维工单", "facility_ops"),
+    ("work_order:write", "维护运维工单", "facility_ops"),
+    ("collection:read", "查看催缴案件", "collection"),
+    ("collection:write", "维护催缴案件", "collection"),
     ("identity.user.read", "查看用户", "identity"),
     ("identity.user.write", "维护用户", "identity"),
     ("identity.role.read", "查看角色", "identity"),
     ("identity.role.write", "维护角色", "identity"),
     ("identity.menu.read", "查看菜单", "identity"),
     ("identity.menu.write", "维护菜单", "identity"),
+    ("identity.org.read", "查看组织", "identity"),
+    ("identity.org.write", "维护组织", "identity"),
+    ("identity.dict.read", "查看字典", "identity"),
+    ("identity.dict.write", "维护字典", "identity"),
+    ("identity.param.read", "查看系统参数", "identity"),
+    ("identity.param.write", "维护系统参数", "identity"),
 )
 
 

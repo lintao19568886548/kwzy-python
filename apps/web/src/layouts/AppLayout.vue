@@ -19,10 +19,12 @@ function logout() {
         <router-link to="/workbench">工作台</router-link>
         <router-link to="/todos">待办</router-link>
         <router-link to="/leads">招商</router-link>
+        <router-link to="/work-orders">工单</router-link>
         <router-link to="/parties">主体</router-link>
         <router-link to="/leases">合同</router-link>
         <router-link to="/bills">账单</router-link>
         <router-link to="/payments">收款</router-link>
+        <router-link to="/system">系统</router-link>
       </nav>
       <div class="side-foot">
         <div class="muted">{{ auth.username || "已登录" }}</div>

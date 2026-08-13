@@ -1,0 +1,56 @@
+# 字段级映射草案（核心域）— dry-run 可校验结构
+version: "1.0"
+tables:
+  - source_table: sys_user
+    target_table: users
+    fields:
+      - { source: id, target: id, transform: keep, risk: MED }
+      - { source: username, target: username, transform: direct, risk: LOW }
+      - { source: password, target: password_hash, transform: rehash, risk: HIGH }
+      - { source: real_name, target: real_name, transform: direct, risk: LOW }
+      - { source: phone, target: phone, transform: direct, pii: true, risk: HIGH }
+      - { source: status, target: status, transform: enum_map, risk: MED }
+    enums:
+      status:
+        0: DISABLED
+        1: ACTIVE
+        null: ACTIVE
+
+  - source_table: rental_contract
+    target_table: lease_contracts
+    fields:
+      - { source: id, target: id, transform: keep, risk: MED }
+      - { source: contract_no, target: contract_no, transform: direct, risk: LOW }
+      - { source: start_date, target: start_date, transform: date, risk: LOW }
+      - { source: end_date, target: end_date, transform: date, risk: LOW }
+      - { source: status, target: status, transform: enum_map, risk: HIGH }
+      - { source: deposit, target: deposit_amount, transform: money, risk: MED }
+    enums:
+      status:
+        draft: DRAFT
+        active: ACTIVE
+        end: TERMINATED
+        cancel: CANCELLED
+
+  - source_table: bill
+    target_table: bills
+    fields:
+      - { source: id, target: id, transform: keep, risk: MED }
+      - { source: bill_no, target: bill_no, transform: direct, risk: LOW }
+      - { source: total, target: total_amount, transform: money, risk: HIGH }
+      - { source: paid, target: paid_amount, transform: money, risk: HIGH }
+      - { source: status, target: status, transform: enum_map, risk: HIGH }
+
+  - source_table: investment_lead
+    target_table: leads
+    fields:
+      - { source: name, target: name, transform: direct, risk: LOW }
+      - { source: mobile, target: contact_phone, transform: direct, pii: true, risk: HIGH }
+      - { source: status, target: status, transform: enum_map, risk: MED }
+
+  - source_table: work_order
+    target_table: work_orders
+    fields:
+      - { source: title, target: title, transform: direct, risk: LOW }
+      - { source: status, target: status, transform: enum_map, risk: MED }
+      - { source: park_id, target: park_id, transform: fk_remap, risk: HIGH }

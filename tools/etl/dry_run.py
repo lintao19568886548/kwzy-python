@@ -27,7 +27,7 @@ def load_mapping(path: Path) -> dict:
     return data
 
 
-def validate(data: dict) -> list[str]:
+def validate_table_map(data: dict) -> list[str]:
     errors: list[str] = []
     tables = data.get("tables")
     if not isinstance(tables, list) or not tables:
@@ -58,11 +58,36 @@ def validate(data: dict) -> list[str]:
     return errors
 
 
+def validate_field_map(data: dict) -> list[str]:
+    errors: list[str] = []
+    tables = data.get("tables")
+    if not isinstance(tables, list) or not tables:
+        errors.append("field map tables 必须为非空列表")
+        return errors
+    for i, row in enumerate(tables):
+        if not row.get("source_table") or not row.get("target_table"):
+            errors.append(f"tables[{i}] 缺 source_table/target_table")
+        fields = row.get("fields") or []
+        if not fields:
+            errors.append(f"tables[{i}] fields 为空")
+        for j, f in enumerate(fields):
+            if not isinstance(f, dict):
+                errors.append(f"tables[{i}].fields[{j}] 非 object")
+                continue
+            if not f.get("source") or not f.get("target") or not f.get("transform"):
+                errors.append(f"tables[{i}].fields[{j}] 缺 source/target/transform")
+    return errors
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="KWZY ETL mapping dry-run")
     parser.add_argument(
         "--mapping",
         default=str(Path(__file__).resolve().parent / "mapping" / "table_map.v1.yaml"),
+    )
+    parser.add_argument(
+        "--field-map",
+        default=str(Path(__file__).resolve().parent / "mapping" / "field_map.core.v1.yaml"),
     )
     args = parser.parse_args(argv)
     path = Path(args.mapping)
@@ -70,18 +95,30 @@ def main(argv: list[str] | None = None) -> int:
         print(f"FAIL missing mapping: {path}", file=sys.stderr)
         return 2
     data = load_mapping(path)
-    errors = validate(data)
+    errors = validate_table_map(data)
     tables = data.get("tables") or []
     print(f"mapping={path}")
     print(f"tables={len(tables)}")
     print(f"version={data.get('version')}")
+
+    field_path = Path(args.field_map)
+    if field_path.is_file():
+        fdata = load_mapping(field_path)
+        ferr = validate_field_map(fdata)
+        print(f"field_map={field_path}")
+        print(f"field_tables={len(fdata.get('tables') or [])}")
+        errors.extend(ferr)
+    else:
+        print(f"field_map missing: {field_path}")
+        errors.append("field map missing")
+
     if errors:
         print("DRY_RUN=FAIL")
         for e in errors:
             print(f"  - {e}")
         return 1
     print("DRY_RUN=PASS")
-    print("NOTE: 表级草案通过 ≠ 字段闭合/数据演练通过")
+    print("NOTE: 结构通过 ≠ 脱敏全量演练/对账通过")
     print("KWZY_DATA_MIGRATION_READINESS=NOT_READY")
     return 0
 

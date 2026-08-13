@@ -87,3 +87,43 @@ class MenuCreateRequest(BaseModel):
     sort_order: int = 0
     menu_type: str = "MENU"
     permission_code: str | None = None
+
+
+class OrgUnitCreateRequest(BaseModel):
+    code: str = Field(min_length=1, max_length=64)
+    name: str = Field(min_length=1, max_length=128)
+    parent_id: int | None = None
+    sort_order: int = 0
+    status: str = "ACTIVE"
+    remark: str | None = None
+
+
+class OrgUnitUpdateRequest(BaseModel):
+    name: str | None = None
+    parent_id: int | None = None
+    sort_order: int | None = None
+    status: str | None = None
+    remark: str | None = None
+
+
+class DictTypeCreateRequest(BaseModel):
+    code: str = Field(min_length=1, max_length=64)
+    name: str = Field(min_length=1, max_length=128)
+    status: str = "ACTIVE"
+    remark: str | None = None
+
+
+class DictItemCreateRequest(BaseModel):
+    item_label: str = Field(min_length=1, max_length=128)
+    item_value: str = Field(min_length=1, max_length=128)
+    sort_order: int = 0
+    status: str = "ACTIVE"
+    remark: str | None = None
+
+
+class SystemParamUpsertRequest(BaseModel):
+    param_key: str = Field(min_length=1, max_length=128)
+    param_value: str
+    value_type: str = "STRING"
+    is_secret: bool = False
+    remark: str | None = None

@@ -37,7 +37,7 @@
 | --- | --- |
 | 远程 | `https://github.com/lintao19568886548/kwzy-python.git` |
 | 起点 main | `bc174e5` |
-| Alembic head | `d0b68c3e1a42`（唯一，revises c9a57b2d0f31） |
+| Alembic head | `e1c79d4f2b53`（唯一） |
 | Python | 3.10.11 + apps/api `.venv` |
 | pytest collect | 115 tests（含 skip PG 类） |
 | 最近全量 | ~100 passed / 15 skipped（Workbench 前） |
@@ -57,7 +57,9 @@
 | collection | 02 payment | payment | payment/* | payments* | Payment* | PaymentService | /payments* | 骨架 | PARTIAL | test_payment_* | COMPLETE(v1 登记) | REDESIGN | 催缴案件/SMS STUB |
 | workbench | 01 dashboard | dashboard | workbench | work_items | WorkItem | WorkItem+Summary | /work-items /workbench/* | 工作台页 | N/A | test_work_item_* | PARTIAL→IN_PROGRESS | INNOVATION | 定时扫描需运维调度 |
 | investment | 01 招商 | investment | investment/* | leads | Lead | LeadService | /leads* | LeadsView | PARTIAL | test_lead_api | PARTIAL(v1) | REDESIGN | 雷达/企微 DEFER |
-| tenant_ops | 01 工单 | workorder | ops/* | — | — | stub | stub | 无 | MISSING | 无 | STUB | REDESIGN | 需独立 change |
+| tenant_ops | 01 工单 | workorder | ops/* | work_orders | WorkOrder | WorkOrderService | /work-orders* | WorkOrdersView | PARTIAL | test_work_order_api | PARTIAL | REDESIGN | 巡检资产 DEFER |
+| identity_config | 系统配置 | dict/org | system/* | org_units/dict_*/system_params | OrgUnit/Dict/Param | ConfigAdminService | /system/org-units|dict|params | SystemAdminView | PARTIAL | test_system_config_api | PARTIAL | REDESIGN | |
+| collection_case | 催缴 | collection | collection/* | collection_cases | CollectionCase | CollectionCaseService | /collection/cases* | 列表待深 | PARTIAL | test_collection_case_api | PARTIAL | REDESIGN | SMS DEFER |
 | analytics | 01 看板 | dashboard | analytics | — | — | stub | 未挂 main | 无 | MISSING | 无 | STUB | REDESIGN | summary 已在 workbench |
 | finance | 01 财务 | finance | finance | — | — | stub | 未挂 main | 无 | MISSING | 无 | DEFER | DEFER | 与 Bill/Payment 边界需 ADR |
 | ai_assist | 01 AI | agent | tools/* | — | — | stub | 未挂 main | 无 | MISSING | 无 | STUB | INNOVATION | AI 只产草稿 |
