@@ -11,13 +11,34 @@ const auth = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
+function firstAllowedPath(): string {
+  const candidates: Array<{ path: string; perm?: string | string[] }> = [
+    { path: "/workbench", perm: "work_item:read" },
+    { path: "/parties", perm: "party:read" },
+    { path: "/parks", perm: "park:read" },
+    { path: "/todos", perm: "work_item:read" },
+    { path: "/leads", perm: "lead:read" },
+    { path: "/system", perm: ["identity.user.read", "identity.org.read"] },
+  ];
+  for (const c of candidates) {
+    if (!c.perm || auth.can(c.perm) || auth.can("*")) return c.path;
+  }
+  return "/forbidden";
+}
+
 async function onSubmit() {
   loading.value = true;
   error.value = "";
   try {
     await auth.login(username.value.trim(), password.value);
-    const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/workbench";
-    await router.replace(redirect);
+    const redirect =
+      typeof route.query.redirect === "string" ? route.query.redirect : firstAllowedPath();
+    // If redirect target is still denied, fall back
+    const target = redirect.startsWith("/") ? redirect : firstAllowedPath();
+    await router.replace(target);
+    if (router.currentRoute.value.name === "forbidden" || router.currentRoute.value.name === "login") {
+      await router.replace(firstAllowedPath());
+    }
   } catch (e) {
     error.value = e instanceof Error ? e.message : "登录失败";
   } finally {
@@ -52,10 +73,10 @@ async function onSubmit() {
           required
         />
       </label>
-      <p v-if="error" class="error">{{ error }}</p>
-      <button class="btn" type="submit" :disabled="loading">
+      <button class="btn" type="submit" data-testid="login-submit" :disabled="loading">
         {{ loading ? "登录中…" : "登录" }}
       </button>
+      <p v-if="error" class="error" data-testid="login-error">{{ error }}</p>
     </form>
   </div>
 </template>

@@ -18,7 +18,7 @@ const dictCode = ref("intent_level");
 const orgForm = ref({ code: "", name: "" });
 const paramForm = ref({ param_key: "", param_value: "", is_secret: false });
 const userForm = ref({ username: "", password: "", real_name: "" });
-const roleForm = ref({ code: "", name: "" });
+const roleForm = ref({ code: "", name: "", permission_codes: "party:read" });
 const dictTypeForm = ref({ code: "", name: "" });
 const dictItemForm = ref({ item_label: "", item_value: "" });
 const saving = ref(false);
@@ -117,8 +117,17 @@ async function createRole() {
   if (saving.value) return;
   saving.value = true;
   try {
-    await http.post("/system/roles", roleForm.value);
-    roleForm.value = { code: "", name: "" };
+    const codes = roleForm.value.permission_codes
+      .split(/[,\s]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    await http.post("/system/roles", {
+      code: roleForm.value.code,
+      name: roleForm.value.name,
+      permission_codes: codes,
+      all_parks: true,
+    });
+    roleForm.value = { code: "", name: "", permission_codes: "party:read" };
     flash("角色已创建");
     await load();
   } catch (e) {
@@ -176,30 +185,30 @@ onMounted(async () => {
 <template>
   <section class="stack">
     <div class="card panel">
-      <h2>系统管理</h2>
+      <h2 data-testid="system-title">系统管理</h2>
       <p class="muted">用户 / 角色 / 组织 / 字典 / 参数 — 真实 CRUD</p>
-      <div class="tabs">
-        <button type="button" :class="{ on: tab === 'org' }" @click="tab = 'org'">组织</button>
-        <button type="button" :class="{ on: tab === 'users' }" @click="tab = 'users'">用户</button>
-        <button type="button" :class="{ on: tab === 'roles' }" @click="tab = 'roles'">角色</button>
-        <button type="button" :class="{ on: tab === 'dict' }" @click="tab = 'dict'">字典</button>
-        <button type="button" :class="{ on: tab === 'param' }" @click="tab = 'param'">参数</button>
+      <div class="tabs" data-testid="system-tabs">
+        <button type="button" data-testid="tab-org" :class="{ on: tab === 'org' }" @click="tab = 'org'">组织</button>
+        <button type="button" data-testid="tab-users" :class="{ on: tab === 'users' }" @click="tab = 'users'">用户</button>
+        <button type="button" data-testid="tab-roles" :class="{ on: tab === 'roles' }" @click="tab = 'roles'">角色</button>
+        <button type="button" data-testid="tab-dict" :class="{ on: tab === 'dict' }" @click="tab = 'dict'">字典</button>
+        <button type="button" data-testid="tab-param" :class="{ on: tab === 'param' }" @click="tab = 'param'">参数</button>
       </div>
       <p v-if="loading" class="muted">加载中…</p>
-      <p v-if="error" class="error">{{ error }}</p>
-      <p v-if="success" class="ok">{{ success }}</p>
+      <p v-if="error" class="error" data-testid="system-error">{{ error }}</p>
+      <p v-if="success" class="ok" data-testid="system-success">{{ success }}</p>
     </div>
 
     <div v-show="tab === 'org'" class="card panel">
       <h3>组织架构</h3>
-      <form class="create" @submit.prevent="createOrg">
-        <input v-model="orgForm.code" class="input" placeholder="编码" required />
-        <input v-model="orgForm.name" class="input" placeholder="名称" required />
-        <button v-permission="'identity.org.write'" class="btn" type="submit" :disabled="saving">
+      <form class="create" data-testid="org-create-form" @submit.prevent="createOrg">
+        <input v-model="orgForm.code" class="input" data-testid="org-code" placeholder="编码" required />
+        <input v-model="orgForm.name" class="input" data-testid="org-name" placeholder="名称" required />
+        <button v-permission="'identity.org.write'" class="btn" data-testid="org-create-btn" type="submit" :disabled="saving">
           新增组织
         </button>
       </form>
-      <table class="table">
+      <table class="table" data-testid="org-table">
         <thead>
           <tr>
             <th>编码</th>
@@ -209,7 +218,7 @@ onMounted(async () => {
         </thead>
         <tbody>
           <tr v-for="o in orgs" :key="String(o.id)">
-            <td>{{ o.code }}</td>
+            <td data-testid="org-code-cell">{{ o.code }}</td>
             <td>{{ o.name }}</td>
             <td>{{ o.status }}</td>
           </tr>
@@ -220,15 +229,15 @@ onMounted(async () => {
 
     <div v-show="tab === 'users'" class="card panel">
       <h3>用户</h3>
-      <form class="create" @submit.prevent="createUser">
-        <input v-model="userForm.username" class="input" placeholder="用户名" required />
-        <input v-model="userForm.password" class="input" type="password" placeholder="密码" required />
-        <input v-model="userForm.real_name" class="input" placeholder="姓名" />
-        <button v-permission="'identity.user.write'" class="btn" type="submit" :disabled="saving">
+      <form class="create" data-testid="user-create-form" @submit.prevent="createUser">
+        <input v-model="userForm.username" class="input" data-testid="user-username" placeholder="用户名" required />
+        <input v-model="userForm.password" class="input" data-testid="user-password" type="password" placeholder="密码" required />
+        <input v-model="userForm.real_name" class="input" data-testid="user-realname" placeholder="姓名" />
+        <button v-permission="'identity.user.write'" class="btn" data-testid="user-create-btn" type="submit" :disabled="saving">
           创建用户
         </button>
       </form>
-      <table class="table">
+      <table class="table" data-testid="user-table">
         <thead>
           <tr>
             <th>ID</th>
@@ -238,16 +247,17 @@ onMounted(async () => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="u in users" :key="String(u.id)">
+          <tr v-for="u in users" :key="String(u.id)" :data-testid="`user-row-${u.username}`">
             <td>{{ u.id }}</td>
-            <td>{{ u.username }}</td>
-            <td>{{ u.status }}</td>
+            <td data-testid="user-name-cell">{{ u.username }}</td>
+            <td data-testid="user-status-cell">{{ u.status }}</td>
             <td>
               <button
-                v-if="u.status === 'ACTIVE'"
+                v-if="u.status === 'ACTIVE' && u.username !== 'admin'"
                 v-permission="'identity.user.write'"
                 class="btn"
                 type="button"
+                data-testid="user-disable-btn"
                 @click="disableUser(Number(u.id))"
               >
                 停用
@@ -260,14 +270,20 @@ onMounted(async () => {
 
     <div v-show="tab === 'roles'" class="card panel">
       <h3>角色</h3>
-      <form class="create" @submit.prevent="createRole">
-        <input v-model="roleForm.code" class="input" placeholder="角色码" required />
-        <input v-model="roleForm.name" class="input" placeholder="名称" required />
-        <button v-permission="'identity.role.write'" class="btn" type="submit" :disabled="saving">
+      <form class="create" data-testid="role-create-form" @submit.prevent="createRole">
+        <input v-model="roleForm.code" class="input" data-testid="role-code" placeholder="角色码" required />
+        <input v-model="roleForm.name" class="input" data-testid="role-name" placeholder="名称" required />
+        <input
+          v-model="roleForm.permission_codes"
+          class="input"
+          data-testid="role-perms"
+          placeholder="权限码逗号分隔"
+        />
+        <button v-permission="'identity.role.write'" class="btn" data-testid="role-create-btn" type="submit" :disabled="saving">
           创建角色
         </button>
       </form>
-      <table class="table">
+      <table class="table" data-testid="role-table">
         <thead>
           <tr>
             <th>编码</th>
@@ -277,7 +293,7 @@ onMounted(async () => {
         </thead>
         <tbody>
           <tr v-for="r in roles" :key="String(r.id)">
-            <td>{{ r.code }}</td>
+            <td data-testid="role-code-cell">{{ r.code }}</td>
             <td>{{ r.name }}</td>
             <td>{{ r.status }}</td>
           </tr>
@@ -287,28 +303,28 @@ onMounted(async () => {
 
     <div v-show="tab === 'dict'" class="card panel">
       <h3>字典</h3>
-      <form class="create" @submit.prevent="createDictType">
-        <input v-model="dictTypeForm.code" class="input" placeholder="类型编码" required />
-        <input v-model="dictTypeForm.name" class="input" placeholder="类型名称" required />
-        <button v-permission="'identity.dict.write'" class="btn" type="submit" :disabled="saving">
+      <form class="create" data-testid="dict-type-form" @submit.prevent="createDictType">
+        <input v-model="dictTypeForm.code" class="input" data-testid="dict-type-code" placeholder="类型编码" required />
+        <input v-model="dictTypeForm.name" class="input" data-testid="dict-type-name" placeholder="类型名称" required />
+        <button v-permission="'identity.dict.write'" class="btn" data-testid="dict-type-btn" type="submit" :disabled="saving">
           新增类型
         </button>
       </form>
       <div class="tools">
-        <select v-model="dictCode" class="input" @change="loadDictItems">
+        <select v-model="dictCode" class="input" data-testid="dict-type-select" @change="loadDictItems">
           <option v-for="d in dictTypes" :key="String(d.id)" :value="String(d.code)">
             {{ d.code }} — {{ d.name }}
           </option>
         </select>
       </div>
-      <form class="create" @submit.prevent="createDictItem">
-        <input v-model="dictItemForm.item_label" class="input" placeholder="标签" required />
-        <input v-model="dictItemForm.item_value" class="input" placeholder="值" required />
-        <button v-permission="'identity.dict.write'" class="btn" type="submit" :disabled="saving">
+      <form class="create" data-testid="dict-item-form" @submit.prevent="createDictItem">
+        <input v-model="dictItemForm.item_label" class="input" data-testid="dict-item-label" placeholder="标签" required />
+        <input v-model="dictItemForm.item_value" class="input" data-testid="dict-item-value" placeholder="值" required />
+        <button v-permission="'identity.dict.write'" class="btn" data-testid="dict-item-btn" type="submit" :disabled="saving">
           新增项
         </button>
       </form>
-      <table class="table">
+      <table class="table" data-testid="dict-item-table">
         <thead>
           <tr>
             <th>标签</th>
@@ -317,7 +333,7 @@ onMounted(async () => {
         </thead>
         <tbody>
           <tr v-for="it in dictItems" :key="String(it.id)">
-            <td>{{ it.item_label }}</td>
+            <td data-testid="dict-label-cell">{{ it.item_label }}</td>
             <td>{{ it.item_value }}</td>
           </tr>
         </tbody>
@@ -326,17 +342,17 @@ onMounted(async () => {
 
     <div v-show="tab === 'param'" class="card panel">
       <h3>系统参数</h3>
-      <form class="create" @submit.prevent="saveParam">
-        <input v-model="paramForm.param_key" class="input" placeholder="key" required />
-        <input v-model="paramForm.param_value" class="input" placeholder="value" required />
+      <form class="create" data-testid="param-form" @submit.prevent="saveParam">
+        <input v-model="paramForm.param_key" class="input" data-testid="param-key" placeholder="key" required />
+        <input v-model="paramForm.param_value" class="input" data-testid="param-value" placeholder="value" required />
         <label class="chk">
-          <input v-model="paramForm.is_secret" type="checkbox" /> 敏感
+          <input v-model="paramForm.is_secret" type="checkbox" data-testid="param-secret" /> 敏感
         </label>
-        <button v-permission="'identity.param.write'" class="btn" type="submit" :disabled="saving">
+        <button v-permission="'identity.param.write'" class="btn" data-testid="param-save-btn" type="submit" :disabled="saving">
           保存
         </button>
       </form>
-      <table class="table">
+      <table class="table" data-testid="param-table">
         <thead>
           <tr>
             <th>Key</th>
@@ -345,9 +361,9 @@ onMounted(async () => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="p in params" :key="String(p.id)">
-            <td>{{ p.param_key }}</td>
-            <td>{{ p.param_value }}</td>
+          <tr v-for="p in params" :key="String(p.id)" :data-testid="`param-row-${p.param_key}`">
+            <td data-testid="param-key-cell">{{ p.param_key }}</td>
+            <td data-testid="param-value-cell">{{ p.param_value }}</td>
             <td>{{ p.is_secret ? "Y" : "N" }}</td>
           </tr>
         </tbody>

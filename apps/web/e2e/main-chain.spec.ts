@@ -1,82 +1,98 @@
 /**
- * 浏览器级主链 E2E：依赖真实 API（E2E_API_BASE）与前端 dev/build。
- * 无 API 时跳过业务步骤，仅保证可发现环境。
+ * Full browser main chain — no skip when API is down (requireApiHealthy throws).
  */
-import { test, expect, type APIRequestContext } from "@playwright/test";
-
-const API = process.env.E2E_API_BASE || "http://127.0.0.1:8000/api/v1";
-const ADMIN_USER = process.env.E2E_ADMIN_USER || "admin";
-const ADMIN_PASS = process.env.E2E_ADMIN_PASSWORD || "admin123";
-
-async function apiLogin(request: APIRequestContext) {
-  const res = await request.post(`${API}/auth/login`, {
-    data: { username: ADMIN_USER, password: ADMIN_PASS },
-  });
-  if (!res.ok()) {
-    return null;
-  }
-  const body = await res.json();
-  return body?.data?.access_token as string | undefined;
-}
+import { test, expect } from "@playwright/test";
+import {
+  ADMIN_PASS,
+  ADMIN_USER,
+  apiJson,
+  apiLogin,
+  loginAs,
+  requireApiHealthy,
+  uniqueName,
+} from "./helpers";
 
 test.describe("browser main chain", () => {
-  test("login UI and optional API seed flow", async ({ page, request }) => {
-    await page.goto("/login");
-    await expect(page.locator("#login-username")).toBeVisible();
-    await page.fill("#login-username", ADMIN_USER);
-    await page.fill("#login-password", ADMIN_PASS);
+  test("party lease bill payment workbench", async ({ page, request }) => {
+    page.on("dialog", (d) => d.accept());
+    await requireApiHealthy(request);
 
-    const token = await apiLogin(request);
-    test.skip(!token, "API not available for full browser main-chain");
-
-    // seed via API then assert UI lists
-    const headers = { Authorization: `Bearer ${token}` };
-    const parkRes = await request.post(`${API}/parks`, {
-      headers,
-      data: { name: `E2E-Park-${Date.now()}`, address: "e2e" },
+    const token = await apiLogin(request, ADMIN_USER, ADMIN_PASS);
+    const park = await apiJson(request, "post", "/parks", {
+      token,
+      data: { name: uniqueName("MC-Park"), address: "mc" },
     });
-    expect(parkRes.ok()).toBeTruthy();
-    const park = (await parkRes.json()).data;
-
-    const partyRes = await request.post(`${API}/parties`, {
-      headers,
-      data: { name: `E2E-Party-${Date.now()}`, party_type: "ORGANIZATION" },
-    });
-    expect(partyRes.ok()).toBeTruthy();
-
-    const leadRes = await request.post(`${API}/leads`, {
-      headers,
+    expect(park.status).toBe(200);
+    const parkId = (park.body as { data: { id: number } }).data.id;
+    const unit = await apiJson(request, "post", "/units", {
+      token,
       data: {
-        park_id: park.id,
-        name: `E2E-Lead-${Date.now()}`,
-        contact_phone: "13500135000",
+        park_id: parkId,
+        name: "MC-1",
+        code: uniqueName("MCU").slice(0, 16),
+        rentable_area: 90,
+        status: "VACANT",
       },
     });
-    expect(leadRes.ok()).toBeTruthy();
+    expect(unit.status).toBe(200);
+    const unitId = (unit.body as { data: { id: number } }).data.id;
 
-    // inject token into browser storage and open pages
-    await page.evaluate((t) => {
-      localStorage.setItem("kwzy_access_token", t);
-    }, token!);
-    await page.goto("/workbench");
-    await expect(page.getByRole("heading", { name: /工作台|运营/ })).toBeVisible({
-      timeout: 15000,
-    });
+    await loginAs(page, ADMIN_USER, ADMIN_PASS);
 
+    // party
+    const partyName = uniqueName("MC-Party");
     await page.goto("/parties");
-    await expect(page.getByRole("heading", { name: /主体/ })).toBeVisible();
-    await expect(page.locator("table")).toBeVisible();
+    await page.getByTestId("party-name").fill(partyName);
+    await page.getByTestId("party-create-btn").click();
+    await expect(page.getByTestId("party-table")).toContainText(partyName, { timeout: 15000 });
+    const parties = await apiJson(request, "get", `/parties?keyword=${encodeURIComponent(partyName)}`, {
+      token,
+    });
+    const partyId = (
+      parties.body as { data: { items: Array<{ id: number; name: string }> } }
+    ).data.items.find((x) => x.name === partyName)!.id;
 
-    await page.goto("/leads");
-    await expect(page.getByRole("heading", { name: /招商|线索/ })).toBeVisible();
+    // lease
+    await page.goto("/leases");
+    await page.getByTestId("lease-park-id").fill(String(parkId));
+    await page.getByTestId("lease-party-id").fill(String(partyId));
+    await page.getByTestId("lease-unit-id").fill(String(unitId));
+    await page.getByTestId("lease-create-btn").click();
+    await expect(page.getByTestId("lease-success")).toContainText(/创建/, { timeout: 15000 });
+    const row = page.locator("[data-testid^=lease-row-]").first();
+    await row.getByRole("button", { name: "提交" }).click();
+    await row.getByTestId("lease-activate-btn").click();
+    await expect(page.getByTestId("lease-success")).toContainText(/激活/, { timeout: 15000 });
 
+    // bill + pay
+    await page.goto("/bills");
+    await page.getByTestId("bill-park-id").fill(String(parkId));
+    await page.getByTestId("bill-party-id").fill(String(partyId));
+    await page.getByTestId("bill-amount").fill("150");
+    await page.getByTestId("bill-create-btn").click();
+    await expect(page.getByTestId("bill-success")).toBeVisible({ timeout: 15000 });
+    const bills = await apiJson(request, "get", "/bills?page=1&page_size=50", { token });
+    const billId = (
+      bills.body as { data: { items: Array<{ id: number; party_id: number }> } }
+    ).data.items.find((b) => b.party_id === partyId)!.id;
+    await page.locator(`[data-testid=bill-row-${billId}]`).getByTestId("bill-issue-btn").click();
+
+    await page.goto("/payments");
+    await page.getByTestId("pay-park-id").fill(String(parkId));
+    await page.getByTestId("pay-party-id").fill(String(partyId));
+    await page.getByTestId("pay-bill-id").fill(String(billId));
+    await page.getByTestId("pay-amount").fill("150");
+    await page.getByTestId("pay-create-btn").click();
+    await expect(page.getByTestId("pay-success")).toContainText(/登记/, { timeout: 15000 });
+
+    const billAfter = await apiJson(request, "get", `/bills/${billId}`, { token });
+    expect((billAfter.body as { data: { status: string } }).data.status).toBe("PAID");
+
+    await page.goto("/workbench");
+    await expect(page.getByTestId("workbench-metrics")).toBeVisible();
     await page.goto("/todos");
-    await expect(page.getByRole("heading", { name: /待办/ })).toBeVisible();
-
+    await expect(page.getByTestId("todo-table")).toBeVisible();
     await page.goto("/system");
-    await expect(page.getByRole("heading", { name: /系统/ })).toBeVisible();
-
-    // permission denial via API for limited token is covered in pytest; UI logout
-    await page.goto("/login");
+    await expect(page.getByTestId("system-title")).toBeVisible();
   });
 });

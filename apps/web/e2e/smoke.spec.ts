@@ -1,23 +1,25 @@
 import { test, expect } from "@playwright/test";
+import { requireApiHealthy } from "./helpers";
 
 /**
- * 前端路由与登录页烟雾。
- * 完整主链 E2E 需后端可用；此处保证生产构建后的关键路径可打开。
+ * Stack smoke — fails if frontend or API not brought up by globalSetup.
  */
-test("login page renders", async ({ page }) => {
+test("login page renders", async ({ page, request }) => {
+  await requireApiHealthy(request);
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: /KWZY/i })).toBeVisible();
   await expect(page.getByLabel("用户名")).toBeVisible();
   await expect(page.getByLabel("密码")).toBeVisible();
 });
 
-test("unauthenticated redirect to login", async ({ page }) => {
+test("unauthenticated redirect to login", async ({ page, request }) => {
+  await requireApiHealthy(request);
   await page.goto("/workbench");
   await expect(page).toHaveURL(/login/);
 });
 
-test("login form has accessible labels", async ({ page }) => {
-  await page.goto("/login");
-  await expect(page.locator("#login-username")).toBeVisible();
-  await expect(page.locator("#login-password")).toBeVisible();
+test("frontend root responds", async ({ page, request }) => {
+  await requireApiHealthy(request);
+  const res = await page.goto("/");
+  expect(res?.ok() || res?.status() === 304 || page.url().includes("login")).toBeTruthy();
 });
