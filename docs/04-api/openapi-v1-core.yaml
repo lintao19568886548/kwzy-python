@@ -546,6 +546,67 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiEnvelopeOk'
 
+  /spaces/tree:
+    get:
+      tags: [Units]
+      summary: 查询园区空间树
+      operationId: spatialTree
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: park_id
+          in: query
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: OK }
+
+  /spaces:
+    post:
+      tags: [Units]
+      summary: 创建空间节点
+      operationId: createSpatialNode
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SpatialCreate' }
+      responses:
+        '200': { description: OK }
+
+  /spaces/{node_id}:
+    parameters:
+      - name: node_id
+        in: path
+        required: true
+        schema: { type: integer, format: int64 }
+    get:
+      tags: [Units]
+      summary: 空间节点详情
+      operationId: getSpatialNode
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: OK }
+    patch:
+      tags: [Units]
+      summary: 更新或移动空间节点
+      operationId: updateSpatialNode
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SpatialUpdate' }
+      responses:
+        '200': { description: OK }
+    delete:
+      tags: [Units]
+      summary: 停用空间节点
+      operationId: deactivateSpatialNode
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: OK }
+
   /units:
     get:
       tags: [Units]
@@ -622,6 +683,133 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Unit'
+
+  /units/split:
+    post:
+      tags: [Units]
+      summary: 原子拆分空置单元
+      operationId: splitUnit
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UnitSplitRequest' }
+      responses:
+        '200': { description: OK }
+        '409': { description: 占用、版本或编码冲突 }
+
+  /units/merge:
+    post:
+      tags: [Units]
+      summary: 原子合并空置单元
+      operationId: mergeUnits
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UnitMergeRequest' }
+      responses:
+        '200': { description: OK }
+        '409': { description: 占用、版本或编码冲突 }
+
+  /units/{unit_id}/versions:
+    post:
+      tags: [Units]
+      summary: 创建单元结构新版本
+      operationId: createUnitVersion
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UnitIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UnitVersionCreate' }
+      responses:
+        '200': { description: OK }
+        '409': { description: 版本或占用冲突 }
+
+  /units/{unit_id}/history:
+    get:
+      tags: [Units]
+      summary: 单元版本历史
+      operationId: unitHistory
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UnitIdPath'
+      responses:
+        '200': { description: OK }
+
+  /units/{unit_id}/lineage:
+    get:
+      tags: [Units]
+      summary: 单元拆分合并来源关系
+      operationId: unitLineage
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UnitIdPath'
+      responses:
+        '200': { description: OK }
+
+  /rent-control/summary:
+    get:
+      tags: [Units]
+      summary: 租控库存与面积汇总
+      operationId: rentControlSummary
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/RentControlParkId'
+        - $ref: '#/components/parameters/RentControlSpaceId'
+        - $ref: '#/components/parameters/RentControlStatus'
+        - $ref: '#/components/parameters/RentControlUsageType'
+        - $ref: '#/components/parameters/RentControlKeyword'
+      responses:
+        '200': { description: OK }
+
+  /rent-control/units:
+    get:
+      tags: [Units]
+      summary: 租控单元分页列表
+      operationId: rentControlUnits
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/RentControlParkId'
+        - $ref: '#/components/parameters/RentControlSpaceId'
+        - $ref: '#/components/parameters/RentControlStatus'
+        - $ref: '#/components/parameters/RentControlUsageType'
+        - $ref: '#/components/parameters/RentControlKeyword'
+      responses:
+        '200': { description: OK }
+
+  /rent-control/matrix:
+    get:
+      tags: [Units]
+      summary: 按空间分组的租控矩阵
+      operationId: rentControlMatrix
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/RentControlParkId'
+        - $ref: '#/components/parameters/RentControlSpaceId'
+        - $ref: '#/components/parameters/RentControlStatus'
+        - $ref: '#/components/parameters/RentControlUsageType'
+        - $ref: '#/components/parameters/RentControlKeyword'
+      responses:
+        '200': { description: OK }
+
+  /rent-control/units/{unit_id}:
+    get:
+      tags: [Units]
+      summary: 租控单元运营详情
+      operationId: rentControlUnitDetail
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UnitIdPath'
+      responses:
+        '200': { description: OK }
 
   /parties:
     get:
@@ -2367,6 +2555,26 @@ components:
       in: path
       required: true
       schema: { type: integer, format: int64 }
+    RentControlParkId:
+      name: park_id
+      in: query
+      schema: { type: integer, format: int64 }
+    RentControlSpaceId:
+      name: space_id
+      in: query
+      schema: { type: integer, format: int64 }
+    RentControlStatus:
+      name: status
+      in: query
+      schema: { type: string, enum: [DRAFT, VACANT, RESERVED, OCCUPIED, MAINTENANCE, RETIRED] }
+    RentControlUsageType:
+      name: usage_type
+      in: query
+      schema: { type: string }
+    RentControlKeyword:
+      name: keyword
+      in: query
+      schema: { type: string }
     LeaseIdPath:
       name: lease_id
       in: path
@@ -2733,6 +2941,34 @@ components:
         address: { type: string }
         description: { type: string }
 
+    SpatialCreate:
+      type: object
+      required: [park_id, code, name, node_type]
+      properties:
+        park_id: { type: integer, format: int64 }
+        parent_id: { type: integer, format: int64, nullable: true }
+        code: { type: string, maxLength: 64 }
+        name: { type: string, maxLength: 128 }
+        node_type: { type: string, enum: [AREA, BUILDING, FLOOR] }
+        building_type: { type: string, default: FACTORY }
+        sort_order: { type: integer, default: 0 }
+        status: { type: string, enum: [ACTIVE, INACTIVE], default: ACTIVE }
+        address: { type: string }
+        description: { type: string, nullable: true }
+        attributes: { type: object, additionalProperties: true, nullable: true }
+    SpatialUpdate:
+      type: object
+      properties:
+        parent_id: { type: integer, format: int64, nullable: true }
+        code: { type: string, maxLength: 64 }
+        name: { type: string, maxLength: 128 }
+        node_type: { type: string, enum: [AREA, BUILDING, FLOOR] }
+        sort_order: { type: integer }
+        status: { type: string, enum: [ACTIVE, INACTIVE] }
+        address: { type: string }
+        description: { type: string, nullable: true }
+        attributes: { type: object, additionalProperties: true, nullable: true }
+
     Unit:
       type: object
       properties:
@@ -2756,15 +2992,71 @@ components:
         name: { type: string }
         rentable_area: { type: number }
         base_rent_price: { type: number }
+        usage_type: { type: string, default: FACTORY }
+        billing_unit: { type: string, default: SQM }
+        available_from: { type: string, format: date, nullable: true }
+        status: { type: string, enum: [VACANT, RESERVED, MAINTENANCE, INACTIVE], default: VACANT }
         attributes: { type: object, additionalProperties: true }
     UnitUpdate:
       type: object
       properties:
+        expected_lock_version: { type: integer, minimum: 1 }
         name: { type: string }
         rentable_area: { type: number }
         base_rent_price: { type: number }
         status: { type: string }
         attributes: { type: object, additionalProperties: true }
+    UnitVersionCreate:
+      type: object
+      required: [expected_lock_version]
+      properties:
+        expected_lock_version: { type: integer, minimum: 1 }
+        building_id: { type: integer, format: int64 }
+        code: { type: string, maxLength: 64 }
+        name: { type: string, maxLength: 128 }
+        rentable_area: { type: number, exclusiveMinimum: 0 }
+        usage_type: { type: string }
+        billing_unit: { type: string }
+        available_from: { type: string, format: date, nullable: true }
+        base_rent_price: { type: number, minimum: 0 }
+        attributes: { type: object, additionalProperties: true, nullable: true }
+    UnitSplitTarget:
+      type: object
+      required: [code, name, rentable_area]
+      properties:
+        code: { type: string, maxLength: 64 }
+        name: { type: string, maxLength: 128 }
+        rentable_area: { type: number, exclusiveMinimum: 0 }
+        usage_type: { type: string, nullable: true }
+        base_rent_price: { type: number, minimum: 0, nullable: true }
+    UnitSplitRequest:
+      type: object
+      required: [unit_id, expected_lock_version, targets]
+      properties:
+        unit_id: { type: integer, format: int64 }
+        expected_lock_version: { type: integer, minimum: 1 }
+        targets:
+          type: array
+          minItems: 2
+          items: { $ref: '#/components/schemas/UnitSplitTarget' }
+    UnitMergeSource:
+      type: object
+      required: [unit_id, expected_lock_version]
+      properties:
+        unit_id: { type: integer, format: int64 }
+        expected_lock_version: { type: integer, minimum: 1 }
+    UnitMergeRequest:
+      type: object
+      required: [sources, code, name]
+      properties:
+        sources:
+          type: array
+          minItems: 2
+          items: { $ref: '#/components/schemas/UnitMergeSource' }
+        code: { type: string, maxLength: 64 }
+        name: { type: string, maxLength: 128 }
+        usage_type: { type: string, nullable: true }
+        base_rent_price: { type: number, minimum: 0, nullable: true }
     UnitPage:
       type: object
       properties:

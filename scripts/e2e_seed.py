@@ -166,6 +166,23 @@ def main() -> int:
             role=limited_role,
             reset_password=True,
         )
+        asset_viewer_role = _ensure_role(
+            db,
+            tenant_id=tenant.id,
+            code="E2E_ASSET_VIEWER",
+            name="E2E资产只读",
+            perm_codes=["park:read", "unit:read"],
+            all_parks=True,
+        )
+        _ensure_user(
+            db,
+            tenant_id=tenant.id,
+            username="e2e_asset_viewer",
+            password="viewer123",
+            real_name="资产只读用户",
+            role=asset_viewer_role,
+            reset_password=True,
+        )
 
         # Second tenant for cross-tenant isolation tests
         t2 = db.scalars(select(Tenant).where(Tenant.code == "tenant_b")).first()
@@ -218,8 +235,11 @@ def main() -> int:
             building = Building(
                 tenant_id=tenant.id,
                 park_id=park.id,
+                code="E2E-B1",
                 name="E2E默认楼",
+                node_type="BUILDING",
                 building_type="FACTORY",
+                status="ACTIVE",
                 address="e2e-seed-building",
             )
             db.add(building)
@@ -256,7 +276,8 @@ def main() -> int:
         print(
             "E2E_SEED=OK "
             f"tenant=default park_id={park.id} "
-            "admin=admin e2e_limited=e2e_limited tenant_b=admin_b"
+            "admin=admin e2e_limited=e2e_limited "
+            "e2e_asset_viewer=e2e_asset_viewer tenant_b=admin_b"
         )
         return 0
     except Exception as exc:

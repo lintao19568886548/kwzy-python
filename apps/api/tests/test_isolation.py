@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from app.core.errors import AppError
 from app.infrastructure.database.models.identity import Tenant
 from app.modules.park_property.application.park_service import ParkService
+from app.modules.park_property.application.rent_control_service import RentControlService
+from app.modules.park_property.application.spatial_service import SpatialService
 from app.modules.park_property.application.unit_service import UnitService
 from app.shared.tenant_context import ParkScopeMode, TenantContext
 
@@ -141,3 +143,70 @@ def test_tenant_id_spoof_on_create_is_overwritten(db_session: Session) -> None:
     svc = ParkService(db_session, _admin(1))
     park = svc.create_park({"name": "强制租户"})
     assert park["tenant_id"] == 1
+
+
+def test_asset_tree_and_rent_control_enforce_tenant_and_park_scope(
+    db_session: Session,
+) -> None:
+    admin1 = _admin(1)
+    parks1 = ParkService(db_session, admin1)
+    spaces1 = SpatialService(db_session, admin1)
+    units1 = UnitService(db_session, admin1)
+    allowed = parks1.create_park({"name": "范围内园区"})
+    denied = parks1.create_park({"name": "范围外园区"})
+    allowed_space = spaces1.create(
+        {
+            "park_id": allowed["id"],
+            "code": "A-B1",
+            "name": "范围内楼栋",
+            "node_type": "BUILDING",
+        }
+    )
+    denied_space = spaces1.create(
+        {
+            "park_id": denied["id"],
+            "code": "D-B1",
+            "name": "范围外楼栋",
+            "node_type": "BUILDING",
+        }
+    )
+    allowed_unit = units1.create_unit(
+        {
+            "park_id": allowed["id"],
+            "building_id": allowed_space["id"],
+            "code": "A-101",
+            "name": "范围内单元",
+            "rentable_area": 80,
+        }
+    )
+    denied_unit = units1.create_unit(
+        {
+            "park_id": denied["id"],
+            "building_id": denied_space["id"],
+            "code": "D-101",
+            "name": "范围外单元",
+            "rentable_area": 90,
+        }
+    )
+
+    scoped_ctx = _scoped(1, [allowed["id"]])
+    scoped_spaces = SpatialService(db_session, scoped_ctx)
+    scoped_rent = RentControlService(db_session, scoped_ctx)
+    assert scoped_spaces.tree(allowed["id"])[0]["id"] == allowed_space["id"]
+    with pytest.raises(AppError) as park_error:
+        scoped_spaces.tree(denied["id"])
+    assert park_error.value.code == "PARK_NOT_FOUND"
+    assert scoped_rent.summary()["inventory_count"] == 1
+    assert scoped_rent.detail(allowed_unit["id"])["id"] == allowed_unit["id"]
+    with pytest.raises(AppError) as unit_error:
+        scoped_rent.detail(denied_unit["id"])
+    assert unit_error.value.code == "UNIT_NOT_FOUND"
+
+    tenant2 = Tenant(code="asset-t2", name="资产租控租户2", status="ACTIVE")
+    db_session.add(tenant2)
+    db_session.commit()
+    foreign_rent = RentControlService(db_session, _admin(int(tenant2.id)))
+    assert foreign_rent.summary()["inventory_count"] == 0
+    with pytest.raises(AppError) as tenant_error:
+        foreign_rent.detail(allowed_unit["id"])
+    assert tenant_error.value.code == "UNIT_NOT_FOUND"

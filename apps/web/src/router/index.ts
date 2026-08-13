@@ -14,6 +14,7 @@ import SystemAdminView from "@/views/SystemAdminView.vue";
 import CollectionCasesView from "@/views/CollectionCasesView.vue";
 import ApprovalsView from "@/views/ApprovalsView.vue";
 import ParksView from "@/views/ParksView.vue";
+import RentControlView from "@/views/RentControlView.vue";
 import ForbiddenView from "@/views/ForbiddenView.vue";
 
 const routes: RouteRecordRaw[] = [
@@ -64,6 +65,12 @@ const routes: RouteRecordRaw[] = [
         name: "parks",
         component: ParksView,
         meta: { permission: "park:read" },
+      },
+      {
+        path: "rent-control",
+        name: "rent-control",
+        component: RentControlView,
+        meta: { permission: "unit:read" },
       },
       {
         path: "parties",

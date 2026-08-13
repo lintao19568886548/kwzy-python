@@ -10,7 +10,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Optional
 
@@ -50,11 +50,19 @@ class BuildingEntity:
     tenant_id: int
     park_id: int
     name: str
+    code: str = ""
+    parent_id: Optional[int] = None
+    node_type: str = "BUILDING"
     building_type: str = "FACTORY"
+    sort_order: int = 0
+    status: str = "ACTIVE"
     address: str = ""
     description: Optional[str] = None
+    attributes: Optional[dict[str, Any]] = None
     id: Optional[int] = None
     is_deleted: bool = False
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -71,6 +79,15 @@ class UnitEntity:
     building_id: int
     code: str
     name: str
+    logical_id: str = ""
+    version_no: int = 1
+    valid_from: Optional[datetime] = None
+    valid_to: Optional[datetime] = None
+    supersedes_id: Optional[int] = None
+    lock_version: int = 1
+    usage_type: str = "FACTORY"
+    billing_unit: str = "SQM"
+    available_from: Optional[date] = None
     rentable_area: Decimal = field(default_factory=lambda: Decimal("0"))
     used_area: Decimal = field(default_factory=lambda: Decimal("0"))
     base_rent_price: Decimal = field(default_factory=lambda: Decimal("0"))

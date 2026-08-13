@@ -1,0 +1,29 @@
+## MODIFIED Requirements
+
+### Requirement: Action permissions are independent of park data scope
+A permission code of `*` SHALL grant all **action** permissions only. It SHALL NOT by itself grant access to all parks' data, spatial nodes, rentable-unit versions, rent-control summaries or operational drill-downs.
+
+#### Scenario: Star action without park scope is not all-parks
+- **WHEN** a user has action permission `*` and park scope mode is not ALL and has no listed parks
+- **THEN** action checks for protected routes may pass for `*`, but park-scoped assets and rent-control data are denied or empty
+
+### Requirement: Explicit all-parks authorization
+All-parks data access SHALL be granted only through an explicit park-scope authorization (for example `park_scope_mode=ALL` derived from `user.all_parks` or `role.all_parks`), not from action permission codes alone. The same authorization SHALL cover only parks within the user's tenant and their descendant asset resources.
+
+#### Scenario: Explicit all-parks allows any park in tenant
+- **WHEN** the user's resolved park scope mode is ALL within their tenant
+- **THEN** repository filters allow that tenant's parks, spatial nodes, units and rent-control projections without requiring each park id in a list
+
+### Requirement: Listed park scope
+When park scope mode is LIST, access SHALL be limited to the union of authorized park ids, including every spatial node, unit version, lineage row, rent-control total and drill-down derived from those parks.
+
+#### Scenario: Only listed parks visible
+- **WHEN** park scope mode is LIST with parks {A}
+- **THEN** resources and aggregate values from park B are neither returned nor included in park A totals
+
+### Requirement: Empty park scope denies by default
+When park scope mode is NONE (or LIST with empty ids), the user SHALL NOT receive all-parks access or aggregate-only leakage from rent-control endpoints.
+
+#### Scenario: Empty scope denies
+- **WHEN** the user has no all-parks grant and an empty park id set
+- **THEN** asset lists and rent-control summaries contain no other users' park data and targeted writes fail authorization/data-scope checks

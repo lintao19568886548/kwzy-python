@@ -184,7 +184,7 @@ class LeaseService:
             if unit_id in seen:
                 raise AppError("合同内单元重复", code="VALIDATION_ERROR", status_code=400)
             seen.add(unit_id)
-            unit = self.units.get_by_id(unit_id)
+            unit = self.units.get_current_by_id(unit_id)
             if unit is None:
                 raise AppError("单元不存在", code="UNIT_NOT_FOUND", status_code=404)
             if int(unit.park_id) != int(park_id):
@@ -496,7 +496,9 @@ class LeaseService:
 
         unit_area: list[tuple[Any, Decimal]] = []
         for line in lines:
-            unit = self.units.get_by_id(int(line.unit_id))
+            # Serialize activation with structural version/split/merge writes.
+            # A pending lease may only activate against the current unit version.
+            unit = self.units.get_current_for_update(int(line.unit_id))
             if unit is None:
                 raise AppError("单元不存在", code="UNIT_NOT_FOUND", status_code=404)
             if int(unit.park_id) != int(model.park_id):

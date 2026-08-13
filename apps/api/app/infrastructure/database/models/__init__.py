@@ -25,7 +25,7 @@ from app.infrastructure.database.models.lease import (
     LeaseContractUnit,
     LeaseTerm,
 )
-from app.infrastructure.database.models.park_property import Building, Park, Unit
+from app.infrastructure.database.models.park_property import Building, Park, Unit, UnitLineage
 from app.infrastructure.database.models.party import (
     Party,
     PartyAddress,
@@ -67,6 +67,7 @@ __all__ = [
     "Park",
     "Building",
     "Unit",
+    "UnitLineage",
     "Party",
     "PartyRole",
     "PartyParkRelation",

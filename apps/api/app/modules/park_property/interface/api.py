@@ -9,13 +9,20 @@ from sqlalchemy.orm import Session
 
 from app.infrastructure.database.session import get_db
 from app.modules.park_property.application.park_service import ParkService
+from app.modules.park_property.application.rent_control_service import RentControlService
+from app.modules.park_property.application.spatial_service import SpatialService
 from app.modules.park_property.application.unit_service import UnitService
 from app.modules.park_property.interface.schemas import (
     ParkCreate,
     ParkUpdate,
+    SpatialCreate,
+    SpatialUpdate,
     UnitCreate,
+    UnitMergeRequest,
+    UnitSplitRequest,
     UnitStatusUpdate,
     UnitUpdate,
+    UnitVersionCreate,
 )
 from app.shared.deps import TenantContext, get_tenant_context, require_permissions
 from app.shared.response import ok
@@ -35,6 +42,20 @@ def _unit_service(
     ctx: TenantContext = Depends(get_tenant_context),
 ) -> UnitService:
     return UnitService(db, ctx)
+
+
+def _spatial_service(
+    db: Session = Depends(get_db),
+    ctx: TenantContext = Depends(get_tenant_context),
+) -> SpatialService:
+    return SpatialService(db, ctx)
+
+
+def _rent_control_service(
+    db: Session = Depends(get_db),
+    ctx: TenantContext = Depends(get_tenant_context),
+) -> RentControlService:
+    return RentControlService(db, ctx)
 
 
 @router.get("/parks", dependencies=[Depends(require_permissions("park:read"))])
@@ -88,6 +109,102 @@ def delete_park(park_id: int, svc: ParkService = Depends(_park_service)) -> dict
     return ok(None, message="deleted")
 
 
+@router.get("/spaces/tree", dependencies=[Depends(require_permissions("unit:read"))])
+def spatial_tree(
+    park_id: int,
+    svc: SpatialService = Depends(_spatial_service),
+) -> dict:
+    return ok(svc.tree(park_id))
+
+
+@router.get("/spaces/{node_id}", dependencies=[Depends(require_permissions("unit:read"))])
+def get_space(node_id: int, svc: SpatialService = Depends(_spatial_service)) -> dict:
+    return ok(svc.get(node_id))
+
+
+@router.post("/spaces", dependencies=[Depends(require_permissions("unit:write"))])
+def create_space(
+    body: SpatialCreate,
+    svc: SpatialService = Depends(_spatial_service),
+) -> dict:
+    return ok(svc.create(body.model_dump()), message="created")
+
+
+@router.patch("/spaces/{node_id}", dependencies=[Depends(require_permissions("unit:write"))])
+def update_space(
+    node_id: int,
+    body: SpatialUpdate,
+    svc: SpatialService = Depends(_spatial_service),
+) -> dict:
+    return ok(svc.update(node_id, body.model_dump(exclude_unset=True)), message="updated")
+
+
+@router.delete("/spaces/{node_id}", dependencies=[Depends(require_permissions("unit:write"))])
+def deactivate_space(
+    node_id: int,
+    svc: SpatialService = Depends(_spatial_service),
+) -> dict:
+    return ok(svc.deactivate(node_id), message="deactivated")
+
+
+@router.get(
+    "/rent-control/summary",
+    dependencies=[Depends(require_permissions("unit:read"))],
+)
+def rent_control_summary(
+    park_id: Optional[int] = None,
+    space_id: Optional[int] = None,
+    status: Optional[str] = None,
+    usage_type: Optional[str] = None,
+    keyword: Optional[str] = None,
+    svc: RentControlService = Depends(_rent_control_service),
+) -> dict:
+    return ok(svc.summary(park_id=park_id, space_id=space_id, status=status, usage_type=usage_type, keyword=keyword))
+
+
+@router.get(
+    "/rent-control/units",
+    dependencies=[Depends(require_permissions("unit:read"))],
+)
+def rent_control_units(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+    park_id: Optional[int] = None,
+    space_id: Optional[int] = None,
+    status: Optional[str] = None,
+    usage_type: Optional[str] = None,
+    keyword: Optional[str] = None,
+    svc: RentControlService = Depends(_rent_control_service),
+) -> dict:
+    return ok(svc.list_units(page=page, page_size=page_size, park_id=park_id, space_id=space_id, status=status, usage_type=usage_type, keyword=keyword))
+
+
+@router.get(
+    "/rent-control/matrix",
+    dependencies=[Depends(require_permissions("unit:read"))],
+)
+def rent_control_matrix(
+    park_id: Optional[int] = None,
+    space_id: Optional[int] = None,
+    status: Optional[str] = None,
+    usage_type: Optional[str] = None,
+    keyword: Optional[str] = None,
+    svc: RentControlService = Depends(_rent_control_service),
+) -> dict:
+    return ok(svc.matrix(park_id=park_id, space_id=space_id, status=status, usage_type=usage_type, keyword=keyword))
+
+
+@router.get(
+    "/rent-control/units/{unit_id}",
+    dependencies=[Depends(require_permissions("unit:read"))],
+)
+def rent_control_detail(
+    unit_id: int,
+    svc: RentControlService = Depends(_rent_control_service),
+) -> dict:
+    return ok(svc.detail(unit_id))
+
+
 @router.get("/units", dependencies=[Depends(require_permissions("unit:read"))])
 def list_units(
     page: int = Query(1, ge=1),
@@ -104,6 +221,16 @@ def list_units(
 def create_unit(body: UnitCreate, svc: UnitService = Depends(_unit_service)) -> dict:
     data = svc.create_unit(body.model_dump())
     return ok(data, message="created")
+
+
+@router.post("/units/split", dependencies=[Depends(require_permissions("unit:write"))])
+def split_unit(body: UnitSplitRequest, svc: UnitService = Depends(_unit_service)) -> dict:
+    return ok(svc.split(body.model_dump()), message="split")
+
+
+@router.post("/units/merge", dependencies=[Depends(require_permissions("unit:write"))])
+def merge_units(body: UnitMergeRequest, svc: UnitService = Depends(_unit_service)) -> dict:
+    return ok(svc.merge(body.model_dump()), message="merged")
 
 
 @router.get(
@@ -147,3 +274,31 @@ def change_unit_status(
 def delete_unit(unit_id: int, svc: UnitService = Depends(_unit_service)) -> dict:
     svc.delete_unit(unit_id)
     return ok(None, message="deleted")
+
+
+@router.get(
+    "/units/{unit_id}/history",
+    dependencies=[Depends(require_permissions("unit:read"))],
+)
+def unit_history(unit_id: int, svc: UnitService = Depends(_unit_service)) -> dict:
+    return ok(svc.history(unit_id))
+
+
+@router.get(
+    "/units/{unit_id}/lineage",
+    dependencies=[Depends(require_permissions("unit:read"))],
+)
+def unit_lineage(unit_id: int, svc: UnitService = Depends(_unit_service)) -> dict:
+    return ok(svc.lineage(unit_id))
+
+
+@router.post(
+    "/units/{unit_id}/versions",
+    dependencies=[Depends(require_permissions("unit:write"))],
+)
+def create_unit_version(
+    unit_id: int,
+    body: UnitVersionCreate,
+    svc: UnitService = Depends(_unit_service),
+) -> dict:
+    return ok(svc.create_version(unit_id, body.model_dump(exclude_unset=True)), message="version_created")

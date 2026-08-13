@@ -15,6 +15,7 @@ function firstAllowedPath(): string {
   const candidates: Array<{ path: string; perm?: string | string[] }> = [
     { path: "/workbench", perm: "work_item:read" },
     { path: "/parties", perm: "party:read" },
+    { path: "/rent-control", perm: "unit:read" },
     { path: "/parks", perm: "park:read" },
     { path: "/todos", perm: "work_item:read" },
     { path: "/leads", perm: "lead:read" },

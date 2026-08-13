@@ -15,6 +15,7 @@ const allNav: NavItem[] = [
   { to: "/leads", label: "招商", testid: "nav-leads", permission: "lead:read" },
   { to: "/work-orders", label: "工单", testid: "nav-work-orders", permission: "work_order:read" },
   { to: "/parks", label: "园区", testid: "nav-parks", permission: "park:read" },
+  { to: "/rent-control", label: "资产租控", testid: "nav-rent-control", permission: "unit:read" },
   { to: "/parties", label: "主体", testid: "nav-parties", permission: "party:read" },
   { to: "/leases", label: "合同", testid: "nav-leases", permission: "lease:read" },
   { to: "/bills", label: "账单", testid: "nav-bills", permission: "bill:read" },
