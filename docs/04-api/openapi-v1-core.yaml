@@ -2213,6 +2213,45 @@ paths:
       responses:
         '200':
           description: OK
+
+  /approvals:
+    get:
+      tags: [Auth]
+      summary: 审批列表
+      operationId: listApprovals
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Auth]
+      summary: 提交审批
+      operationId: createApproval
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+  /approvals/{approval_id}/approve:
+    post:
+      tags: [Auth]
+      summary: 通过审批
+      operationId: approveRequest
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: approval_id, in: path, required: true, schema: { type: integer } }
+      responses: { '200': { description: OK } }
+  /approvals/{approval_id}/reject:
+    post:
+      tags: [Auth]
+      summary: 拒绝审批
+      operationId: rejectRequest
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: approval_id, in: path, required: true, schema: { type: integer } }
+      responses: { '200': { description: OK } }
+  /parties/export.csv:
+    get:
+      tags: [Parties]
+      summary: 导出主体CSV
+      operationId: exportPartiesCsv
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: CSV } }
 components:
   securitySchemes:
     bearerAuth:
@@ -3199,5 +3238,6 @@ components:
         status: { type: string }
         result_meta: { type: object, additionalProperties: true, nullable: true }
         error_message: { type: string, nullable: true }
+
 
 

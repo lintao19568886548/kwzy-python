@@ -12,6 +12,7 @@ import LeadsView from "@/views/LeadsView.vue";
 import WorkOrdersView from "@/views/WorkOrdersView.vue";
 import SystemAdminView from "@/views/SystemAdminView.vue";
 import CollectionCasesView from "@/views/CollectionCasesView.vue";
+import ApprovalsView from "@/views/ApprovalsView.vue";
 
 const routes: RouteRecordRaw[] = [
   { path: "/login", name: "login", component: LoginView, meta: { public: true } },
@@ -44,6 +45,12 @@ const routes: RouteRecordRaw[] = [
         name: "collection",
         component: CollectionCasesView,
         meta: { permission: "collection:read" },
+      },
+      {
+        path: "approvals",
+        name: "approvals",
+        component: ApprovalsView,
+        meta: { permission: "approval:read" },
       },
       {
         path: "parties",

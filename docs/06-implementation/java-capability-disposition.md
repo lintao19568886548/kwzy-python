@@ -37,7 +37,8 @@
 | `onboarding/*` | 等价 | lease activate | test_lease | 入驻占用投影 |
 | `status/*` `health` | 已实现 | `/health` | test_health | |
 | `config/*` 系统参数 | 已实现 | `/system/params` dict | test_system_config_api | 密钥脱敏 |
-| 审批流（无独立 workflow 包；夹杂于 ops/status） | DEPRECATE 一期 | — | 未检出统一 workflow 引擎包 | 一期人工状态机；复杂 BPM 二期 |
+| 审批流（无独立 workflow 包；夹杂于 ops/status） | ADAPTER 最小实现 | `/approvals` ApprovalRequest | test_approval_api | 非完整 BPM；业务单据级 PENDING/APPROVE/REJECT |
+| 导入导出（各域 Excel） | ADAPTER 最小 | `/parties/export.csv` | 主链/导出路径 | 全量 Excel 模板 DEFER 无外部库要求 |
 
 **UNKNOWN=0**：上表覆盖 backend 一级业务包扫描结果。  
 **Radar DEPRECATE 证据**：`investment/RadarLead*.java` 与 `InvestmentRadarJdbcTemplateProvider.java`。  

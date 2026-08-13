@@ -46,6 +46,25 @@ def _svc(
     return PartyService(db, ctx)
 
 
+@router.get("/parties/export.csv", dependencies=[Depends(require_permissions("party:read"))])
+def export_parties_csv(
+    keyword: Optional[str] = None,
+    svc: PartyService = Depends(_svc),
+):
+    """功能说明：导出主体 CSV（导入导出适配最小实现）。"""
+
+    from fastapi.responses import PlainTextResponse
+
+    data = svc.list_parties(page=1, page_size=200, keyword=keyword)
+    lines = ["id,name,party_type,status,contact_phone"]
+    for item in data.get("items") or []:
+        phone = (item.get("contact_phone") or "").replace(",", " ")
+        lines.append(
+            f"{item.get('id')},{item.get('name')},{item.get('party_type')},{item.get('status')},{phone}"
+        )
+    return PlainTextResponse("\n".join(lines) + "\n", media_type="text/csv")
+
+
 @router.get("/parties", dependencies=[Depends(require_permissions("party:read"))])
 def list_parties(
     page: int = Query(1, ge=1),

@@ -27,4 +27,7 @@ $env:POSTGRES_TEST_URL=$env:TEST_DATABASE_URL
 pytest -m pg
 ```
 
-Alembic：`DATABASE_URL` 指向同上库，`upgrade head` / `downgrade -1` / `upgrade head` 已验证。
+Alembic：`DATABASE_URL` 指向同上库，`upgrade head` / `downgrade -1` / `upgrade head` 已验证。  
+当前 head：`f2a80e5c3b64`（`e1c79d4f2b53` → 审批表）。  
+
+**全量回归（TEST_DATABASE_URL 已设）：132 passed / 0 skipped。**

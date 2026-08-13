@@ -25,6 +25,7 @@ function logout() {
         <router-link to="/bills">账单</router-link>
         <router-link to="/payments">收款</router-link>
         <router-link to="/collection">催缴</router-link>
+        <router-link to="/approvals">审批</router-link>
         <router-link to="/system">系统</router-link>
       </nav>
       <div class="side-foot">

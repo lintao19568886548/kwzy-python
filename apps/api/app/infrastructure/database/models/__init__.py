@@ -41,6 +41,7 @@ from app.infrastructure.database.models.system_config import (
 )
 from app.infrastructure.database.models.facility_ops import WorkOrder
 from app.infrastructure.database.models.collection_case import CollectionCase
+from app.infrastructure.database.models.workflow import ApprovalRequest
 
 __all__ = [
     "Tenant",
@@ -82,4 +83,5 @@ __all__ = [
     "SystemParam",
     "WorkOrder",
     "CollectionCase",
+    "ApprovalRequest",
 ]

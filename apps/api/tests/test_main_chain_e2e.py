@@ -168,3 +168,54 @@ def test_main_chain_permission_denies(client) -> None:
     assert r.status_code == 403
     r2 = client.get("/api/v1/work-items", headers=h)
     assert r2.status_code == 403
+
+
+def test_cross_tenant_isolation_on_party(client) -> None:
+    h1 = _bearer()
+    park = client.post(
+        "/api/v1/parks", headers=h1, json={"name": "T1园", "address": "a"}
+    ).json()["data"]
+    party = client.post(
+        "/api/v1/parties",
+        headers=h1,
+        json={"name": "仅租户1可见", "party_type": "ORGANIZATION"},
+    ).json()["data"]
+
+    # 伪造其他租户 token（同库无该租户数据）
+    h2 = {
+        "Authorization": "Bearer "
+        + create_access_token(
+            subject="other",
+            claims={
+                "uid": 9,
+                "tenant_id": 999,
+                "permissions": ["*"],
+                "park_ids": [],
+                "park_scope_mode": "ALL",
+            },
+        )
+    }
+    r = client.get(f"/api/v1/parties/{party['id']}", headers=h2)
+    assert r.status_code == 404
+
+    # 园区 scope LIST 拒绝
+    h3 = {
+        "Authorization": "Bearer "
+        + create_access_token(
+            subject="scoped",
+            claims={
+                "uid": 1,
+                "tenant_id": 1,
+                "permissions": ["*"],
+                "park_ids": [park["id"] + 9999],
+                "park_scope_mode": "LIST",
+            },
+        )
+    }
+    r2 = client.post(
+        "/api/v1/work-orders",
+        headers=h3,
+        json={"park_id": park["id"], "title": "跨园拒绝"},
+    )
+    assert r2.status_code == 403
+    assert r2.json()["code"] == "PARK_SCOPE_DENIED"
