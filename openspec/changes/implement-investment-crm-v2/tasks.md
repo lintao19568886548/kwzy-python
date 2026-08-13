@@ -89,8 +89,8 @@
 - [x] 9.4 Pass backend full tests including PostgreSQL concurrency and transaction rollback
 - [x] 9.5 Pass frontend lint/typecheck/unit/build and full browser E2E
 - [x] 9.6 Pass migration, CRM ETL, backup restore, secrets, diff and OpenSpec strict gates
-- [ ] 9.7 Update the four controlling rebuild documents with exact commit/report evidence and truthful blockers
-- [ ] 9.8 Commit and push a clean non-force non-production checkpoint
+- [x] 9.7 Update the four controlling rebuild documents with exact commit/report evidence and truthful blockers
+- [x] 9.8 Commit and push a clean non-force non-production checkpoint
 
 ## Non-goals
 

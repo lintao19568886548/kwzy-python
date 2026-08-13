@@ -1,8 +1,8 @@
 # 当前能力状态（代码级 · 范围化证据表）
 
-> 更新：2026-08-13 18:05（Asia/Shanghai）
-> `TESTED_CODE_SHA`：`b25eb079655d8d3417fc7a40d3b8741f36ea0698`
-> 验收脚本 SHA256：`6B192E6DBA9ACABC6220694CB0C7AE36A511A0719D1072CB956D676CF72A7C88`
+> 更新：2026-08-13 19:50（Asia/Shanghai）
+> `TESTED_CODE_SHA`：`8adcd77e782db47a466ba0759ac04ffaae488b1b`
+> 验收脚本 SHA256：`747C954458394D6D9F8CE4B9355DB849C3859A2199C7090386334311D3887EC3`
 > 规则：无模型/API/UI/测试证据不得标记本地实现；本地实现、适配器和生产联调必须分开。禁止连接真实生产库。
 
 | 能力 | docs 来源 | 旧 Java 证据 | 新后端 | 新 API | 新前端路由 | 迁移/表 | 权限码 | 自动测试 | 结论 |
@@ -15,13 +15,14 @@
 | Lease 生命周期 | lease | 合同 | lease service | /leases/* | /leases | lease_contracts | lease:* | e2e lease + main-chain | PARTIAL |
 | Bill/Payment | billing/collection | 账单收款 | bill/payment | /bills /payments | /bills /payments | bills/payments | bill:* payment:* | e2e billing-payment | PARTIAL |
 | Workbench/WorkItem | workbench | 待办 | work_item | /workbench /work-items | /workbench /todos | work_items | work_item:* | e2e workbench | PARTIAL |
-| Investment Leads | investment | 招商 | lead service | /leads/* | /leads | leads | lead:* | e2e investment-leads | PARTIAL |
+| Investment CRM | investment | 招商/CRM/radar | lifecycle/pool/activity/match/lock/conversion | /leads/* | /leads | leads/activities/assignment_events/merge_links/unit_locks | lead:*/claim/manage/lock | pytest + PG concurrency + 6 e2e CRM | IMPLEMENTED_LOCAL_SCOPE |
 | Work Orders/Collection | facility_ops/collection | 工单/催缴 | work_order/case | /work-orders /collection/cases | /work-orders /collection | work_orders/collection_cases | work_order:* collection:* | e2e | PARTIAL |
 | Approvals/Attachments | workflow/attachments | 审批/附件 | minimal services | /approvals /attachments | /approvals | approvals/attachments | approval:* attachment:* | pytest | MINIMAL_LOCAL_SCOPE |
 | SMS/Notify/Object storage | integrations | 通知/存储 | fake/local + fail-closed | /integrations/* | — | integration_outbox | — | pytest + outbox | ADAPTER_NOT_LIVE |
 | 跨租户/园区隔离 | security | multi-tenant | tenant/park scope | mounted APIs | /forbidden | tenant_id/park grants | * | pytest + e2e cross-tenant | IMPLEMENTED_CURRENT_SCOPE |
 | Asset ETL fixture→PG16 | ETL tools | 旧资产待取证 | isolated synthetic drill | n/a | n/a | etl_asset_fixture | n/a | dry/apply/idempotent/reconcile/rollback | CONDITIONAL_SYNTHETIC_READY |
-| PC 浏览器主链 | FE | SPA | FastAPI | REST | apps/web | PG16 e2e | RBAC UI | Playwright 28/28 no-skip | PARTIAL_PRODUCT_SCOPE |
+| CRM ETL fixture→PG16 | ETL tools | 旧 CRM/radar 待取证 | isolated synthetic drill | n/a | n/a | etl_investment_crm_fixture | n/a | 5 leads/4 activities/4 assignments/1 merge/1 PII quarantine + rollback | CONDITIONAL_SYNTHETIC_READY |
+| PC 浏览器主链 | FE | SPA | FastAPI | REST | apps/web | PG16 e2e | RBAC UI | Playwright 32/32 no-skip | PARTIAL_PRODUCT_SCOPE |
 | 员工移动端/租户小程序 | product scope | 多端 | — | — | 应用不存在 | — | — | — | NOT_STARTED |
 | 支付网关/企微/OCR 真联调 | external | 凭据 | Fake only | — | — | — | — | not live | LIVE_VERIFICATION_PENDING |
 | Radar 爬虫 | disposition | Java | — | — | — | — | — | deprecated | DEPRECATED_WITH_EVIDENCE |
@@ -29,9 +30,9 @@
 ## 本地全栈验收（当前已实现范围）
 
 - 命令：`pwsh -NoProfile -File .\infra\local-staging\run_full_acceptance.ps1`
-- 被测提交：`b25eb079655d8d3417fc7a40d3b8741f36ea0698`
-- 机器报告：`infra/local-staging/out/acceptance_20260813_180435.json`（gitignored，本机）
-- 结果：20/20 exit 0；pytest 151；Vitest 4；Playwright 28/0/0；core/Identity/Asset ETL PASS；48 表备份恢复 PASS；OpenAPI PASS；OpenSpec 33/0；518 文件密钥扫描 PASS；清理 PASS。
+- 被测提交：`8adcd77e782db47a466ba0759ac04ffaae488b1b`
+- 机器报告：`infra/local-staging/out/acceptance_20260813_195020.json`（gitignored，本机）
+- 结果：21/21 exit 0；pytest 166；Vitest 4；Playwright 32/0/0；core/Identity/Asset/CRM ETL PASS；52 表备份恢复 PASS；OpenAPI 4/4 + YAML strict；OpenSpec 38/0；545 文件密钥扫描 PASS；清理 PASS。
 
 ## 门禁
 
