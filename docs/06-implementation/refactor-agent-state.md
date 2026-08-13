@@ -4,15 +4,15 @@
 
 | 字段 | 当前值 |
 | --- | --- |
-| 更新时间 | 2026-08-13 18:08（Asia/Shanghai） |
+| 更新时间 | 2026-08-13 18:20（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `main` |
 | 已验证 HEAD | `b25eb079655d8d3417fc7a40d3b8741f36ea0698` |
-| 远程同步 | 资产代码 `b25eb07` 与验收证据 `6d104f4` 已非强推送至 `origin/main`；归档结果随当前收口提交发布 |
-| 工作树 | OpenSpec 归档、主规格同步与状态回填中；无业务代码变化 |
+| 远程同步 | 资产代码/证据/归档已非强推送；`HEAD == origin/main == 4ec701088b3979b51ba6484ab8febffdceab8f8d`（开始 CRM 规划前） |
+| 工作树 | 基础 Lead 规格归档、CRM V2 OpenSpec/处置/映射规划检查点待提交；无业务代码变化 |
 | Alembic | 唯一 head `i5d13e8f0b97` |
-| 当前阶段 | 资产与租控纵切已本地验收并归档；转入招商 CRM |
-| 当前 OpenSpec | 资产 change 已归档；`complete-identity-system-admin` 的真实旧数据项保持外部门禁 |
+| 当前阶段 | 招商 CRM V2 规划完成，5/67 任务；进入数据库迁移与后端实现 |
+| 当前 OpenSpec | `implement-investment-crm-v2` strict PASS；`complete-identity-system-admin` 的真实旧数据项保持外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -39,6 +39,9 @@
 - [x] 提交 `b25eb07 feat: implement asset rent control v2`，并在该 clean SHA 上复跑 20 项全量门禁，20/20 exit 0。
 - [x] 将资产代码与 `6d104f4` 验收证据非强推送到 `origin/main`。
 - [x] 同步 21 条资产/租控增量要求到主规格并归档 `2026-08-13-implement-asset-rent-control-v2`；归档后 OpenSpec strict 37/37 PASS。
+- [x] 同步并归档已落地的基础 `implement-investment-leads` 规格，消除与 CRM V2 的增量冲突。
+- [x] 完成 CRM V2 proposal/design、8 份 delta specs 和 67 项任务；change strict PASS。
+- [x] 发布旧 investment/CRM/radar 能力处置与字段/枚举/PII 映射，外部雷达/企微/触达继续 NOT_LIVE/BLOCKED。
 
 ## 最新机器证据
 
@@ -52,7 +55,7 @@
 | Playwright | 28 passed / 0 failed / 0 skipped；新增租控主链、只读/失败态和平板键盘场景 |
 | OpenAPI | 3 contract tests + YAML strict PASS；运行时 104 paths / 142 operations |
 | OpenSpec | strict 33 passed / 0 failed |
-| 归档后 OpenSpec | 主规格同步后 strict 37 passed / 0 failed；仅规格/文档变化，不改变上述被测代码 SHA |
+| 当前 OpenSpec | 基础 Lead 归档 + CRM V2 change 后 strict 38 passed / 0 failed；仅规格/文档变化，不改变上述被测代码 SHA |
 | ETL | core fast + acceptance、Identity、Asset 均 PASS；Asset 为 4 nodes/4 units/2 lineages，面积 280/180/40，对账零孤儿零重复并回滚干净；真实旧数据未演练 |
 | 备份恢复 | PASS，dump 850221 bytes，restore 48 tables |
 | 扩展 secrets scan | PASS，518 tracked/untracked non-ignored files |
@@ -64,16 +67,16 @@
 - `apps/tenant-miniprogram` 不存在；租户微信小程序未实现。
 - `analytics`、`ai_assist`、`finance`、`tenant_ops` 仍是未挂载的空响应或 stub，不能计为能力。
 - 资产与租控本次定义范围已闭合；集团层、GIS/CAD/BIM 地图与更深组合经营分析仍未实现。
-- 完整 CRM/锁房、合同变更链、自动计费/对账催缴、IoT/巡检、HR/供应链、完整驾驶舱均未闭环。
+- CRM/锁房已进入已校验 OpenSpec 实施阶段但尚未形成代码验收；合同变更链、自动计费/对账催缴、IoT/巡检、HR/供应链、完整驾驶舱均未闭环。
 - 外部短信/微信/邮件/OSS/支付/签章/发票/IoT 无真实凭据，生产联调均 `NOT_LIVE`。
 - ETL 只验证合成 fixture；缺少经授权的脱敏旧库快照、字段闭合签字和新旧结果对账。
 - 无登记的远程预发环境；性能基线、容灾/监控/告警和生产 Runbook 尚未完成。
 
 ## 下一恢复点
 
-1. 提交并非强推送资产 OpenSpec 归档与主规格同步，核对 `HEAD == origin/main`。
-2. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档。
-3. 建立并实施招商 CRM 纵切；继续沿主路线图推进三端和全业务闭环。
+1. 提交并非强推送基础 Lead 归档与 CRM V2 规划检查点。
+2. 按 tasks 2→6 实现 CRM 表/迁移、生命周期/公海/活动、锁房/原子转化和查询 API，并持续勾选验证。
+3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档。
 
 ## 不可变安全约束
 
