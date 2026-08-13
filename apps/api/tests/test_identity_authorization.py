@@ -290,7 +290,19 @@ def test_cross_tenant_role_permissions_ignored(db_session: Session) -> None:
     assert result["user"]["park_scope_mode"] == "NONE"
 
 
-def test_api_rejects_missing_action_permission(client) -> None:
+def test_api_rejects_missing_action_permission(client, db_session: Session) -> None:
+    db_session.add(
+        User(
+            id=99,
+            tenant_id=1,
+            username="reader",
+            password_hash=hash_password("unused-secret"),
+            real_name="只读用户",
+            status="ACTIVE",
+            token_version=0,
+        )
+    )
+    db_session.commit()
     token = create_access_token(
         subject="reader",
         claims={
@@ -322,6 +334,18 @@ def test_api_rejects_missing_action_permission(client) -> None:
 def test_api_rejects_out_of_scope_park(client, db_session: Session) -> None:
     park_a = ParkService(db_session, _admin_ctx()).create_park({"name": "可见园"})
     park_b = ParkService(db_session, _admin_ctx()).create_park({"name": "不可见园"})
+    db_session.add(
+        User(
+            id=50,
+            tenant_id=1,
+            username="scoped",
+            password_hash=hash_password("unused-secret"),
+            real_name="范围用户",
+            status="ACTIVE",
+            token_version=0,
+        )
+    )
+    db_session.commit()
     token = create_access_token(
         subject="scoped",
         claims={

@@ -5,7 +5,10 @@
 
 from __future__ import annotations
 
-from app.core.security import create_access_token
+from sqlalchemy.orm import Session
+
+from app.core.security import create_access_token, hash_password
+from app.infrastructure.database.models.identity import Tenant, User
 
 
 def _bearer(*, permissions: list[str] | None = None) -> dict:
@@ -170,7 +173,7 @@ def test_main_chain_permission_denies(client) -> None:
     assert r2.status_code == 403
 
 
-def test_cross_tenant_isolation_on_party(client) -> None:
+def test_cross_tenant_isolation_on_party(client, db_session: Session) -> None:
     h1 = _bearer()
     park = client.post(
         "/api/v1/parks", headers=h1, json={"name": "T1园", "address": "a"}
@@ -181,14 +184,27 @@ def test_cross_tenant_isolation_on_party(client) -> None:
         json={"name": "仅租户1可见", "party_type": "ORGANIZATION"},
     ).json()["data"]
 
-    # 伪造其他租户 token（同库无该租户数据）
+    # 使用真实存在且会话版本有效的其他租户用户，业务资源仍必须 404 隔离。
+    other_tenant = Tenant(code="main-chain-other", name="其他租户", status="ACTIVE")
+    db_session.add(other_tenant)
+    db_session.flush()
+    other_user = User(
+        tenant_id=other_tenant.id,
+        username="other",
+        password_hash=hash_password("unused-secret"),
+        real_name="其他租户用户",
+        status="ACTIVE",
+        token_version=0,
+    )
+    db_session.add(other_user)
+    db_session.commit()
     h2 = {
         "Authorization": "Bearer "
         + create_access_token(
             subject="other",
             claims={
-                "uid": 9,
-                "tenant_id": 999,
+                "uid": other_user.id,
+                "tenant_id": other_tenant.id,
                 "permissions": ["*"],
                 "park_ids": [],
                 "park_scope_mode": "ALL",

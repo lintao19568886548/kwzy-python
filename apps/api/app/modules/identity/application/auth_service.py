@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -13,6 +14,9 @@ from app.core.errors import AppError
 from app.core.security import create_access_token, hash_password, verify_password
 from app.modules.identity.infrastructure.authorization_repository import (
     AuthorizationRepository,
+)
+from app.modules.identity.infrastructure.auth_security_repository import (
+    AuthSecurityRepository,
 )
 from app.modules.identity.infrastructure.identity_admin_repository import (
     IdentityAdminRepository,
@@ -25,12 +29,19 @@ def _hash_token(raw: str) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
+def _security_digest(kind: str, value: str) -> str:
+    key = get_settings().jwt_secret.encode("utf-8")
+    payload = f"{kind}:{value.strip().lower()}".encode("utf-8")
+    return hmac.new(key, payload, hashlib.sha256).hexdigest()
+
+
 class AuthService:
     """编排租户用户认证、会话与 JWT 签发。"""
 
     def __init__(self, session: Session) -> None:
         self.auth_repo = AuthorizationRepository(session)
         self.admin_repo = IdentityAdminRepository(session)
+        self.security_repo = AuthSecurityRepository(session)
 
     def login(
         self,
@@ -38,14 +49,59 @@ class AuthService:
         username: str,
         password: str,
         tenant_code: str | None = None,
+        client_ip: str | None = None,
     ) -> dict:
+        subject_digest = _security_digest(
+            "login-subject",
+            f"{tenant_code or '*'}:{username}",
+        )
+        client_digest = _security_digest("login-client", client_ip or "unknown")
+        settings = get_settings()
+        since = datetime.now(UTC).replace(tzinfo=None) - timedelta(
+            seconds=settings.auth_login_window_seconds
+        )
+        subject_failures = self.security_repo.count_recent_subject_failures(
+            subject_digest=subject_digest,
+            since=since,
+        )
+        client_failures = self.security_repo.count_recent_client_failures(
+            client_digest=client_digest,
+            since=since,
+        )
+        if (
+            subject_failures >= settings.auth_login_max_failures
+            or client_failures >= settings.auth_login_ip_max_failures
+        ):
+            self.security_repo.record(
+                event_type="LOGIN_RATE_LIMITED",
+                subject_digest=subject_digest,
+                client_digest=client_digest,
+                reason_code="WINDOW_LIMIT",
+            )
+            self.security_repo.commit()
+            raise AppError(
+                "登录尝试过于频繁，请稍后重试",
+                code="AUTH_RATE_LIMITED",
+                status_code=429,
+            )
+
         candidates = self.auth_repo.find_login_candidates(
             username=username,
             tenant_code=tenant_code.strip() if tenant_code else None,
         )
         if not candidates:
+            self._record_login_failure(
+                subject_digest=subject_digest,
+                client_digest=client_digest,
+                reason_code="BAD_CREDENTIALS",
+            )
             raise AppError("用户名或密码错误", code="AUTH_BAD_PASSWORD", status_code=403)
         if len(candidates) > 1:
+            self._record_login_failure(
+                subject_digest=subject_digest,
+                client_digest=client_digest,
+                reason_code="TENANT_AMBIGUOUS",
+            )
             raise AppError(
                 "该用户名对应多个租户，请指定租户后登录",
                 code="AUTH_TENANT_AMBIGUOUS",
@@ -53,13 +109,42 @@ class AuthService:
             )
         user = candidates[0]
         if not verify_password(password, user.password_hash):
+            self._record_login_failure(
+                subject_digest=subject_digest,
+                client_digest=client_digest,
+                reason_code="BAD_CREDENTIALS",
+                tenant_id=user.tenant_id,
+            )
             raise AppError("用户名或密码错误", code="AUTH_BAD_PASSWORD", status_code=403)
         return self._issue_session(user)
 
-    def refresh(self, *, refresh_token: str) -> dict:
+    def refresh(self, *, refresh_token: str, client_ip: str | None = None) -> dict:
         token_hash = _hash_token(refresh_token)
-        row = self.admin_repo.get_refresh_by_hash(token_hash)
-        if row is None or row.revoked_at is not None:
+        row = self.admin_repo.get_refresh_by_hash_for_update(token_hash)
+        if row is None:
+            raise AppError("刷新令牌无效", code="AUTH_REFRESH_INVALID", status_code=401)
+        if row.revoked_at is not None:
+            if row.replaced_by_hash:
+                # 已轮换 token 再次出现说明可能被窃取；吊销该用户的整个
+                # refresh 会话族。访问令牌由 token_version 单独控制。
+                self.admin_repo.revoke_user_refresh(
+                    row.user_id, datetime.now(UTC).replace(tzinfo=None)
+                )
+                self.security_repo.record(
+                    event_type="REFRESH_REUSE",
+                    tenant_id=row.tenant_id,
+                    subject_digest=_security_digest("refresh-user", str(row.user_id)),
+                    client_digest=_security_digest(
+                        "refresh-client", client_ip or "unknown"
+                    ),
+                    reason_code="ROTATED_TOKEN_REUSED",
+                )
+                self.admin_repo.commit()
+                raise AppError(
+                    "刷新令牌重放，会话已撤销",
+                    code="AUTH_REFRESH_REUSED",
+                    status_code=401,
+                )
             raise AppError("刷新令牌无效", code="AUTH_REFRESH_INVALID", status_code=401)
         exp = row.expires_at
         if exp.tzinfo is None:
@@ -70,10 +155,27 @@ class AuthService:
         if user is None or user.status != "ACTIVE" or user.tenant_id != row.tenant_id:
             raise AppError("刷新令牌无效", code="AUTH_REFRESH_INVALID", status_code=401)
         row.revoked_at = datetime.now(UTC).replace(tzinfo=None)
-        result = self._issue_session(user)
+        result = self._issue_session(user, commit=False)
         row.replaced_by_hash = _hash_token(result["refresh_token"])
         self.admin_repo.commit()
         return result
+
+    def _record_login_failure(
+        self,
+        *,
+        subject_digest: str,
+        client_digest: str,
+        reason_code: str,
+        tenant_id: int | None = None,
+    ) -> None:
+        self.security_repo.record(
+            event_type="LOGIN_FAILURE",
+            tenant_id=tenant_id,
+            subject_digest=subject_digest,
+            client_digest=client_digest,
+            reason_code=reason_code,
+        )
+        self.security_repo.commit()
 
     def logout(self, *, refresh_token: str | None) -> None:
         if not refresh_token:
@@ -111,7 +213,7 @@ class AuthService:
         permissions, _, _ = self.auth_repo.resolve_authorization(user)
         return permissions
 
-    def _issue_session(self, user) -> dict:
+    def _issue_session(self, user, *, commit: bool = True) -> dict:
         permissions, park_ids, park_scope_mode = self.auth_repo.resolve_authorization(user)
         is_platform_admin = "*" in permissions
         settings = get_settings()
@@ -136,7 +238,8 @@ class AuthService:
             token_hash=_hash_token(raw_refresh),
             expires_at=expires_at.replace(tzinfo=None),
         )
-        self.admin_repo.commit()
+        if commit:
+            self.admin_repo.commit()
         return {
             "access_token": token,
             "refresh_token": raw_refresh,

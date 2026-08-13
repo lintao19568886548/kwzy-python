@@ -6,12 +6,14 @@ from collections.abc import Callable
 
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.core.security import TokenError, safe_decode
 from app.infrastructure.database.session import get_db
+from app.infrastructure.database.models.identity import User
 from app.shared.tenant_context import ParkScopeMode, TenantContext
 
 _bearer = HTTPBearer(auto_error=False)
@@ -36,6 +38,7 @@ def _mode_from_claims(
 def get_tenant_context(
     request: Request,
     creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
+    db: Session = Depends(get_db),
 ) -> TenantContext:
     """
     Resolve tenant context from JWT.
@@ -66,13 +69,30 @@ def get_tenant_context(
     tenant_id = int(payload.get("tenant_id") or 0)
     if tenant_id <= 0:
         raise AppError("令牌缺少有效 tenant_id", code="UNAUTHORIZED", status_code=401)
+    user_id = int(payload.get("uid") or 0)
+    if user_id <= 0:
+        raise AppError("令牌缺少有效用户", code="UNAUTHORIZED", status_code=401)
+
+    # JWT 中的权限/园区仍是短期快照，但账号停用、改密、会话撤销和
+    # 授权变更必须立即生效，因此每个受保护请求只读取最小会话版本。
+    user_state = db.execute(
+        select(User.tenant_id, User.status, User.token_version).where(User.id == user_id)
+    ).one_or_none()
+    token_version = int(payload.get("tv") or 0)
+    if (
+        user_state is None
+        or int(user_state.tenant_id) != tenant_id
+        or str(user_state.status) != "ACTIVE"
+        or int(user_state.token_version or 0) != token_version
+    ):
+        raise AppError("会话已失效，请重新登录", code="AUTH_SESSION_REVOKED", status_code=401)
 
     park_ids = [int(x) for x in (payload.get("park_ids") or [])]
     permissions = list(payload.get("permissions") or [])
     park_scope_mode = _mode_from_claims(payload.get("park_scope_mode"), park_ids)
     return TenantContext(
         tenant_id=tenant_id,
-        user_id=int(payload.get("uid") or 0),
+        user_id=user_id,
         username=str(payload.get("sub") or ""),
         park_ids=park_ids,
         permissions=permissions,

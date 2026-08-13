@@ -27,6 +27,16 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 14
+    refresh_cookie_name: str = "kwzy_refresh"
+    auth_login_window_seconds: int = 300
+    auth_login_max_failures: int = 5
+    auth_login_ip_max_failures: int = 20
+    verification_code_ttl_seconds: int = 300
+    verification_code_send_window_seconds: int = 60
+    verification_code_max_sends_per_window: int = 1
+    verification_code_max_attempts: int = 5
+    page_access_proof_ttl_seconds: int = 300
 
     cors_origins: str = "*"
 

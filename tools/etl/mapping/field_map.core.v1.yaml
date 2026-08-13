@@ -6,7 +6,7 @@ tables:
     fields:
       - { source: id, target: id, transform: keep, risk: MED }
       - { source: username, target: username, transform: direct, risk: LOW }
-      - { source: password, target: password_hash, transform: rehash, risk: HIGH }
+      - { source: password, target: password_hash, transform: legacy_hash_verify_or_reset, risk: HIGH }
       - { source: real_name, target: real_name, transform: direct, risk: LOW }
       - { source: phone, target: phone, transform: direct, pii: true, risk: HIGH }
       - { source: status, target: status, transform: enum_map, risk: MED }
@@ -15,6 +15,45 @@ tables:
         0: DISABLED
         1: ACTIVE
         null: ACTIVE
+
+  - source_table: role
+    target_table: roles
+    fields:
+      - { source: role_id, target: id, transform: tenant_scoped_fk_remap, risk: HIGH }
+      - { source: name, target: name, transform: trim, risk: LOW }
+      - { source: code, target: code, transform: permission_catalog_map, risk: HIGH }
+      - { source: status, target: status, transform: enum_map, risk: MED }
+      - { source: remark, target: remark, transform: direct, risk: LOW }
+
+  - source_table: menu
+    target_table: menus
+    fields:
+      - { source: menu_id, target: id, transform: tenant_scoped_fk_remap, risk: HIGH }
+      - { source: pid, target: parent_id, transform: second_pass_fk_remap, risk: HIGH }
+      - { source: name, target: name, transform: trim, risk: LOW }
+      - { source: path, target: path, transform: normalize_route, risk: MED }
+      - { source: component, target: component, transform: registered_component_map, risk: HIGH }
+      - { source: type, target: menu_type, transform: enum_map, risk: MED }
+      - { source: status, target: status, transform: enum_map, risk: MED }
+      - { source: auth_code, target: permission_code, transform: permission_catalog_map, risk: HIGH }
+
+  - source_table: user_role
+    target_table: user_roles
+    fields:
+      - { source: user_id, target: user_id, transform: tenant_scoped_fk_remap, risk: HIGH }
+      - { source: role_id, target: role_id, transform: tenant_scoped_fk_remap, risk: HIGH }
+
+  - source_table: role_menu
+    target_table: role_menus
+    fields:
+      - { source: role_id, target: role_id, transform: tenant_scoped_fk_remap, risk: HIGH }
+      - { source: menu_id, target: menu_id, transform: tenant_scoped_fk_remap, risk: HIGH }
+
+  - source_table: role_park
+    target_table: role_park_scopes
+    fields:
+      - { source: role_id, target: role_id, transform: tenant_scoped_fk_remap, risk: HIGH }
+      - { source: park_id, target: park_id, transform: tenant_scoped_fk_remap, risk: HIGH }
 
   - source_table: rental_contract
     target_table: lease_contracts

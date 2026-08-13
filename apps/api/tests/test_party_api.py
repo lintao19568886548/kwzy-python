@@ -10,6 +10,7 @@ from app.infrastructure.database.models.identity import (
     Permission,
     Role,
     RolePermission,
+    Tenant,
     User,
     UserRole,
 )
@@ -442,11 +443,24 @@ def test_cross_tenant_isolation(client, db_session: Session) -> None:
         headers=h,
         json={"name": "租户1主体", "party_type": "ORGANIZATION"},
     ).json()["data"]["id"]
+    tenant = Tenant(code="party-other", name="其他租户", status="ACTIVE")
+    db_session.add(tenant)
+    db_session.flush()
+    other_user = User(
+        tenant_id=tenant.id,
+        username="t2admin",
+        password_hash=hash_password("unused-secret"),
+        real_name="租户二管理员",
+        status="ACTIVE",
+        token_version=0,
+    )
+    db_session.add(other_user)
+    db_session.commit()
     other = create_access_token(
         subject="t2admin",
         claims={
-            "uid": 1,
-            "tenant_id": 2,
+            "uid": other_user.id,
+            "tenant_id": tenant.id,
             "permissions": ["*"],
             "park_ids": [],
             "park_scope_mode": "ALL",

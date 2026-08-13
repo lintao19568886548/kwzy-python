@@ -152,6 +152,12 @@ def main(argv: list[str] | None = None) -> int:
                 continue
             try:
                 st = "ACTIVE" if u.get("status") in (1, "1") else "DISABLED"
+                source_password = str(u.get("password") or "")
+                password_target = (
+                    source_password
+                    if source_password.startswith(("$2a$", "$2b$", "$2y$", "$argon2"))
+                    else "RESET_REQUIRED"
+                )
                 conn.execute(
                     text(
                         f'INSERT INTO "{schema}".users '
@@ -162,7 +168,7 @@ def main(argv: list[str] | None = None) -> int:
                     {
                         "id": u["id"],
                         "u": u["username"],
-                        "p": f"migrated:{u.get('password')}",
+                        "p": password_target,
                         "n": u.get("real_name"),
                         "ph": u.get("phone"),
                         "s": st,

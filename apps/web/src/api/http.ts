@@ -4,6 +4,8 @@ import { useAuthStore } from "@/stores/auth";
 export const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE || "/api/v1",
   timeout: 20000,
+  withCredentials: true,
+  headers: { "X-Client-Platform": "pc" },
 });
 
 let refreshing: Promise<void> | null = null;
@@ -29,7 +31,8 @@ http.interceptors.response.use(
     const original = err.config as InternalAxiosRequestConfig & { _retry?: boolean };
     const auth = useAuthStore();
 
-    if (status === 401 && original && !original._retry && auth.refreshToken) {
+    const isAuthEndpoint = String(original?.url || "").includes("/auth/");
+    if (status === 401 && original && !original._retry && !isAuthEndpoint) {
       original._retry = true;
       try {
         if (!refreshing) {

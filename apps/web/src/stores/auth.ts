@@ -11,12 +11,10 @@ type LoginData = {
 };
 
 const TOKEN_KEY = "kwzy_access_token";
-const REFRESH_KEY = "kwzy_refresh_token";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     accessToken: localStorage.getItem(TOKEN_KEY) || "",
-    refreshToken: localStorage.getItem(REFRESH_KEY) || "",
     username: "" as string,
     realName: "" as string,
     permissions: [] as string[],
@@ -30,26 +28,19 @@ export const useAuthStore = defineStore("auth", {
     _persist() {
       if (this.accessToken) localStorage.setItem(TOKEN_KEY, this.accessToken);
       else localStorage.removeItem(TOKEN_KEY);
-      if (this.refreshToken) localStorage.setItem(REFRESH_KEY, this.refreshToken);
-      else localStorage.removeItem(REFRESH_KEY);
     },
     async login(username: string, password: string, tenantCode?: string) {
       const body: Record<string, string> = { username, password };
       if (tenantCode) body.tenant_code = tenantCode;
       const { data } = await http.post<Envelope<LoginData>>("/auth/login", body);
       this.accessToken = data.data.access_token;
-      this.refreshToken = data.data.refresh_token || "";
       this.username = data.data.user?.username || username;
       this._persist();
       await this.fetchMe();
     },
     async refresh() {
-      if (!this.refreshToken) throw new Error("无 refresh_token");
-      const { data } = await http.post<Envelope<LoginData>>("/auth/refresh", {
-        refresh_token: this.refreshToken,
-      });
+      const { data } = await http.post<Envelope<LoginData>>("/auth/refresh", {});
       this.accessToken = data.data.access_token;
-      if (data.data.refresh_token) this.refreshToken = data.data.refresh_token;
       this._persist();
       await this.fetchMe();
     },
@@ -65,9 +56,7 @@ export const useAuthStore = defineStore("auth", {
     },
     async logout() {
       try {
-        if (this.refreshToken) {
-          await http.post("/auth/logout", { refresh_token: this.refreshToken });
-        }
+        await http.post("/auth/logout", {});
       } catch {
         // ignore logout network errors
       }
@@ -75,7 +64,6 @@ export const useAuthStore = defineStore("auth", {
     },
     clearSession() {
       this.accessToken = "";
-      this.refreshToken = "";
       this.username = "";
       this.realName = "";
       this.permissions = [];

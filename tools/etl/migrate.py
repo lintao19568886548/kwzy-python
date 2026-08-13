@@ -93,8 +93,15 @@ def transform_row(source_table: str, row: dict, field_defs: list[dict]) -> dict:
             val = map_status(source_table, val)
         elif transform == "money" and val is not None:
             val = f"{float(val):.2f}"
-        elif transform == "rehash" and val is not None:
-            val = f"migrated:{val}"
+        elif transform == "legacy_hash_verify_or_reset" and val is not None:
+            raw = str(val)
+            # ETL cannot prove an unknown source value is plaintext or a supported
+            # hash. Preserve only recognizable password hashes; everything else
+            # becomes an explicit reset sentinel rather than credential material.
+            if raw.startswith(("$2a$", "$2b$", "$2y$", "$argon2")):
+                val = raw
+            else:
+                val = "RESET_REQUIRED"
         elif transform == "date" and val is not None:
             val = str(val)[:10]
         out[tgt] = val

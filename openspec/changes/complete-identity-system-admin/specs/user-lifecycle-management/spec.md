@@ -31,3 +31,14 @@ The system SHALL support enabling and disabling users. Disabled users MUST NOT o
 #### Scenario: Disabled user login
 - **WHEN** a disabled user attempts password login
 - **THEN** authentication fails
+
+#### Scenario: Existing session after disable
+- **WHEN** an administrator disables a user with existing access and refresh credentials
+- **THEN** all refresh credentials are revoked and the next protected request with the old access token returns 401
+
+### Requirement: Administrative session revoke
+The system SHALL provide an elevated-permission operation that increments a user's token_version and revokes all refresh sessions without changing the password.
+
+#### Scenario: Administrator revokes sessions
+- **WHEN** an authorized administrator revokes a tenant user's sessions
+- **THEN** existing access and refresh credentials stop working while the user's account remains active

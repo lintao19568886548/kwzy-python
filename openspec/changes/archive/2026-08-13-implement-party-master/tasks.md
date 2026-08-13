@@ -181,4 +181,4 @@
 - [x] 19 验收缺陷修复全部通过（PII）
 - [x] 20 中文 docstring P1 补齐（07-engineering-standard 六段式）
 - [x] 21 第三次独立验收：P0=0、P1=0；迁移/SQLite/PG/全量测试/openspec/OpenAPI 通过
-- [ ] 人工批准后合并 main（**禁止自动 merge main / 部署生产**）
+- [x] 人工批准后合并 main（`feat/party-master@c181e7f` 已为 `main` 祖先；2026-08-13 `main@d9c0b0b` PG16/全量验收通过；生产部署仍禁止自动执行）

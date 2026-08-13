@@ -1,111 +1,99 @@
-# KWZY Python 重构最终验收封板
+# 瞰维智管 V2 重建验收状态
 
-> 封板时间：2026-08-13  
-> 状态：**代码级重构与本地全栈验收通过**；真实外部联调 / 远程预发 / 生产 **未执行**。
+> 更新时间：2026-08-13 17:00（Asia/Shanghai）
+> 结论：**稳定核心样板纵切本地验收通过；Identity 候选功能门禁通过、最终整套报告待复跑；V2 全量重建未完成。**
+> 本文撤销把旧 Java 代码级替代、全前端替代或全系统重建写成 COMPLETE 的历史表述。
 
----
+## 1. 已验证提交与复现证据
 
-## 1. 固化标识
-
-| 标识 | 值 |
+| 项 | 值 |
 | --- | --- |
-| `TESTED_RUNNER_SHA` | `23fa781e089018c9740c22e0aeb6a6d6e7ff8bbd` |
-| `TESTED_CODE_SHA` | `23fa781e089018c9740c22e0aeb6a6d6e7ff8bbd` |
-| 验收脚本路径 | `infra/local-staging/run_full_acceptance.ps1` |
-| 验收脚本 SHA256 | `79B4F447DD3B574380A961FE6864B567F9BCEAA18240D979AB231742BA35A839` |
 | 分支 | `main` |
-| `HEAD == origin/main` | 是（复跑时） |
-| Alembic 唯一 head | `g3b91f6d4c75` |
+| 被测 HEAD | `d9c0b0b1a35a3a25dd205d765ef2e7f36e5c74e6` |
+| 被测时远程 | `HEAD == origin/main` |
+| 被测时工作树 | clean |
+| Identity 候选 Alembic head | `h4c02d7e9a86` |
+| 验收脚本 | `infra/local-staging/run_full_acceptance.ps1` |
+| 脚本 SHA256 | `BBA0FE42D41F59AFE8D5D98BC3FA8FBE07358688799D9C20E29AB2AA476BE27C` |
+| 机器报告 | `infra/local-staging/out/acceptance_20260813_160036.json`（gitignored，本机） |
+| 开始/结束 | 2026-08-13 15:55:31 / 16:00:36 +08:00 |
+| 总耗时 | 305170 ms（约 5m05s） |
+| 稳定基线总结果 | 18 steps / 18 exit 0 |
+| Identity 候选报告 | `acceptance_20260813_165323.json`：143 pytest、25 Playwright 等功能门禁通过；仅 `git diff --check` 因本总控文档行尾失败 |
 
-## 2. 干净 main 完整复跑（封板用）
+## 2. 已通过的本地门禁
 
-| 项 | 本轮值 |
+| 门禁 | 结果 |
 | --- | --- |
-| 命令 | `pwsh -NoProfile -File ".\infra\local-staging\run_full_acceptance.ps1"` |
-| 开始 | `2026-08-13T11:59:55+08:00`（脚本内 started ≈ `11:59:56`） |
-| 结束 | `2026-08-13T12:04:32+08:00` |
-| 总耗时 | **276139 ms**（≈ 4m36s） |
-| 总退出码 | **0** |
-| 机器报告 | `infra/local-staging/out/acceptance_20260813_120432.json`（gitignore，本机保留） |
-| 文本日志 | `infra/local-staging/out/seal_rerun_20260813_115955.log`（gitignore，本机保留） |
+| PostgreSQL 16 fresh upgrade | base → `h4c02d7e9a86 (head)` PASS（Identity 候选） |
+| downgrade/upgrade | head → -1 → head PASS |
+| 后端测试 | 143 passed，1 个依赖弃用 warning（Identity 候选） |
+| fixture ETL fast | PASS |
+| fixture ETL acceptance | PASS；64244 OK、1 个预置脏行隔离、PG reconcile=true |
+| Identity ETL | 合成 users/roles/menus/user-role/role-menu/role-park：dry/apply/idempotency/reconcile/rollback PASS |
+| 备份恢复 | PASS；dump 838139 bytes；恢复 47 tables（Identity 候选） |
+| 前端静态质量 | ESLint PASS；vue-tsc PASS；production build PASS |
+| 前端单测 | 4 passed / 2 files |
+| 浏览器 E2E | 25 passed / 0 failed / 0 skipped；含跨租户、cookie/session、System Admin 与严格 fake SMS/outbox |
+| OpenAPI | 3 contract tests PASS；YAML strict PASS；运行时 87 paths / 122 operations |
+| OpenSpec | 32 passed / 0 failed（Identity 候选；本文更新后再次复跑） |
+| secrets scan | PASS；483 tracked files |
+| 资源清理 | 专用 PG16 容器/网络/卷清理 PASS；不再误杀 8000 无关服务 |
 
-### 2.1 步骤结果（全部 exit=0）
+以上证据只证明当前已挂载的核心纵切；不能证明未实现模块、员工移动端、租户小程序或真实外部平台。
 
-| 步骤 | 结果摘要 |
-| --- | --- |
-| docker_clean_start | 旧容器/网络/volume 清理 |
-| docker_pg_up | PostgreSQL 16 healthy |
-| alembic_upgrade | base → `g3b91f6d4c75 (head)` |
-| alembic_down_up | head → -1 → head |
-| pytest_non_pg_and_pg | **136 passed**（`TEST_DATABASE_URL`=PG16） |
-| etl_fast | `ETL_DRILL=PASS` |
-| etl_acceptance | `ETL_DRILL=PASS` |
-| backup_restore | `BACKUP_RESTORE=PASS dump_bytes≈823411 restored_tables=44` |
-| frontend_lint | eslint max-warnings 0 |
-| frontend_typecheck | vue-tsc OK |
-| frontend_unit | **4 passed** / 2 files |
-| frontend_build | production vite build OK |
-| playwright_browser_e2e | **24 passed / 0 failed / 0 skipped** |
-| openapi_strict | pytest openapi **3 passed** + `OPENAPI_YAML_STRICT=PASS` |
-| openspec_strict | **28 passed / 0 failed** |
-| secrets_scan | `SECRETS_SCAN=PASS files_scanned=483` |
-| git_diff_check | OK |
-| cleanup_test_resources | container/volume/network Removed，`CLEANUP=PASS` |
+## 3. 当前可验收范围
 
-### 2.2 ETL 双档（本轮）
+- Identity：密码登录、cookie/body refresh、重放与即时吊销、登录限流、安全事件、页面二次验证、用户/角色/权限/菜单/园区授权、组织字典参数管理；短信登录、租户开通等旧长尾仍未替代。
+- Park/Unit：基础园区与扁平出租单元 CRUD/状态。
+- Party：主档、联系人、地址、角色、园区关系、风险事件。
+- Lease/Bill/Payment：基础状态机、占用、出账、部分/全额核销、冲正、幂等与 PG 并发测试。
+- Workbench/Leads/Work orders/Collection：基础待办、线索、简版工单和催缴案件主链。
+- Attachments/Approvals/Integrations：最小适配；外部短信/通知/存储为本地 fake/local，明确 `NOT_LIVE`。
+- PC：12 个鉴权业务页 + login/forbidden；24 条浏览器主链。
 
-| 档位 | 结果 | 要点 |
+## 4. 阻止全产品 PASS 的事实
+
+1. 员工移动端与租户微信小程序均不存在。
+2. 资产/租控没有组织空间层级模板、出租单元拆并和有效期版本链，也没有矩阵/地图/分析多视图。
+3. 招商缺规则分配、公海、超时升级、完整跟进状态机、审批锁房、并发防重、AI 匹配和完整漏斗。
+4. 合同缺多单元/复杂费用、变更单与补充协议版本链、签章印章、履约/退租/违约闭环。
+5. 账单/收款缺自动计费、抄表、银行/支付到账识别、待匹配池、多账单核销、争议和审批化催缴。
+6. 工单缺多入口、技能班次负荷派单、SLA、转派暂停返工重开、报价/材料/工时/租户确认。
+7. 设备、巡检、安防、IoT、HR、供应商/采购/库存、政策活动公告和资源预约尚未实现。
+8. 经营驾驶舱和多角色工作台只有窄摘要；`analytics` 仍为未挂载空响应。
+9. `ai_assist` 是未挂载明确 stub，尚无可审计、需确认、可降级的 AI 能力层。
+10. ETL 只跑合成 fixture；未取得经授权的脱敏旧数据，未做新旧业务结果全量对账、增量同步和切换演练。
+11. 无真实第三方凭据、远程预发环境和生产授权；外部联调、性能验收、监控告警/容灾运维尚未完成。
+
+## 5. 外部平台状态
+
+| 平台组 | 当前状态 | 原因/下一门禁 |
 | --- | --- | --- |
-| fast | PASS | 生成 + dry-run + PG apply + 幂等 + checkpoint 续跑 |
-| acceptance | PASS | 同上；脏行隔离 FAILED=1；数量/金额对账 RECONCILE=True |
+| SMS/微信/邮件/对象存储 | `ADAPTER_NOT_LIVE` | fake/local 与 fail-closed 已测；缺真实凭据和供应商验收 |
+| 银行/聚合支付/微信支付宝 | `NOT_LIVE` | 缺商户/银行沙箱资料、回调域名和验签密钥 |
+| 发票/税务/财务软件 | `NOT_LIVE` | 未选厂商/无凭据 |
+| OCR/电子签章/存证/档案 | `NOT_LIVE` | 未选厂商/无凭据 |
+| 门禁/停车/视频/消防/能耗/IoT | `NOT_LIVE` | 未取得协议、设备模拟样本或厂商资料 |
+| OA/ERP/HR/采购/协作平台 | `NOT_LIVE` | 未确认目标平台与契约 |
+| 云模型/私有模型 | `NOT_LIVE` | AI 业务网关尚未实现；无模型凭据 |
 
-## 3. 门禁结论
+## 6. 当前验收结论
 
 ```text
-KWZY_PYTHON_CODE_REFACTOR=COMPLETE
-KWZY_FULL_JAVA_REPLACEMENT=COMPLETE_PENDING_LIVE_EXTERNAL_VERIFICATION
-KWZY_FULL_FRONTEND_REPLACEMENT=COMPLETE
-KWZY_DATA_MIGRATION_READINESS=READY_FOR_STAGING_DATA
-KWZY_LOCAL_STAGING_EQUIVALENT=PASS
-KWZY_CODE_REBUILD_ACCEPTANCE=PASS
-
-LIVE_EXTERNAL_INTEGRATION=NOT_VERIFIED
-KWZY_REMOTE_STAGING_ACCEPTANCE=NOT_RUN
-KWZY_PRODUCTION_MIGRATION=NOT_EXECUTED
-KWZY_PRODUCTION_DEPLOYMENT=NOT_EXECUTED
-KWZY_FULL_REBUILD_ACCEPTANCE=BLOCKED_EXTERNAL_ACCEPTANCE
+KWZY_PRODUCT_BLUEPRINT=IN_PROGRESS
+KWZY_BACKEND_REBUILD=CONDITIONAL_CORE_SLICE_ONLY
+KWZY_PC_UI_REBUILD=CONDITIONAL_CORE_SLICE_ONLY
+KWZY_EMPLOYEE_MOBILE=BLOCKED_NOT_IMPLEMENTED
+KWZY_TENANT_MINIPROGRAM=BLOCKED_NOT_IMPLEMENTED
+KWZY_LEGACY_CAPABILITY_CLOSURE=BLOCKED
+KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_FIXTURE_ONLY
+KWZY_SECURITY_ACCEPTANCE=CONDITIONAL_IMPLEMENTED_SCOPE_ONLY
+KWZY_PERFORMANCE_ACCEPTANCE=BLOCKED_NOT_RUN
+KWZY_E2E_ACCEPTANCE=CONDITIONAL_CORE_SLICE_ONLY
+KWZY_OPERATIONS_READINESS=BLOCKED
+KWZY_FULL_REBUILD_ACCEPTANCE=BLOCKED
+KWZY_PRODUCTION_DEPLOYMENT=AWAITING_HUMAN_APPROVAL
 ```
 
-### 含义
-
-- Python 重构代码已完成（本地全栈自动化门禁通过）。
-- 前端替代已完成（Playwright 真实浏览器主链 24/24，无 skip）。
-- Java 业务能力 **代码级** 替代完成；真实微信/短信/邮件/OSS 等外部凭据联调 **未做**。
-- 数据迁移工具具备预发布脱敏数据演练条件（双档 ETL + 幂等 + checkpoint + 对账）。
-- 本地全栈验收通过。
-- **尚未** 远程预发布、真实第三方联调、生产迁移与投产。
-
-## 4. 一键复现
-
-```powershell
-Set-Location "D:\重构python\kwzy-python"
-git checkout main
-git pull origin main
-# 确认 HEAD 与 TESTED_CODE_SHA 一致或更新后重新验收
-pwsh -NoProfile -File ".\infra\local-staging\run_full_acceptance.ps1"
-```
-
-产物写入 `infra/local-staging/out/`（已 gitignore，不入库）。
-
-## 5. 历史状态（过程，非当前）
-
-此前过程性标记曾包括：`IN_PROGRESS`、`NOT_COMPLETE`、`PENDING_FULL_RUNNER`、前端脚手架、招商/工单 stub、仅 `/health` 本地预发等。  
-上述为迭代过程描述，**已被本封板的干净 main 复跑结果取代**，不得再作为当前结论引用。
-
-## 6. 生产前人工清单（未完成）
-
-- [ ] 审查密钥与发布清单  
-- [ ] 远程预发部署 + 浏览器主链  
-- [ ] 真实外部凭据联调  
-- [ ] 脱敏全量 ETL 对账签字  
-- [ ] 生产窗口、备份与回滚演练  
+这些状态会随每个业务纵切的真实证据更新。只有 `full-rebuild-traceability-matrix.md` 无未处置能力、三端关键旅程全绿、脱敏真实迁移/安全/性能/运维门禁全部成立时，才可输出最终 PASS。

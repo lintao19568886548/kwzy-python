@@ -104,6 +104,11 @@ try {
     & $Py (Join-Path $Root "tools\etl\run_etl_drill.py") --profile acceptance --seed 42 --out-dir (Join-Path $ReportDir "etl_acceptance")
   }
 
+  Step "identity_etl_acceptance" {
+    $identityReport = Join-Path $ReportDir "identity_etl\identity_etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_identity_etl_drill.py") --database-url $pgUrl --out $identityReport
+  }
+
   Step "backup_restore" {
     $bakDir = Join-Path $ReportDir "backup"
     New-Item -ItemType Directory -Force -Path $bakDir | Out-Null
@@ -185,7 +190,9 @@ print('OPENAPI_YAML_STRICT=PASS')
       'password\s*=\s*["''](?!admin123|kwzy_test|x|changeme)[^"'']{8,}'
     )
     $hits = @()
-    $files = git ls-files
+    # Include newly created, non-ignored files as well as tracked files. A
+    # pre-commit acceptance run must not leave its newest code outside the scan.
+    $files = git ls-files --cached --others --exclude-standard
     foreach ($f in $files) {
       if ($f -match '\.(png|jpg|jpeg|gif|webp|ico|woff2?|pdf|zip|gz)$') { continue }
       if (-not (Test-Path $f)) { continue }
@@ -243,6 +250,7 @@ $summary = [ordered]@{
   test_results = (Join-Path $Web "test-results")
   etl_fast = (Join-Path $ReportDir "etl_fast")
   etl_acceptance = (Join-Path $ReportDir "etl_acceptance")
+  identity_etl = (Join-Path $ReportDir "identity_etl\identity_etl.json")
   backup = (Join-Path $ReportDir "backup")
 }
 $summary | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding utf8
@@ -253,7 +261,8 @@ if ($failed.Count -gt 0 -or $report.Count -eq 0) {
   Write-Output ("FAILED_STEPS=" + (($failed | ForEach-Object { $_.step }) -join ","))
   exit 1
 }
-Write-Output "KWZY_LOCAL_STAGING_EQUIVALENT=PASS"
-Write-Output "KWZY_DATA_MIGRATION_READINESS=READY_FOR_STAGING_DATA"
-Write-Output "KWZY_FULL_FRONTEND_REPLACEMENT=COMPLETE"
+Write-Output "KWZY_IMPLEMENTED_SCOPE_LOCAL_ACCEPTANCE=PASS"
+Write-Output "KWZY_DATA_MIGRATION_READINESS=CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA"
+Write-Output "KWZY_PC_CORE_SLICE_ACCEPTANCE=PASS"
+Write-Output "KWZY_FULL_FRONTEND_REPLACEMENT=BLOCKED_MOBILE_AND_MINIPROGRAM_NOT_IMPLEMENTED"
 exit 0

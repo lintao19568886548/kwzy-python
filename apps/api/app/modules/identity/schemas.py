@@ -16,7 +16,7 @@ class LoginResponse(BaseModel):
 
 
 class RefreshRequest(BaseModel):
-    refresh_token: str = Field(min_length=10)
+    refresh_token: str | None = Field(default=None, min_length=10)
 
 
 class LogoutRequest(BaseModel):
@@ -26,6 +26,20 @@ class LogoutRequest(BaseModel):
 class PasswordChangeRequest(BaseModel):
     old_password: str = Field(min_length=1)
     new_password: str = Field(min_length=6)
+
+
+class PageAccessSendRequest(BaseModel):
+    purpose: str = Field(min_length=3, max_length=64)
+
+
+class PageAccessVerifyRequest(BaseModel):
+    purpose: str = Field(min_length=3, max_length=64)
+    code: str = Field(pattern=r"^\d{6}$")
+
+
+class PageAccessConsumeRequest(BaseModel):
+    purpose: str = Field(min_length=3, max_length=64)
+    proof: str = Field(min_length=32, max_length=256)
 
 
 class UserInfo(BaseModel):
@@ -87,6 +101,19 @@ class MenuCreateRequest(BaseModel):
     sort_order: int = 0
     menu_type: str = "MENU"
     permission_code: str | None = None
+
+
+class MenuUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=128)
+    path: str | None = Field(default=None, max_length=255)
+    parent_id: int | None = None
+    component: str | None = Field(default=None, max_length=255)
+    icon: str | None = Field(default=None, max_length=64)
+    sort_order: int | None = None
+    menu_type: str | None = None
+    status: str | None = None
+    permission_code: str | None = Field(default=None, max_length=128)
+    remark: str | None = Field(default=None, max_length=1000)
 
 
 class OrgUnitCreateRequest(BaseModel):

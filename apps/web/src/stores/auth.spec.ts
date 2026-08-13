@@ -21,11 +21,10 @@ describe("auth store", () => {
   it("clearSession removes tokens", () => {
     const auth = useAuthStore();
     auth.accessToken = "a";
-    auth.refreshToken = "b";
     auth.permissions = ["*"];
     auth.clearSession();
     expect(auth.accessToken).toBe("");
-    expect(auth.refreshToken).toBe("");
     expect(localStorage.getItem("kwzy_access_token")).toBeNull();
+    expect(localStorage.getItem("kwzy_refresh_token")).toBeNull();
   });
 });

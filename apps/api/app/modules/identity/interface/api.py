@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
+from app.core.errors import AppError
 from app.infrastructure.database.session import get_db
 from app.modules.identity.application.auth_service import AuthService
 from app.modules.identity.application.config_admin_service import ConfigAdminService
 from app.modules.identity.application.menu_admin_service import MenuAdminService
+from app.modules.identity.application.page_access_service import PageAccessService
 from app.modules.identity.application.role_admin_service import RoleAdminService
 from app.modules.identity.application.user_admin_service import UserAdminService
 from app.modules.identity.schemas import (
@@ -18,8 +21,12 @@ from app.modules.identity.schemas import (
     LoginResponse,
     LogoutRequest,
     MenuCreateRequest,
+    MenuUpdateRequest,
     OrgUnitCreateRequest,
     OrgUnitUpdateRequest,
+    PageAccessConsumeRequest,
+    PageAccessSendRequest,
+    PageAccessVerifyRequest,
     PasswordChangeRequest,
     RefreshRequest,
     RoleCreateRequest,
@@ -35,27 +42,81 @@ from app.shared.response import ok
 router = APIRouter(tags=["Identity"])
 
 
+def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
+    settings = get_settings()
+    response.set_cookie(
+        key=settings.refresh_cookie_name,
+        value=refresh_token,
+        max_age=settings.refresh_token_expire_days * 24 * 60 * 60,
+        path=f"{settings.api_v1_prefix}/auth",
+        secure=settings.app_env in {"staging", "production"},
+        httponly=True,
+        samesite="strict",
+    )
+
+
+def _clear_refresh_cookie(response: Response) -> None:
+    settings = get_settings()
+    response.delete_cookie(
+        key=settings.refresh_cookie_name,
+        path=f"{settings.api_v1_prefix}/auth",
+        secure=settings.app_env in {"staging", "production"},
+        httponly=True,
+        samesite="strict",
+    )
+
+
 @router.post("/auth/login")
-def login(body: LoginRequest, db: Session = Depends(get_db)) -> dict:
+def login(
+    body: LoginRequest,
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+) -> dict:
     data = LoginResponse.model_validate(
         AuthService(db).login(
             username=body.username,
             password=body.password,
             tenant_code=body.tenant_code,
+            client_ip=request.client.host if request.client else None,
         )
     )
+    _set_refresh_cookie(response, data.refresh_token)
     return ok(data.model_dump())
 
 
 @router.post("/auth/refresh")
-def refresh(body: RefreshRequest, db: Session = Depends(get_db)) -> dict:
-    data = LoginResponse.model_validate(AuthService(db).refresh(refresh_token=body.refresh_token))
+def refresh(
+    body: RefreshRequest,
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+) -> dict:
+    settings = get_settings()
+    refresh_token = body.refresh_token or request.cookies.get(settings.refresh_cookie_name)
+    if not refresh_token:
+        raise AppError("缺少刷新令牌", code="AUTH_REFRESH_REQUIRED", status_code=401)
+    data = LoginResponse.model_validate(
+        AuthService(db).refresh(
+            refresh_token=refresh_token,
+            client_ip=request.client.host if request.client else None,
+        )
+    )
+    _set_refresh_cookie(response, data.refresh_token)
     return ok(data.model_dump())
 
 
 @router.post("/auth/logout")
-def logout(body: LogoutRequest, db: Session = Depends(get_db)) -> dict:
-    AuthService(db).logout(refresh_token=body.refresh_token)
+def logout(
+    body: LogoutRequest,
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+) -> dict:
+    settings = get_settings()
+    refresh_token = body.refresh_token or request.cookies.get(settings.refresh_cookie_name)
+    AuthService(db).logout(refresh_token=refresh_token)
+    _clear_refresh_cookie(response)
     return ok({"message": "ok"})
 
 
@@ -72,6 +133,54 @@ def change_password(
         new_password=body.new_password,
     )
     return ok(data)
+
+
+@router.post("/auth/page-access/send")
+def send_page_access_code(
+    body: PageAccessSendRequest,
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(
+        PageAccessService(db).send_code(
+            tenant_id=ctx.tenant_id,
+            user_id=ctx.user_id,
+            purpose=body.purpose,
+        ),
+        message="sent",
+    )
+
+
+@router.post("/auth/page-access/verify")
+def verify_page_access_code(
+    body: PageAccessVerifyRequest,
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(
+        PageAccessService(db).verify_code(
+            tenant_id=ctx.tenant_id,
+            user_id=ctx.user_id,
+            purpose=body.purpose,
+            code=body.code,
+        )
+    )
+
+
+@router.post("/auth/page-access/consume")
+def consume_page_access_proof(
+    body: PageAccessConsumeRequest,
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(
+        PageAccessService(db).consume_proof(
+            tenant_id=ctx.tenant_id,
+            user_id=ctx.user_id,
+            purpose=body.purpose,
+            proof=body.proof,
+        )
+    )
 
 
 @router.get("/auth/codes")
@@ -112,7 +221,7 @@ def list_users(
     ctx: TenantContext = Depends(require_permissions("identity.user.read")),
     db: Session = Depends(get_db),
 ) -> dict:
-    return ok(UserAdminService(db).list_users(tenant_id=ctx.tenant_id))
+    return ok(UserAdminService(db, ctx).list_users(tenant_id=ctx.tenant_id))
 
 
 @router.post("/system/users")
@@ -121,7 +230,7 @@ def create_user(
     ctx: TenantContext = Depends(require_permissions("identity.user.write")),
     db: Session = Depends(get_db),
 ) -> dict:
-    data = UserAdminService(db).create_user(
+    data = UserAdminService(db, ctx).create_user(
         tenant_id=ctx.tenant_id,
         username=body.username,
         password=body.password,
@@ -141,7 +250,7 @@ def update_user(
     ctx: TenantContext = Depends(require_permissions("identity.user.write")),
     db: Session = Depends(get_db),
 ) -> dict:
-    data = UserAdminService(db).update_user(
+    data = UserAdminService(db, ctx).update_user(
         tenant_id=ctx.tenant_id,
         user_id=user_id,
         real_name=body.real_name,
@@ -161,7 +270,26 @@ def disable_user(
     ctx: TenantContext = Depends(require_permissions("identity.user.write")),
     db: Session = Depends(get_db),
 ) -> dict:
-    return ok(UserAdminService(db).disable_user(tenant_id=ctx.tenant_id, user_id=user_id))
+    return ok(
+        UserAdminService(db, ctx).disable_user(
+            tenant_id=ctx.tenant_id,
+            user_id=user_id,
+        )
+    )
+
+
+@router.post("/system/users/{user_id}/revoke-sessions")
+def revoke_user_sessions(
+    user_id: int,
+    ctx: TenantContext = Depends(require_permissions("identity.user.write")),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(
+        UserAdminService(db, ctx).revoke_sessions(
+            tenant_id=ctx.tenant_id,
+            user_id=user_id,
+        )
+    )
 
 
 @router.get("/system/roles")
@@ -169,7 +297,7 @@ def list_roles(
     ctx: TenantContext = Depends(require_permissions("identity.role.read")),
     db: Session = Depends(get_db),
 ) -> dict:
-    return ok(RoleAdminService(db).list_roles(tenant_id=ctx.tenant_id))
+    return ok(RoleAdminService(db, ctx).list_roles(tenant_id=ctx.tenant_id))
 
 
 @router.post("/system/roles")
@@ -178,7 +306,7 @@ def create_role(
     ctx: TenantContext = Depends(require_permissions("identity.role.write")),
     db: Session = Depends(get_db),
 ) -> dict:
-    data = RoleAdminService(db).create_role(
+    data = RoleAdminService(db, ctx).create_role(
         tenant_id=ctx.tenant_id,
         code=body.code,
         name=body.name,
@@ -198,7 +326,7 @@ def update_role(
     ctx: TenantContext = Depends(require_permissions("identity.role.write")),
     db: Session = Depends(get_db),
 ) -> dict:
-    data = RoleAdminService(db).update_role(
+    data = RoleAdminService(db, ctx).update_role(
         tenant_id=ctx.tenant_id,
         role_id=role_id,
         name=body.name,
@@ -217,7 +345,7 @@ def list_permissions(
     ctx: TenantContext = Depends(require_permissions("identity.role.read")),
     db: Session = Depends(get_db),
 ) -> dict:
-    return ok(RoleAdminService(db).list_permissions())
+    return ok(RoleAdminService(db, ctx).list_permissions())
 
 
 @router.get("/system/menus")
@@ -225,7 +353,7 @@ def list_menus(
     ctx: TenantContext = Depends(require_permissions("identity.menu.read")),
     db: Session = Depends(get_db),
 ) -> dict:
-    return ok(MenuAdminService(db).list_menus(tenant_id=ctx.tenant_id))
+    return ok(MenuAdminService(db, ctx).list_menus(tenant_id=ctx.tenant_id))
 
 
 @router.post("/system/menus")
@@ -234,7 +362,7 @@ def create_menu(
     ctx: TenantContext = Depends(require_permissions("identity.menu.write")),
     db: Session = Depends(get_db),
 ) -> dict:
-    data = MenuAdminService(db).create_menu(
+    data = MenuAdminService(db, ctx).create_menu(
         tenant_id=ctx.tenant_id,
         name=body.name,
         path=body.path,
@@ -246,6 +374,35 @@ def create_menu(
         permission_code=body.permission_code,
     )
     return ok(data)
+
+
+@router.put("/system/menus/{menu_id}")
+def update_menu(
+    menu_id: int,
+    body: MenuUpdateRequest,
+    ctx: TenantContext = Depends(require_permissions("identity.menu.write")),
+    db: Session = Depends(get_db),
+) -> dict:
+    data = MenuAdminService(db, ctx).update_menu(
+        tenant_id=ctx.tenant_id,
+        menu_id=menu_id,
+        data=body.model_dump(exclude_unset=True),
+    )
+    return ok(data)
+
+
+@router.delete("/system/menus/{menu_id}")
+def deactivate_menu(
+    menu_id: int,
+    ctx: TenantContext = Depends(require_permissions("identity.menu.write")),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ok(
+        MenuAdminService(db, ctx).deactivate_menu(
+            tenant_id=ctx.tenant_id,
+            menu_id=menu_id,
+        )
+    )
 
 
 @router.get("/system/org-units")

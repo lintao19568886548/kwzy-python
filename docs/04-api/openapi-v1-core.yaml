@@ -44,56 +44,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
 
-  /auth/sms/send:
-    post:
-      tags: [Auth]
-      summary: 发送登录短信验证码
-      operationId: authSmsSend
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [phone]
-              properties:
-                phone: { type: string }
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiOk'
-
-  /auth/sms/login:
-    post:
-      tags: [Auth]
-      summary: 短信验证码登录
-      operationId: authSmsLogin
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [phone, code]
-              properties:
-                phone: { type: string }
-                code: { type: string }
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginResponse'
-
   /auth/refresh:
     post:
       tags: [Auth]
       summary: 刷新访问令牌
       operationId: authRefresh
+      description: PC 优先使用 HttpOnly SameSite cookie；移动端可在请求体提交 refresh_token。
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token: { type: string, minLength: 10 }
       responses:
         '200':
           description: OK
@@ -133,8 +97,8 @@ paths:
               properties:
                 purpose:
                   type: string
-                  description: COLLECTION_SMS
-                  example: COLLECTION_SMS
+                  description: 小写业务用途标识
+                  example: contract.terminate
       responses:
         '200':
           description: OK
@@ -166,6 +130,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PageAccessProofResponse'
+
+  /auth/page-access/consume:
+    post:
+      tags: [Auth]
+      summary: 校验并一次性消费 page-access proof
+      operationId: authPageAccessConsume
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [purpose, proof]
+              properties:
+                purpose: { type: string, example: contract.terminate }
+                proof: { type: string, minLength: 32 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiEnvelopeOk'
 
   /auth/codes:
     get:
@@ -279,6 +267,21 @@ paths:
         '200':
           description: OK
 
+  /system/users/{user_id}/revoke-sessions:
+    post:
+      tags: [System]
+      summary: 撤销用户全部 access/refresh 会话
+      operationId: systemUsersRevokeSessions
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+
   /system/roles:
     get:
       tags: [System]
@@ -336,6 +339,34 @@ paths:
       summary: 创建菜单
       operationId: systemMenusCreate
       security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+
+  /system/menus/{menu_id}:
+    put:
+      tags: [System]
+      summary: 更新菜单
+      operationId: systemMenusUpdate
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: menu_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+    delete:
+      tags: [System]
+      summary: 停用菜单及其子菜单
+      operationId: systemMenusDeactivate
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: menu_id
+          in: path
+          required: true
+          schema: { type: integer }
       responses:
         '200':
           description: OK
@@ -2382,7 +2413,8 @@ components:
         data:
           type: object
           properties:
-            page_access_proof: { type: string }
+            proof: { type: string }
+            purpose: { type: string }
             expires_in: { type: integer }
 
     PermissionCodesResponse:

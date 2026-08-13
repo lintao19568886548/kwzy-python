@@ -2,7 +2,9 @@
 
 from app.infrastructure.database.models.audit import AuditLog
 from app.infrastructure.database.models.identity import (
+    AuthSecurityEvent,
     Menu,
+    PageAccessProof,
     Permission,
     RefreshToken,
     Role,
@@ -13,6 +15,7 @@ from app.infrastructure.database.models.identity import (
     User,
     UserParkScope,
     UserRole,
+    VerificationCode,
 )
 from app.infrastructure.database.models.billing import Bill, BillLine, FeeCatalog
 from app.infrastructure.database.models.collection import Payment, PaymentAllocation
@@ -55,6 +58,9 @@ __all__ = [
     "UserParkScope",
     "RoleParkScope",
     "RefreshToken",
+    "AuthSecurityEvent",
+    "VerificationCode",
+    "PageAccessProof",
     "Menu",
     "RoleMenu",
     "AuditLog",

@@ -22,9 +22,20 @@ The system SHALL derive action permissions and park scope from persisted user-ro
 - **WHEN** a user has limited permissions and park scopes
 - **THEN** the issued token claims contain those permissions and park scope mode LIST or NONE as configured
 
-### Requirement: Optional SMS and page-access authentication remain gated
-The system SHALL treat SMS login and page-access secondary verification as optional capabilities that MUST NOT be implemented until SMS provider, code storage, and rate-limit decisions are approved. Until then, related legacy endpoints remain documented as MISSING or HUMAN_DECISION_REQUIRED.
+### Requirement: Authentication attempts are rate limited
+The system SHALL rate-limit password and verification-code attempts using a shared store and stable account/IP digests. Responses MUST NOT reveal whether an account exists and logs MUST NOT contain submitted passwords or codes.
 
-#### Scenario: SMS login blocked without decision
-- **WHEN** SMS provider configuration is not approved
-- **THEN** SMS login endpoints MUST NOT be advertised as production-ready COMPLETE
+#### Scenario: Repeated bad password
+- **WHEN** the configured account or client-IP threshold is exceeded within the window
+- **THEN** the system returns 429 with a stable rate-limit error and does not evaluate more passwords until the retry window
+
+### Requirement: SMS and page-access verification are provider neutral
+The system SHALL support expiring, one-time verification codes and short-lived page-access proofs through a provider-neutral SMS port. Local/test MAY use a fake provider; staging/production SHALL fail closed when the selected real provider is not configured and MUST remain NOT_LIVE until real sandbox evidence exists.
+
+#### Scenario: Verification code is consumed
+- **WHEN** a valid unexpired code is verified for its bound tenant, user and purpose
+- **THEN** the system consumes the code and returns a short-lived proof that cannot be reused for a different purpose
+
+#### Scenario: Production provider missing
+- **WHEN** production SMS verification is requested without valid provider configuration
+- **THEN** the request fails without generating or exposing a usable code

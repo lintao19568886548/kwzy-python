@@ -1,227 +1,141 @@
 ## Context
 
-### Current Python (main @ 6090c97)
+### Reconciled baseline
 
-| Surface | Evidence | Status |
-|---|---|---|
-| `POST /api/v1/auth/login` | `apps/api/app/modules/identity/interface/api.py:17-26` → `AuthService.login` `auth_service.py:21-75` → DB via `AuthorizationRepository` | PARTIAL (real DB) |
-| `GET /api/v1/auth/me` | `api.py:29-38` from JWT claims via `get_tenant_context` `deps.py:36-83` | PARTIAL (claim snapshot) |
-| Refresh / logout / SMS / page-access | not in identity module | MISSING |
-| User/role/menu admin APIs | not present | MISSING |
-| Fail-closed auth | `deps.py:47-49` production/staging no anon; anon only `allows_anonymous_dev_identity` | PARTIAL (done for core) |
-| `require_permissions` | `deps.py:90-103` | PARTIAL |
-| `*` vs all_parks | login claims `auth_service.py:47-59`; park mode from claims `deps.py:20-33` | PARTIAL |
+当前实现基线为 `main@d9c0b0b`，本地 PostgreSQL 16 全量验收已在该提交上 18/18 步骤通过。Identity 已具备：
 
-### Old Java Identity/System/Admin (evidence V2.3.2)
+- 数据库密码登录与可选 `tenant_code` 消歧；
+- 30 分钟 access JWT，以及只保存 SHA-256 哈希的 opaque refresh token；
+- refresh 轮换、旧 token 拒绝、logout、本人改密；
+- 用户、角色、动作权限、角色菜单、用户/角色园区范围；
+- 动态菜单、组织、字典、系统参数与基础 PC 管理页；
+- 生产/预发缺 token 时 fail-closed，星号动作权限与全园区范围分离。
 
-Evidence package (portable):
+仍存在必须关闭的缺口：
 
-`identity-system-admin-evidence-v2.2` / review ZIP  
-Accept: `python accept_identity_review_v2_2.py --package-root .`  
-Mother: packaged `inputs/01-java-api-source-inventory-v2.2.csv` (**481**, set equality)
+1. access JWT 中已有 `tv`，但受保护请求尚未对数据库用户状态和 `token_version` 做在线校验；停用或管理员重置密码后旧 access token 仍可使用到过期。
+2. 用户/角色/菜单写操作尚未使用既有 `AuditRecorder`。
+3. 登录缺少跨进程可共享的限流；refresh 旧 token 虽被拒绝，但尚未把已轮换 token 的再次使用当作会话族重放事件处理。
+4. 菜单仅 list/create；授权写入对 park/menu 等外键缺少完整的租户归属预校验。
+5. PC 角色创建硬编码 `all_parks=true`，没有可用的权限、园区、菜单和用户角色配置体验。
+6. refresh token 当前由 PC 存入 localStorage；需要浏览器 cookie 与移动客户端响应体两种安全传输策略。
+7. 验证码/页面二次验证、旧 Java 74 接口处置证据和真实身份数据迁移尚未闭环。
 
-| Metric | Count |
-|---|---:|
-| Mother scope rows | **481** (set-equal to inventory) |
-| INCLUDE_IDENTITY | **74** |
-| Controllers INCLUDE | **17** (含 VersionController) |
-| Service method RESOLVED | **74** |
-| PERSISTENCE_FULLY_RESOLVED | **39** |
-| SQL_RESOLVED_PARTIAL | **7** |
-| REPOSITORY_METHOD_RESOLVED | **8** |
-| SERVICE_METHOD_RESOLVED | **20** |
-| Repository call rows 1:N | **169** |
-| P0 contracts | **19** (per-endpoint auth/PII/errors) |
-| Identity field rows | **52** |
-| Source evidence snippets | **422** |
-| FE CLOSED | **0** |
+### Constraints
 
-**Refresh multi-call sample** (`AuthService.refresh` L617+):
-
-| # | Method | Line | Tables |
-|---|---|---:|---|
-| 1 | findRefreshToken | 626 | refresh_token |
-| 2 | revokeAllUserRefreshTokensAndBumpVersion | 631 | refresh_token\|user |
-| 3 | findActiveCenterUserById | 638 | customer\|user |
-| 4 | revokeRefreshToken | 645 | refresh_token |
-| 5 | persistRefreshToken | 657 | refresh_token |
-| 6 | revokeRefreshToken | 662 | refresh_token |
-
-**Scope notes:**
-
-- `VersionController` **INCLUDE** as SYSTEM_ADMIN (`GET /api/system/version`) — restores V1 74-count with explicit reason (not silent whitelist drop).
-- `RentalTenantController` / `investment_tenant` **EXCLUDE** as business domain (Party/Investment), not system identity.
-- `rental_tenant` table: HUMAN_DECISION_REQUIRED (rental/party subject vs system user).
-
-**Must not regress V2 fixes:** method-level service lines; no param bleed; no keyword FE CLOSED; no fuzzy contracts; no me→Menu; tasks unchecked.
-
-**System admin samples**:
-
-| Controller | Paths (examples) | Lines |
-|---|---|---|
-| SystemUserController | `GET /api/user/list`, `POST /api/user`, `PUT/DELETE /api/user/{id}` | 27-66 |
-| SystemRoleController | `/api/system/role/*` list/create/permissions | 24-87 |
-| SystemMenuController | `/api/system/menu/*` | 26-59 |
-| MenuController | `GET /api/menu/all` | 19-24 |
-| SystemDeptController | `/api/system/dept/*` | 23-43 |
-| SystemParkController | system park admin (12 endpoints) | inventory CSV |
-| OrganizationController | org + invitation + provisioning (8) | 23-70 |
-
-Frontend old app is **playground** under `<host-path-redacted>` (not a separate unknown repo). Dynamic route components and template URLs remain partially UNRESOLVED in the evidence pack.
-
-### Full-rebuild posture
-
-V2.3.2: `KWZY_FULL_REBUILD_AUDIT_V2_2=CONDITIONAL`; full Java/FE replacement NOT_COMPLETE; data migration BLOCKED. Phase06 Party/Lease/Bill/Payment is scoped COMPLETE only.
+- PostgreSQL 16 是权威运行时；SQLite 只用于快速单元测试。
+- 不连接或写入旧 Java 生产库，不接入真实短信/微信凭据，不执行生产发布。
+- 所有写操作必须租户隔离、权限 fail-closed、使用统一 envelope，并避免在日志/审计中出现密码、refresh token 或验证码。
+- PC、员工移动端和租户小程序共享身份领域语义，但传输和交互可按客户端安全能力适配。
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-1. Close Identity/System/Admin design so apply can be human-reviewed.
-2. Specify authentication, session security, user/role/menu admin, tenant/park grants, audit, legacy mapping, and migration gates.
-3. Preserve fail-closed auth and `*` / park-scope orthogonality already on main.
-4. Keep evidence line-addressable (no package-scan placeholders as “done”).
+1. 关闭身份会话的即时吊销、重放、限流和审计缺口。
+2. 完成用户/角色/权限/菜单/园区授权的后端生命周期和 PC 可用配置闭环。
+3. 交付供应商无关的验证码/页面二次验证本地能力，同时对生产外部适配保持 fail-closed。
+4. 建立旧接口处置、字段映射、迁移演练和测试证据，使完成状态可复验。
 
 **Non-Goals:**
 
-1. Apply / implement code, migrations, or tests in this change cycle.
-2. Finance, investment, HRM, meters, bill-import, AI, full frontend rewrite.
-3. Production DB access or ETL execution.
-4. Unilateral decisions on SMS vendor, multi-DB topology, refresh storage, or PII KMS.
+- 不访问生产数据库或执行生产 cutover。
+- 不把 fake 短信、合成迁移数据或本地验收宣称为真实生产联调。
+- 不在本 change 中实现组织邀请/租户开通、完整 HRM 或其他业务域。
+- 不保留未经处置矩阵确认的旧接口“影子兼容”。
 
 ## Decisions
 
-### D1 — Capability split
+### D1 — 分层与事务边界
 
-Identity is split into nine new capabilities plus deltas on `identity-authorization`, `park-scope-model`, and `foundation-compliance`. Rationale: authentication, admin CRUD, menus, sessions, and migration have different risk and approval paths.
+接口层只负责 schema、依赖与响应；应用服务编排用例；基础设施仓储构造 ORM 实体。身份管理写操作和 `AuditRecorder` 使用同一个 Session，在一次 commit 中提交或一起回滚。
 
-### D2 — Layering (apply-time)
+### D2 — 每个受保护请求验证会话版本
 
-```text
-Interface (FastAPI routers, schemas)
-  → Application services (use-cases)
-    → Domain rules (password policy, role invariants)
-      → Repository ports
-        → Infrastructure (SQLAlchemy, mappers, token store)
-```
+access JWT 保留 tenant、uid、permissions、park scope 和 `tv` 快照。依赖层在每个受保护请求中读取最小用户状态：
 
-Entity/Mapper/Repository boundaries follow existing Party/Lease patterns: Application MUST NOT construct ORM models directly.
+- 用户不存在、租户不符或状态非 ACTIVE：401；
+- token 的 `tv` 与数据库 `token_version` 不同：401；
+- 通过后继续使用 token 内权限和园区范围，避免每次重建完整 RBAC。
 
-### D3 — JWT access tokens (snapshot claims)
+这使停用、改密和管理员重置能立即吊销 access token；角色/权限变化仍通过递增用户 `token_version` 对受影响用户即时生效。
 
-- Access token remains short-lived JWT with `tenant_id`, `uid`, `permissions`, `park_ids`, `park_scope_mode`.
-- Default: **snapshot enforcement** for request path (current `deps.get_tenant_context`).
-- Permission admin changes take effect on **re-login** (and refresh if implemented with re-resolve).
-- Alternative (DB re-resolve every request) is higher load; only if product demands immediate revoke without denylist.
+备选的纯 JWT 过期策略无法满足高风险操作撤权；每次完整解析 RBAC 则放大查询开销。
 
-### D4 — Refresh / logout (decision-gated)
+### D3 — refresh 轮换与重放
 
-Old Java uses refresh via cookie name `jwt` (`AuthController.java:95-106`) and `AuthService.refresh/logout`.  
-Python has **no** refresh yet. Apply MUST NOT invent cookie vs body storage: listed in Open Questions.
+- refresh token 为至少 256 位随机 opaque 值，数据库只保存 SHA-256 哈希。
+- 每次 refresh 原 token 原子标记 revoked，并关联 replacement；logout、改密、停用和管理员重置吊销该用户所有活动 refresh。
+- 如果已轮换 token 再次出现，视为潜在重放并吊销该用户全部 refresh 会话，返回统一 401，不暴露内部状态。
+- 并发 refresh 必须只有一次成功；数据库唯一约束和行级锁/条件更新负责仲裁。
 
-Recommended design option for review (not approved):
+### D4 — 多客户端 refresh 传输
 
-- Opaque refresh token hashed at rest in PostgreSQL table `refresh_sessions`.
-- Rotate on refresh; revoke on logout/password change.
-- Access token still JWT.
+- PC 浏览器：服务端设置 HttpOnly、SameSite=Strict cookie；staging/production 强制 Secure。Web 不持久化 refresh token 到 localStorage。
+- 员工移动端/租户小程序：因客户端不具备浏览器 cookie 语义，可从响应体接收 refresh token 并存入平台安全存储。
+- 兼容期内 refresh/logout 可接受请求体或 cookie；OpenAPI 明确两种通道，服务端仍执行相同轮换/吊销规则。
 
-### D5 — RBAC and park scope
+### D5 — 登录与验证码限流
 
-- Action codes on API dependencies (`require_permissions`).
-- Menu grants only affect navigation payload.
-- Park scope admin writes `user_park_scopes` / `role_park_scopes` / `all_parks` flags (exact table names per ORM).
-- `*` never implies ALL parks (existing rule preserved).
+使用 PostgreSQL 持久化的安全事件/验证码记录作为共享权威，不使用单进程内存计数。键只保存归一化账号/手机号的 HMAC 或不可逆摘要，并按租户、客户端 IP 和用途执行窗口计数。成功登录可清理连续失败计数；达到阈值返回 429 和稳定错误码。
 
-### D6 — Password security
+### D6 — 验证码与页面二次验证
 
-- Store only password hashes (current `password_hash` + `verify_password`).
-- Migration of legacy hashes: **HUMAN_DECISION_REQUIRED** (algorithm/rounds unknown for all tenants).
-- No password in responses/logs/audit detail.
+- code 由密码学安全随机源生成，只保存哈希、用途、过期时间、尝试次数和 consumed_at。
+- 发送通过平台 SMS provider/outbox 端口；local/test 使用 fake provider，production 配置缺失时启动或调用 fail-closed。
+- 验证成功只返回短期、一次性的 page-access proof；高风险业务 API 校验证明的用途、用户、租户和过期时间。
+- API、日志和审计均不返回验证码；测试通过依赖注入/捕获 fake provider 验证，不在生产响应暴露 debug code。
 
-### D7 — SMS / page-access
+### D7 — RBAC、菜单与园区范围正交
 
-Legacy endpoints exist (`send-login-code`, `code-login`, page-access). Implementation blocked on vendor + Redis/outbox strategy. Spec keeps capability optional.
+- 动作权限码由 API 依赖强制；菜单授权只影响导航。
+- 全园区由显式 `all_parks` 表示；`*` 只代表动作权限。
+- 用户/角色写入前校验 role、park、menu 均存在且属于调用租户；跨租户引用返回 400/404，不依赖数据库 FK 产生 500。
+- 菜单支持 list/create/update/deactivate；有子节点或角色绑定时采用停用而非物理删除。
 
-### D8 — Legacy compatibility
+### D8 — 权限变更即时生效
 
-- Prefer new `/api/v1/...` paths.
-- Publish matrix with statuses: EXACT_MATCH / COMPATIBLE_REDESIGN / SCHEMA_MISMATCH / SECURITY_MISMATCH / RESPONSE_MISMATCH / MISSING / HUMAN_DECISION_REQUIRED.
-- Current static matrix (evidence pack): login/me ≈ COMPATIBLE_REDESIGN; most admin paths MISSING; some system park paths SCHEMA_MISMATCH vs `/api/v1/parks`.
+用户角色、用户园区、角色权限、角色园区、角色菜单或角色状态变化后，对直接或间接受影响用户递增 `token_version` 并吊销 refresh。角色菜单变化同时影响下一次动态菜单请求；动作权限仍由新 access token 快照执行。
 
-### D9 — Data migration
+### D9 — 审计与敏感数据
 
-- Source: `magic.sql` + Java static SQL only (schema-only).
-- Tenant multi-DB production shape unknown → migration readiness stays BLOCKED without dumps.
-- PostgreSQL 16 authoritative; SQLite tests secondary.
+成功的用户、角色、菜单、园区授权写操作记录 tenant_id、actor、request_id、action、资源和非敏感差异摘要。失败登录以结构化安全事件记录摘要键、IP、原因族和时间，不记录账号明文之外不必要的 PII，更不记录密码/token/code。用户响应永不包含 password_hash。
 
-### D10 — Dept / region / organization
+### D10 — 旧接口与迁移
 
-Legacy has SystemDept, SystemRegion, Organization (invites/provisioning).  
-**In-scope for evidence and Open Questions**; apply may phase:
+V2 主契约为 `/api/v1`。旧 Java 74 个 Identity/System/Admin 接口逐项标记 EXACT_MATCH、COMPATIBLE_REDESIGN、REDIRECT、DEFERRED_WITH_REASON 或 REMOVED_WITH_REASON，禁止用模块级“已覆盖”代替逐接口证据。
 
-- P0: auth session + user/role/permission/park-scope + menu dynamic read  
-- P1: menu admin + dept/region if product requires  
-- Organization provisioning may belong to tenant-ops change, not forced here
-
-### D11 — Audit
-
-Successful identity admin writes: same-transaction audit like Park/Unit foundation.  
-Failed logins: structured logs; durable failure audit optional later.
-
-### D12 — Concurrency / uniqueness
-
-- Username unique per tenant (DB unique constraint).
-- Role code unique per tenant.
-- Refresh token reuse detection when implemented.
-- Admin updates optimistic or last-write-wins with audit (decision at apply).
+V2 目标采用单 PostgreSQL 集群和显式 `tenant_id` 隔离。旧库即使多库，也只在 ETL adapter 中处理；在取得脱敏 schema dump 前，真实迁移保持 BLOCKED。密码哈希算法不明时不得静默重置，须选择双验证/登录时升级或受控重置。
 
 ## Risks / Trade-offs
 
 | Risk | Mitigation |
 |---|---|
-| JWT snapshot delays permission revoke | Short TTL + refresh re-resolve or denylist (decision) |
-| Legacy cookie refresh incompatible | Compatibility adapter only with approved window |
-| Password hash migration breaks login | Dual-verify/migrate-on-login design after algorithm decision |
-| Org multi-DB provisioning out of identity module | Keep organization endpoints mapped but may defer to tenant-ops |
-| Incomplete FE route→component chains | Evidence unresolved list; no silent COMPLETE |
-| Over-scoping dept/HR into this change | Explicit phased tasks; human cut line |
+| 每请求用户状态查询增加延迟 | 只查 user id/tenant/status/token_version；后续可用短 TTL 缓存且以版本失效 |
+| refresh 并发产生竞态 | PostgreSQL 条件更新/锁、唯一哈希和并发测试 |
+| Cookie refresh 引入 CSRF | SameSite=Strict、同源部署、仅 POST、Origin 校验；移动端继续用 body |
+| 登录限流可被滥用锁号 | 同时按账号摘要与 IP 限速，使用短窗口/退避，不暴露账号存在性 |
+| fake provider 被误当生产 | production 配置 fail-closed，验收状态显式 NOT_LIVE |
+| token_version 批量递增成本 | 角色变更只更新绑定用户，使用集合更新并建立索引 |
+| 旧密码哈希不可验证 | 真实样本与算法确认前不宣称迁移可切换 |
 
-## Migration Plan (design only)
+## Migration Plan
 
-1. Freeze field map for users/roles/permissions/scopes/menus from schema-only sources.  
-2. Choose hash strategy and tenant topology.  
-3. Implement schema migrations on PG16 test DB.  
-4. Dry-run row counts and dual-login verification.  
-5. Cutover runbook + rollback (restore DB snapshot; feature flag admin APIs).  
+1. 增加安全事件/验证码等所需表和索引，执行 PostgreSQL base→head 与 down/up 演练。
+2. 先上线兼容的 body refresh 与在线 token_version 校验，再启用 PC HttpOnly cookie，保留可回滚配置。
+3. 完成用户/角色/菜单授权写入和审计，补齐 PC 管理体验。
+4. 用合成租户做身份 ETL dry-run、计数/孤儿/唯一性/权限与园区对账。
+5. 取得脱敏真实 schema dump 后更新字段映射并做只读迁移演练。
+6. 真实短信沙箱、远程预发和生产发布分别等待凭据与人工授权。
 
-**Rollback:** disable new admin routers via config; keep login/me; restore previous Alembic revision only with backup.
+**Rollback:** 关闭新增路由/特性开关，回滚 PC cookie 使用，恢复数据库备份；任何 down migration 必须先验证无数据丢失。
 
 ## Open Questions
 
-1. Production tenant DB structure vs dev (`magic.sql`) — dumps required?  
-2. SMS provider and code storage (Redis vs DB vs outbox)?  
-3. Refresh token storage: HttpOnly cookie vs JSON body; rotation policy?  
-4. Immediate permission revoke vs snapshot JWT?  
-5. Keep legacy menu model compatibility or redesign menus?  
-6. Are dept/region/post in this apply phase or later?  
-7. Multi-DB org provisioning vs single DB `tenant_id`?  
-8. Can legacy password hashes be verified/migrated?  
-9. PII encryption/masking and key management?  
-10. Legacy `/api/*` retention and deprecation versioning?  
-11. Frontend replacement strategy (reuse playground vs new app)?  
-12. Should Organization invitation/provisioning stay out of Identity apply?
+以下只剩外部事实或生产决策，不能由本地实现替代：
 
-## Evidence Index (authoritative reads)
-
-- V2.3.2 audit under `kwzy-python-review-artifacts/full-rebuild-gap-audit-v2.2/`
-- Identity pack under `kwzy-python-review-artifacts/identity-system-admin-evidence/`
-- OpenSpec baselines: `openspec/specs/identity-authorization`, `park-scope-model`, `foundation-compliance`
-- Python: `modules/identity/**`, `shared/deps.py`, `core/security.py`
-- Java: Auth/System* controllers + AuthService
-- Frontend: `playground/src/api/core/**`, system views routers
-- SQL: `kwzg-Java-main/magic.sql` (center/partial schema only)
-
-
-## Evidence package V2.3.2
-
-Design references Identity/System/Admin evidence pack **V2.3.2** (field-level P0/PII, read-only acceptance, final-state source replay). Implementation tasks remain unchecked. IDENTITY_SYSTEM_ADMIN_APPLY=NOT_APPROVED.
+1. 旧租户数据库的真实拓扑、schema 和密码哈希算法。
+2. 生产短信供应商、模板、签名、回执和限额。
+3. 生产域名/跨站部署是否允许 SameSite=Strict；若不允许需完成 CSRF token 方案。
+4. PII/KMS 的生产密钥托管、轮换与审计策略。
+5. 旧 `/api/*` 的正式退役窗口和客户端版本分布。

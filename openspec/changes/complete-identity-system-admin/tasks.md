@@ -1,127 +1,83 @@
-## 0. Planning boundary (this change cycle)
+## 0. Reconcile planning and authority
 
-- [ ] 0.1 Confirm this change is design-only: no `openspec apply`, no business code, no Alembic, no production DB
-- [ ] 0.2 Confirm evidence pack exists under `review-artifacts/identity-system-admin-evidence/`
-- [ ] 0.3 `openspec validate complete-identity-system-admin --strict` passes
-- [ ] 0.4 Human review of proposal/design/specs/tasks and Open Questions
-- [ ] 0.5 Explicit written approval before any apply branch is created
+- [x] 0.1 Record the current main@d9c0b0b implementation baseline instead of the obsolete main@6090c97 baseline
+- [x] 0.2 Record the user's explicit unattended apply/commit/push authorization and preserve production/external credential gates
+- [x] 0.3 Audit current Identity backend, PC page, tests, migrations, routes and data models against all twelve delta specs
+- [x] 0.4 Pass `openspec validate complete-identity-system-admin --strict` after the planning rewrite
 
-**Gate:** `IDENTITY_SYSTEM_ADMIN_APPLY=NOT_APPROVED` until 0.5 is satisfied by a human.
+## 1. Existing implementation verified on main
 
----
+- [x] 1.1 Tenant-disambiguated password login derives permissions and park scope from database relationships
+- [x] 1.2 Fail-closed Bearer authentication is enforced outside explicit local/test anonymous mode
+- [x] 1.3 Opaque refresh tokens are hashed at rest, rotated on refresh and rejected after logout
+- [x] 1.4 Self-service password change updates the hash, increments token_version and revokes refresh tokens
+- [x] 1.5 Tenant-scoped user list/create/update/disable and role/park assignment APIs exist
+- [x] 1.6 Tenant-scoped role list/create/update with permission/park/menu assignments exists
+- [x] 1.7 Permission catalog, menu list/create and current-user dynamic menu APIs exist
+- [x] 1.8 Organization, dictionary and masked system-parameter APIs exist
+- [x] 1.9 PC System Admin route and basic CRUD E2E exist
+- [x] 1.10 PostgreSQL identity/session/menu migration and baseline session/admin tests exist
 
-## 1. Evidence closure
+## 2. Session and authentication hardening
 
-> V2.2: portable package, 481 set-equality scope, source-evidence snapshots, multi-repo call_kind, P0 per-endpoint security/PII/errors.  
-> **Evidence PASS ≠ apply.** All items remain unchecked.
+- [x] 2.1 Validate active user, tenant ownership and token_version on every protected request
+- [x] 2.2 Make user disable and administrative password reset increment token_version and revoke all refresh sessions
+- [x] 2.3 Increment affected users' token_version and revoke refresh sessions after role permission, role scope or role status changes
+- [x] 2.4 Make refresh rotation concurrency-safe and revoke the session family on reuse of a rotated token
+- [x] 2.5 Add shared PostgreSQL login rate limiting keyed by tenant/account digest and client IP
+- [x] 2.6 Add sanitized security-event evidence for failed login, refresh reuse and rate-limit decisions
+- [x] 2.7 Support HttpOnly SameSite refresh cookie for PC while preserving response-body refresh for mobile clients
+- [x] 2.8 Remove PC refresh-token persistence from localStorage and cover refresh/logout cookie behavior
 
-- [ ] 1.1 Raise PERSISTENCE_FULLY_RESOLVED for remaining SERVICE_ONLY / REPO_METHOD / SQL_PARTIAL endpoints
-- [ ] 1.2 Expand RoleWritePermissionService path matrix evidence beyond AuthFilter.canWrite gate
-- [ ] 1.3 FE call-graph coverage for desktop login/role/menu without keyword binding
-- [ ] 1.4 Dynamic component HUMAN_REQUIRED register
-- [ ] 1.5 Complete BusinessException code catalog per P0 method (already partial for auth)
-- [ ] 1.6 Field map + tenant schema-only dumps; migration stays BLOCKED
-- [ ] 1.7 Re-run `accept_identity_review_v2_2.py --package-root .` after any evidence change
-- [ ] 1.8 Product decisions: rental_tenant, Organization vs tenant-ops, refresh cookie compatibility
+## 3. Verification code and page-access proof
 
----
+- [x] 3.1 Add hashed, expiring, one-time verification code and page-access proof persistence
+- [x] 3.2 Add provider-neutral send and verify application services with purpose/user/tenant binding
+- [x] 3.3 Route sends through SMS provider/outbox and keep production fail-closed when credentials are absent
+- [x] 3.4 Enforce send/verify rate limits, attempt caps, expiry and one-time consumption
+- [x] 3.5 Add local/test fake-provider tests without returning codes from production API responses
 
-## 2. Domain and application design
+## 4. Identity administration completeness
 
-- [ ] 2.1 Domain model: User, Role, Permission, Menu, grants, park scopes, session/refresh (if approved)
-- [ ] 2.2 Use-cases list for authentication and admin services
-- [ ] 2.3 Permission code catalog and naming convention
-- [ ] 2.4 Menu vs action permission rules finalized
-- [ ] 2.5 Token claim schema document (access + optional refresh)
-- [ ] 2.6 Decision log answers for Open Questions that block apply
+- [x] 4.1 Add menu update and deactivate APIs with parent-cycle and tenant validation
+- [x] 4.2 Validate every role, park and menu reference belongs to the caller tenant before assignment
+- [x] 4.3 Map uniqueness and concurrent-write violations to stable 409 business errors
+- [x] 4.4 Record transaction-bound audits for user, role, menu and park-scope administration writes
+- [x] 4.5 Add user/session administrative revoke endpoint with explicit elevated permission
+- [x] 4.6 Add focused cross-tenant, forbidden, invalid-reference and audit-redaction API tests
 
----
+## 5. PC system administration experience
 
-## 3. Database and migration design
+- [x] 5.1 Replace comma-separated permission input with permission catalog selection
+- [x] 5.2 Add explicit ALL/LIST/NONE park-scope controls and remove hard-coded all_parks=true
+- [x] 5.3 Add user role/park assignment and user edit/enable/disable/reset-session flows
+- [x] 5.4 Add role permission/park/menu edit and role deactivate flows
+- [x] 5.5 Add menu create/edit/deactivate hierarchy management
+- [x] 5.6 Prove route visibility, button visibility and direct API denial are consistent but independently enforced
+- [x] 5.7 Meet desktop/tablet responsive and accessibility checks for the system admin surface
 
-- [ ] 3.1 Target PostgreSQL 16 tables/indexes/constraints design (users/roles/permissions/menus/scopes/sessions)
-- [ ] 3.2 Alembic migration plan (not executed in design cycle)
-- [ ] 3.3 SQLite semantic differences checklist for tests
-- [ ] 3.4 Identity field mapping review with transform rules (password hash decision)
-- [ ] 3.5 Tenant topology decision (single DB vs multi DB) recorded
-- [ ] 3.6 ETL readiness remains BLOCKED without tenant schema-only dumps
+## 6. Legacy compatibility and migration evidence
 
----
+- [x] 6.1 Publish the 74-row Identity/System/Admin legacy endpoint disposition matrix with target route and reason
+- [x] 6.2 Publish source-to-target user/role/permission/menu/scope/session field mapping with transform rules
+- [x] 6.3 Implement synthetic Identity ETL dry-run/apply/idempotency/rollback and reconciliation checks
+- [ ] 6.4 Obtain and verify read-only tenant schema dumps before changing real migration readiness from BLOCKED
+- [ ] 6.5 Decide and prove legacy password hash verification or controlled reset using authorized samples
+- [x] 6.6 Keep production cutover, real SMS and legacy deprecation window behind explicit human approval
 
-## 4. Authentication / session implementation (apply only)
+## 7. Acceptance and documentation
 
-- [ ] 4.1 Keep/extend password login with tenant disambiguation
-- [ ] 4.2 Implement refresh/logout/revoke per approved design
-- [ ] 4.3 Password change + admin reset with session revoke
-- [ ] 4.4 Optional SMS/page-access only after provider decision
-- [ ] 4.5 Preserve production fail-closed; no anon in production/staging
+- [x] 7.1 Pass focused Identity unit/API tests on SQLite and PostgreSQL 16
+- [x] 7.2 Pass Alembic unique-head, base-to-head and one-step down/up checks for new schema
+- [x] 7.3 Pass PC Playwright system-admin and authentication/session scenarios with no skips
+- [x] 7.4 Update OpenAPI/YAML contracts and pass strict contract validation
+- [ ] 7.5 Update the four controlling rebuild documents with exact commit/test evidence and truthful blockers
+- [x] 7.6 Pass lint, typecheck, build, secrets scan and `openspec validate --all --strict`
+- [ ] 7.7 Commit and push a clean non-force checkpoint; do not deploy production
 
----
+## Non-goals for this change
 
-## 5. User / role / menu administration (apply only)
-
-- [ ] 5.1 User list/create/update/disable APIs + permissions
-- [ ] 5.2 Role CRUD + permission bind/unbind
-- [ ] 5.3 Menu admin + dynamic menu for current user
-- [ ] 5.4 Dept/region only if phase decision includes them
-- [ ] 5.5 OpenAPI updates for all new routes
-
----
-
-## 6. Authorization and scope enforcement (apply only)
-
-- [ ] 6.1 Park scope grant APIs for user/role + all_parks
-- [ ] 6.2 Enforce require_permissions on all admin writes/reads as designed
-- [ ] 6.3 Confirm `*` does not imply all parks (regression tests)
-- [ ] 6.4 Cross-tenant isolation tests for admin resources
-- [ ] 6.5 Document snapshot JWT vs re-resolve behavior in runtime docs
-
----
-
-## 7. Audit and security hardening (apply only)
-
-- [ ] 7.1 Audit successful identity admin writes
-- [ ] 7.2 Ensure no password/hash/token secrets in responses, logs, audit detail
-- [ ] 7.3 Failed login observability
-- [ ] 7.4 Security tests for anon/dev bypass absent in production
-- [ ] 7.5 Rate limits for login/SMS if SMS enabled
-
----
-
-## 8. Legacy compatibility (apply only)
-
-- [ ] 8.1 Publish endpoint compatibility matrix with contract_status enums
-- [ ] 8.2 Implement only approved shims/aliases
-- [ ] 8.3 Deprecation timeline documentation
-- [ ] 8.4 No EXACT_MATCH without schema proof
-
----
-
-## 9. Tests (apply only)
-
-- [ ] 9.1 Unit/domain tests for identity rules
-- [ ] 9.2 API tests SQLite for admin CRUD and auth
-- [ ] 9.3 PostgreSQL tests for uniqueness, scopes, sessions
-- [ ] 9.4 Security tests fail-closed + permission matrix
-- [ ] 9.5 OpenAPI contract tests updated
-- [ ] 9.6 Regression: Party/Lease/Bill/Payment still pass
-
----
-
-## 10. Documentation and acceptance (apply only)
-
-- [ ] 10.1 Update docs/06-implementation for identity admin
-- [ ] 10.2 Acceptance checklist vs Open Questions closure
-- [ ] 10.3 Record remaining MISSING legacy endpoints explicitly
-- [ ] 10.4 Re-state full rebuild still NOT_COMPLETE after identity apply
-- [ ] 10.5 Archive change only after human acceptance
-
----
-
-## Explicit non-tasks (do not do in this design cycle)
-
-- [ ] N1 ~~openspec apply~~ **FORBIDDEN now**
-- [ ] N2 ~~Write production business code~~ **FORBIDDEN now**
-- [ ] N3 ~~Run Alembic on shared/prod DBs~~ **FORBIDDEN**
-- [ ] N4 ~~Connect old Java production DB~~ **FORBIDDEN**
-- [ ] N5 ~~git commit/push/merge main for apply~~ **FORBIDDEN without separate approval**
+- Production database access, production cutover or irreversible production operations.
+- Real SMS/WeChat/KMS credential acquisition or vendor commercial decisions.
+- Tenant provisioning/invitation, HRM, finance, IoT or unrelated business-domain implementation.
+- Treating fake adapters, synthetic fixtures or local staging-equivalent tests as live production evidence.

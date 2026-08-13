@@ -170,6 +170,58 @@ class RefreshToken(Base, PrimaryKeyMixin, TimestampMixin):
     replaced_by_hash: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
 
 
+class AuthSecurityEvent(Base, PrimaryKeyMixin, TimestampMixin):
+    """Append-only authentication security evidence without raw credentials/PII."""
+
+    __tablename__ = "auth_security_events"
+
+    tenant_id: Mapped[Optional[int]] = mapped_column(
+        FK_TYPE, ForeignKey("tenants.id"), nullable=True, index=True
+    )
+    event_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    subject_digest: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    client_digest: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    reason_code: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+
+
+class VerificationCode(Base, PrimaryKeyMixin, TimestampMixin):
+    """Hashed one-time verification code bound to user, tenant and purpose."""
+
+    __tablename__ = "verification_codes"
+
+    tenant_id: Mapped[int] = mapped_column(
+        FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True
+    )
+    user_id: Mapped[int] = mapped_column(
+        FK_TYPE, ForeignKey("users.id"), nullable=False, index=True
+    )
+    purpose: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    recipient_digest: Mapped[str] = mapped_column(String(64), nullable=False)
+    code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    consumed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    max_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=5)
+
+
+class PageAccessProof(Base, PrimaryKeyMixin, TimestampMixin):
+    """Short-lived one-time proof produced by successful secondary verification."""
+
+    __tablename__ = "page_access_proofs"
+    __table_args__ = (UniqueConstraint("proof_hash", name="uk_page_access_proof_hash"),)
+
+    tenant_id: Mapped[int] = mapped_column(
+        FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True
+    )
+    user_id: Mapped[int] = mapped_column(
+        FK_TYPE, ForeignKey("users.id"), nullable=False, index=True
+    )
+    purpose: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    proof_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    consumed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+
 class Menu(Base, PrimaryKeyMixin, TimestampMixin):
     """Tenant navigation menu node."""
 
