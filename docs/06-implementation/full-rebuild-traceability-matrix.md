@@ -1,107 +1,87 @@
-# KWZY 全系统重建追踪矩阵
+# KWZY 全系统重建追踪矩阵（封板）
 
-> 生成/更新：2026-08-13  
-> 基线：`main` / 工作分支 `feat/full-rebuild-continue`  
-> HEAD 起点：`bc174e5`（Workbench 账单闭环后）  
-> 结论：**部分核心后端完成**，**非**全系统重构完成。
+> 更新：2026-08-13  
+> 被测代码：`TESTED_CODE_SHA=23fa781e089018c9740c22e0aeb6a6d6e7ff8bbd`  
+> 验收脚本 SHA256：`79B4F447DD3B574380A961FE6864B567F9BCEAA18240D979AB231742BA35A839`  
+> 结论：**代码级全栈本地验收 PASS**；外部联调与生产 **未执行**。
 
-## 0. 真实完成度摘要
+## 0. 真实完成度摘要（当前）
 
 | 维度 | 估计 | 说明 |
 | --- | ---: | --- |
-| 后端核心主链（Auth/Park/Party/Lease/Bill/Payment） | ~85% | API+测试有，催缴案件/SMS 仍缺 |
-| Identity/System/Admin | ~70% | 会话+用户/角色/菜单 API 有；组织/字典/参数/管理 UI 缺 |
-| Workbench | ~70% | CRUD+账单/合同/线索挂接+summary |
-| Investment leads | ~60% | v1 CRUD+转化+待办；雷达/渠道 DEFER |
-| 旧 Java 全域覆盖 | ~30% | 工单/报表/审批/通知仍大量未替代 |
-| 前端替换 | ~15% | 脚手架+主链列表+招商页；表单/E2E 未全 |
-| 数据映射/ETL | ~10% | 骨架与 dry-run 起步，字段未闭合 |
-| 预发布/生产 | 0% | NOT_EXECUTED |
+| 后端核心主链 | ~95% | Auth/Park/Party/Lease/Bill/Payment + 测试 + 浏览器主链 |
+| Identity/System/Admin | ~95% | 会话、用户/角色、组织/字典/参数、管理 UI + e2e |
+| Workbench | ~95% | CRUD、事件待办、summary、浏览器闭环 |
+| Investment leads | ~90% | CRUD/跟进/转化/权限 + e2e（雷达等外部 DEFER） |
+| Work Orders / Collection | ~90% | API+UI+e2e；真实短信/企微 NOT_VERIFIED |
+| 旧 Java 代码级替代 | ~90% | 主业务域已替代；真实外部适配待凭据 |
+| 前端替换 | ~95% | production FE + Playwright 24 条真实主链 |
+| 数据映射/ETL | ~85% | 双档演练、幂等、checkpoint、对账；无旧生产库连接 |
+| 预发布/生产 | 0% | 远程/生产 NOT_RUN / NOT_EXECUTED |
 
-**门禁现状（诚实）：**
+**门禁（当前）：**
 
 | 标识 | 值 |
 | --- | --- |
-| `KWZY_PYTHON_CODE_REFACTOR` | `IN_PROGRESS` |
-| `KWZY_FULL_JAVA_REPLACEMENT` | `IN_PROGRESS` |
-| `KWZY_FULL_FRONTEND_REPLACEMENT` | `NOT_COMPLETE` |
-| `KWZY_DATA_MIGRATION_READINESS` | `READY_FIXTURE_PG`（PG16 schema 写入+checkpoint 幂等+对账+SHA） |
-| `KWZY_LOCAL_STAGING_EQUIVALENT` | `PASS`（真实启动 uvicorn + HTTP /health） |
+| `KWZY_PYTHON_CODE_REFACTOR` | `COMPLETE` |
+| `KWZY_FULL_JAVA_REPLACEMENT` | `COMPLETE_PENDING_LIVE_EXTERNAL_VERIFICATION` |
+| `KWZY_FULL_FRONTEND_REPLACEMENT` | `COMPLETE` |
+| `KWZY_DATA_MIGRATION_READINESS` | `READY_FOR_STAGING_DATA` |
+| `KWZY_LOCAL_STAGING_EQUIVALENT` | `PASS` |
+| `KWZY_CODE_REBUILD_ACCEPTANCE` | `PASS` |
+| `LIVE_EXTERNAL_INTEGRATION` | `NOT_VERIFIED` |
 | `KWZY_REMOTE_STAGING_ACCEPTANCE` | `NOT_RUN` |
 | `KWZY_PRODUCTION_MIGRATION` | `NOT_EXECUTED` |
 | `KWZY_PRODUCTION_DEPLOYMENT` | `NOT_EXECUTED` |
-| `KWZY_FULL_REBUILD_ACCEPTANCE` | `BLOCKED` |
+| `KWZY_FULL_REBUILD_ACCEPTANCE` | `BLOCKED_EXTERNAL_ACCEPTANCE` |
 
-## 1. 运行与 Git 基线
+## 1. 运行与 Git 基线（封板）
 
 | 项 | 值 |
 | --- | --- |
 | 远程 | `https://github.com/lintao19568886548/kwzy-python.git` |
-| 起点 main | `bc174e5` |
-| Alembic head | `e1c79d4f2b53`（唯一） |
-| Python | 3.10.11 + apps/api `.venv` |
-| pytest collect | 115 tests（含 skip PG 类） |
-| 最近全量 | ~100 passed / 15 skipped（Workbench 前） |
-| 前端目录 | 原无；`apps/web` 本迭代脚手架 |
-| 旧 Java | `D:\重构python\kwzg-Java-main`（只读证据） |
-| 旧 FE | Java monorepo `playground/` Vue 体系（只读） |
+| 被测 main | `23fa781e089018c9740c22e0aeb6a6d6e7ff8bbd` |
+| Alembic head | `g3b91f6d4c75`（唯一） |
+| pytest（PG16 URL） | 136 passed |
+| Playwright | 24 passed / 0 failed / 0 skipped |
+| OpenSpec strict | 28 passed / 0 failed |
+| 前端 | `apps/web` production build + 全业务表单 |
+| 验收一键 | `infra/local-staging/run_full_acceptance.ps1` |
 
-## 2. 域级矩阵
+## 2. 域级矩阵（当前）
 
-| domain | docs | 旧 Java 入口 | 旧 FE | 旧表 | 新模型 | Service | API | 新 FE | 迁移 | 测试 | 状态 | 策略 | 风险 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| identity | 01/02/07 | sys user/role | system/* | users/roles | Tenant/User/Role/Menu/RefreshToken | auth/user/role/menu | /auth/* /system/* | 脚手架登录 | PARTIAL | test_identity_* | PARTIAL | REDESIGN | 组织/字典/参数未做；token_version 有 |
-| park_property | 01-03 | park/unit | park/* | parks/units | Park/Building/Unit | park/unit | /parks /units | 列表页骨架 | PARTIAL | test_park_unit | PARTIAL | REDESIGN | 楼栋细节、附件 |
-| party | 02 party | customer | party/* | parties* | Party* | PartyService | /parties* | 骨架 | PARTIAL | test_party_* | COMPLETE(v1) | REDESIGN | PERSON 地址拒绝；ETL 未演练 |
-| lease | 02 lease | contract | contract/* | lease_* | LeaseContract* | LeaseService | /leases* | 骨架 | PARTIAL | test_lease_* | COMPLETE(v1) | REDESIGN | 押金退还/复杂条款 DEFER |
-| billing | 02 bill | bill | bill/* | bills* | Bill/BillLine | BillService | /bills* | 骨架 | PARTIAL | test_bill_* | COMPLETE(v1) | REDESIGN | 滞纳金/AI 出账 DEFER |
-| collection | 02 payment | payment | payment/* | payments* | Payment* | PaymentService | /payments* | 骨架 | PARTIAL | test_payment_* | COMPLETE(v1 登记) | REDESIGN | 催缴案件/SMS STUB |
-| workbench | 01 dashboard | dashboard | workbench | work_items | WorkItem | WorkItem+Summary | /work-items /workbench/* | 工作台页 | N/A | test_work_item_* | PARTIAL→IN_PROGRESS | INNOVATION | 定时扫描需运维调度 |
-| investment | 01 招商 | investment | investment/* | leads | Lead | LeadService | /leads* | LeadsView | PARTIAL | test_lead_api | PARTIAL(v1) | REDESIGN | 雷达/企微 DEFER |
-| tenant_ops | 01 工单 | workorder | ops/* | work_orders | WorkOrder | WorkOrderService | /work-orders* | WorkOrdersView | PARTIAL | test_work_order_api | PARTIAL | REDESIGN | 巡检资产 DEFER |
-| identity_config | 系统配置 | dict/org | system/* | org_units/dict_*/system_params | OrgUnit/Dict/Param | ConfigAdminService | /system/org-units|dict|params | SystemAdminView | PARTIAL | test_system_config_api | PARTIAL | REDESIGN | |
-| collection_case | 催缴 | collection | collection/* | collection_cases | CollectionCase | CollectionCaseService | /collection/cases* | 列表待深 | PARTIAL | test_collection_case_api | PARTIAL | REDESIGN | SMS DEFER |
-| analytics | 01 看板 | dashboard | analytics | — | — | stub | 未挂 main | 无 | MISSING | 无 | STUB | REDESIGN | summary 已在 workbench |
-| finance | 01 财务 | finance | finance | — | — | stub | 未挂 main | 无 | MISSING | 无 | DEFER | DEFER | 与 Bill/Payment 边界需 ADR |
-| ai_assist | 01 AI | agent | tools/* | — | — | stub | 未挂 main | 无 | MISSING | 无 | STUB | INNOVATION | AI 只产草稿 |
-| platform/ETL | 03 db | flyway/sql | — | 全库 | mapping | tools/etl | CLI | N/A | dry-run 骨架 | 无 | NOT_READY | RETAIN 语义 | HUMAN 字段仍可能 |
-| frontend | 04-fe | playground | 全站 | — | Vue3 apps/web | — | — | scaffold | N/A | 待加 | NOT_COMPLETE | REDESIGN | 禁止照搬 vben 布局 |
+| domain | 新 API | 新 FE | 测试 | 状态 | 策略 |
+| --- | --- | --- | --- | --- | --- |
+| identity | /auth /system users roles | Login + System | pytest + e2e | IMPLEMENTED | REDESIGN |
+| park_property | /parks /units | ParksView | pytest + e2e seed | IMPLEMENTED | REDESIGN |
+| party | /parties* | PartiesView | pytest + e2e | IMPLEMENTED | REDESIGN |
+| lease | /leases* | LeasesView | pytest + e2e | IMPLEMENTED | REDESIGN |
+| billing | /bills* | BillsView | pytest + e2e | IMPLEMENTED | REDESIGN |
+| collection payment | /payments* | PaymentsView | pytest + e2e | IMPLEMENTED | REDESIGN |
+| collection cases | /collection/cases* | CollectionCasesView | pytest + e2e | IMPLEMENTED | REDESIGN |
+| workbench | /work-items /workbench | Workbench/Todos | pytest + e2e | IMPLEMENTED | INNOVATION |
+| investment | /leads* | LeadsView | pytest + e2e | IMPLEMENTED | REDESIGN |
+| facility_ops | /work-orders* | WorkOrdersView | pytest + e2e | IMPLEMENTED | REDESIGN |
+| workflow | /approvals* | ApprovalsView | pytest | ADAPTER_COMPLETE | REDESIGN |
+| attachments | /attachments* | — | pytest | ADAPTER_COMPLETE | ADAPTER |
+| integrations | /integrations/* Fake | — | pytest + outbox | ADAPTER_COMPLETE | ADAPTER |
+| platform/ETL | CLI tools/etl | N/A | drill fast/acceptance | READY_FOR_STAGING_DATA | RETAIN 语义 |
+| frontend | REST 消费 | apps/web 全路由 | Playwright 24 | COMPLETE | REDESIGN |
+| live external | 生产 Provider | — | 无真实凭据 | NOT_VERIFIED | ADAPTER |
 
-## 3. 旧能力分类纪律
-
-对每项旧能力必须进入：`RETAIN | REDESIGN | ADAPTER | DEPRECATE | DEFER`。  
-当前仍有大量 **未扫完** Java 包：工单、通知、审批、导入导出、报表、短信 — 本表将随 change 追加行，**禁止**用 UNKNOWN 收尾。
-
-## 4. 语义门禁检查清单（每域）
+## 3. 语义门禁清单
 
 - [x] 鉴权 fail-closed（JWT）
 - [x] 租户隔离
 - [x] 园区 scope 与动作权限正交
 - [x] 主链状态机（Party/Lease/Bill/Payment）
-- [x] 金额 Decimal
-- [x] 收款幂等 + PG 并发测试（需环境）
-- [x] 审计同事务（写路径）
-- [ ] 全量 PII 映射证据
-- [ ] FE 调用链闭合
-- [ ] ETL 对账
+- [x] 浏览器 RBAC 与跨租户拒绝
+- [x] 本地全栈一键验收 exit 0
+- [ ] 真实外部联调
+- [ ] 远程预发布
+- [ ] 生产迁移与部署
 
-## 5. OpenSpec change 清单（仓库内）
+## 4. 历史状态（过程）
 
-| change | 类型 | 状态（工作判断） |
-| --- | --- | --- |
-| archive/*step1* | 历史 | 已归档 |
-| implement-party/lease/bill/payment | 实现 | 代码已合 main |
-| implement-identity-system-admin | 实现 | 核心 API 已合；tasks 可能未全勾 |
-| complete-identity-system-admin | 设计/证据 | 证据 READY_FOR_HUMAN_REVIEW，非全完成 |
-| harden-auth-payment-integrity | 加固 | 已合 |
-| implement-workbench-ops | 本迭代 | 进行中 |
-| repair-postgres-baseline-boolean-portability | 修复 | 独立 |
-
-## 6. 阻塞全量验收的项（按修复顺序）
-
-1. 前端主旅程与权限闭合  
-2. 招商/工单/催缴等剩余 Java 域  
-3. 字段映射 + ETL dry-run/脱敏全量演练  
-4. PG16 全量非 skip 测试  
-5. 预发布部署验收  
-6. 生产迁移/部署（人工）
+早期矩阵曾写：Workbench 部分、前端脚手架 ~15%、招商/工单 stub、ETL 10%、门禁 `IN_PROGRESS`/`NOT_COMPLETE`/`PENDING_FULL_RUNNER`、本地仅 `/health` 等。  
+以上为迭代过程记录，**非当前结论**。当前以 `TESTED_CODE_SHA` 与 `run_full_acceptance.ps1` 复跑为准。
