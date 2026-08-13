@@ -72,7 +72,7 @@
 - [x] 8.4 Pass backend full tests, frontend lint/typecheck/unit/build and browser E2E
 - [x] 8.5 Pass PostgreSQL migration, asset ETL, backup restore, secrets, diff and OpenSpec strict gates
 - [x] 8.6 Update the four controlling rebuild documents with exact commit/report evidence and truthful blockers
-- [ ] 8.7 Commit and push a clean non-force non-production checkpoint
+- [x] 8.7 Commit and push a clean non-force non-production checkpoint
 
 ## Non-goals
 

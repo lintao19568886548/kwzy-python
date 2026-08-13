@@ -1,6 +1,6 @@
 # 瞰维智管 V2 全量重建主路线图
 
-> 更新时间：2026-08-13 18:05（Asia/Shanghai）
+> 更新时间：2026-08-13 18:08（Asia/Shanghai）
 > 当前已验证基线：`main@b25eb079655d8d3417fc7a40d3b8741f36ea0698`
 > 总体状态：**IN_PROGRESS — 核心样板纵切本地 PASS，不等于 V2 全产品完成**
 
@@ -35,10 +35,10 @@
 
 ## 4. 当前执行队列
 
-1. 将 `implement-asset-rent-control-v2` 的精确 SHA 验收证据提交、非强推送，同步主规格并归档 change。
+1. 资产代码、精确 SHA 验收证据已非强推送；`implement-asset-rent-control-v2` 已同步主规格并归档为 `2026-08-13-implement-asset-rent-control-v2`。
 2. `complete-identity-system-admin` 保持 active，等待人工提供经授权的只读旧 schema dump 与密码哈希样本；这不阻塞后续非生产研发，但阻止 Identity 迁移 readiness 变为 READY。
-3. 建立招商 CRM 纵切，优先关闭去重、分配/改派/公海、跟进状态机、限时锁房并发与漏斗证据。
-4. 依次执行阶段 3–10；每个纵切必须同时交付模型、迁移、服务、API、适用终端 UI、测试、OpenAPI、迁移映射和运行手册。
+3. 下一执行项为招商 CRM 纵切，优先关闭去重、分配/改派/公海、跟进状态机、限时锁房并发与漏斗证据。
+4. 之后依次执行阶段 3–10；每个纵切必须同时交付模型、迁移、服务、API、适用终端 UI、测试、OpenAPI、迁移映射和运行手册。
 
 ## 5. 每个纵切的固定循环
 

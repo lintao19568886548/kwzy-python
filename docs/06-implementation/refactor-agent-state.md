@@ -4,15 +4,15 @@
 
 | 字段 | 当前值 |
 | --- | --- |
-| 更新时间 | 2026-08-13 18:05（Asia/Shanghai） |
+| 更新时间 | 2026-08-13 18:08（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `main` |
 | 已验证 HEAD | `b25eb079655d8d3417fc7a40d3b8741f36ea0698` |
-| 远程同步 | 验收时 `origin/main=6d1264cf1e434b1cab65f88ab7a29e4489930555`；资产代码与证据提交待非强推送 |
-| 工作树 | 精确证据与 OpenSpec 任务状态回填中；仅文档变化 |
+| 远程同步 | 资产代码 `b25eb07` 与验收证据 `6d104f4` 已非强推送至 `origin/main`；归档结果随当前收口提交发布 |
+| 工作树 | OpenSpec 归档、主规格同步与状态回填中；无业务代码变化 |
 | Alembic | 唯一 head `i5d13e8f0b97` |
-| 当前阶段 | 资产与租控纵切本地验收通过；收口证据/归档后转招商 CRM |
-| 当前 OpenSpec | `implement-asset-rent-control-v2` 收口中；`complete-identity-system-admin` 的真实旧数据项保持外部门禁 |
+| 当前阶段 | 资产与租控纵切已本地验收并归档；转入招商 CRM |
+| 当前 OpenSpec | 资产 change 已归档；`complete-identity-system-admin` 的真实旧数据项保持外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -37,6 +37,8 @@
 - [x] 完成租控摘要、矩阵/列表、详情下钻及 PC 空间/单元管理工作台，并完成真实浏览器视觉检查。
 - [x] 完成资产字段映射、旧接口处置和独立 schema 合成 ETL 的 dry/apply/idempotency/reconcile/rollback。
 - [x] 提交 `b25eb07 feat: implement asset rent control v2`，并在该 clean SHA 上复跑 20 项全量门禁，20/20 exit 0。
+- [x] 将资产代码与 `6d104f4` 验收证据非强推送到 `origin/main`。
+- [x] 同步 21 条资产/租控增量要求到主规格并归档 `2026-08-13-implement-asset-rent-control-v2`；归档后 OpenSpec strict 37/37 PASS。
 
 ## 最新机器证据
 
@@ -50,6 +52,7 @@
 | Playwright | 28 passed / 0 failed / 0 skipped；新增租控主链、只读/失败态和平板键盘场景 |
 | OpenAPI | 3 contract tests + YAML strict PASS；运行时 104 paths / 142 operations |
 | OpenSpec | strict 33 passed / 0 failed |
+| 归档后 OpenSpec | 主规格同步后 strict 37 passed / 0 failed；仅规格/文档变化，不改变上述被测代码 SHA |
 | ETL | core fast + acceptance、Identity、Asset 均 PASS；Asset 为 4 nodes/4 units/2 lineages，面积 280/180/40，对账零孤儿零重复并回滚干净；真实旧数据未演练 |
 | 备份恢复 | PASS，dump 850221 bytes，restore 48 tables |
 | 扩展 secrets scan | PASS，518 tracked/untracked non-ignored files |
@@ -68,10 +71,9 @@
 
 ## 下一恢复点
 
-1. 提交并推送本次资产代码与 documentation-only 证据回填，核对 `HEAD == origin/main`。
-2. 勾选 8.7 后同步主规格并归档 `implement-asset-rent-control-v2`；严格校验并再次非强推送。
-3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档。
-4. 建立并实施招商 CRM 纵切；继续沿主路线图推进三端和全业务闭环。
+1. 提交并非强推送资产 OpenSpec 归档与主规格同步，核对 `HEAD == origin/main`。
+2. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档。
+3. 建立并实施招商 CRM 纵切；继续沿主路线图推进三端和全业务闭环。
 
 ## 不可变安全约束
 
