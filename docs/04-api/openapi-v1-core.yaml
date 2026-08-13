@@ -2176,6 +2176,43 @@ paths:
       responses:
         '200':
           description: OK
+
+  /integrations/sms/send:
+    post:
+      tags: [AI]
+      summary: 短信发送（Fake/生产门禁）
+      operationId: integrationsSmsSend
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+  /integrations/notify:
+    post:
+      tags: [AI]
+      summary: 站内通知适配
+      operationId: integrationsNotify
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+  /integrations/files:
+    post:
+      tags: [AI]
+      summary: 附件内存存储适配
+      operationId: integrationsPutFile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+  /integrations/reports/park-summary:
+    get:
+      tags: [AI]
+      summary: 园区摘要报表适配
+      operationId: integrationsParkSummary
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
 components:
   securitySchemes:
     bearerAuth:
@@ -3162,4 +3199,5 @@ components:
         status: { type: string }
         result_meta: { type: object, additionalProperties: true, nullable: true }
         error_message: { type: string, nullable: true }
+
 

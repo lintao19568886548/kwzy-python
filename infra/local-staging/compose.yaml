@@ -1,0 +1,17 @@
+# LOCAL_STAGING_EQUIVALENT — not remote staging.
+# Uses disposable PG16 + documents production-style checks.
+services:
+  kwzy_local_pg:
+    image: postgres:16
+    container_name: kwzy_local_staging_pg
+    environment:
+      POSTGRES_USER: kwzy_party_test
+      POSTGRES_PASSWORD: kwzy_test_local_only
+      POSTGRES_DB: kwzy_party_test
+    ports:
+      - "127.0.0.1:55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kwzy_party_test -d kwzy_party_test"]
+      interval: 3s
+      timeout: 5s
+      retries: 20

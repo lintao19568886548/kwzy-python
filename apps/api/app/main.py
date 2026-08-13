@@ -26,6 +26,7 @@ from app.modules.collection.interface.api import router as collection_router
 from app.modules.workbench.interface.api import router as workbench_router
 from app.modules.investment.interface.api import router as investment_router
 from app.modules.facility_ops.interface.api import router as facility_ops_router
+from app.modules.platform_integrations.interface.api import router as integrations_router
 
 
 @asynccontextmanager
@@ -79,6 +80,7 @@ def create_app() -> FastAPI:
     app.include_router(workbench_router, prefix=prefix)
     app.include_router(investment_router, prefix=prefix)
     app.include_router(facility_ops_router, prefix=prefix)
+    app.include_router(integrations_router, prefix=prefix)
 
     @app.get("/health")
     def health() -> dict:
