@@ -2,8 +2,11 @@
 
 from app.infrastructure.database.models.audit import AuditLog
 from app.infrastructure.database.models.identity import (
+    Menu,
     Permission,
+    RefreshToken,
     Role,
+    RoleMenu,
     RoleParkScope,
     RolePermission,
     Tenant,
@@ -38,6 +41,9 @@ __all__ = [
     "UserRole",
     "UserParkScope",
     "RoleParkScope",
+    "RefreshToken",
+    "Menu",
+    "RoleMenu",
     "AuditLog",
     "Park",
     "Building",

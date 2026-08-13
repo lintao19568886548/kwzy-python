@@ -1,23 +1,34 @@
-# KWZY Python 重构总路线图（Master Roadmap）
+# KWZY 全系统重构主路线图
 
-> 更新：2026-08-10（Payment 交付）
+## 主线
 
-## 1. 能力模块
+```text
+仓库基线
+→ docs 业务蓝图追踪
+→ V2.3.2 证据门禁（已完成于 artifacts）
+→ Identity/System/Admin 实现（当前）
+→ Party/Lease/Bill/Payment 复核
+→ 剩余 Java 领域重构
+→ 前端创新式重构
+→ 数据迁移工具链
+→ 全量测试与安全验收
+→ main 合并
+→ 最终验收包（生产迁移/部署仍 NOT_EXECUTED）
+```
 
-| 序 | 能力 | OpenSpec | 分支 | 状态 |
-| --- | --- | --- | --- | --- |
-| 0 | Step1 | archive | main | 完成 |
-| 1 | Party | implement-party-master | feat/party-master | 完成并推送 |
-| 2 | Lease | implement-lease-contract | feat/lease-contract | 完成并推送 |
-| 3 | Bill | implement-bill-master | feat/bill-master | 完成并推送 |
-| 4 | Payment | implement-payment-collection | feat/payment-collection | 完成（本 tip） |
-| 5 | 收口/最终验收 | — | tip | 见 refactor-final-acceptance.md |
-| 6 | 合并 main | — | `main` | **已合并**（2026-08-10，源 feat/payment-collection；部署仍人工） |
+## 状态
 
-## 2. 延期
+| 阶段 | 状态 |
+| --- | --- |
+| Phase06 Party/Lease/Bill/Payment | COMPLETE（scoped，main） |
+| V2.3.2 Identity 证据 | READY_FOR_HUMAN_REVIEW（artifacts） |
+| Identity 实现 | IN_PROGRESS |
+| 前端替换 | NOT_COMPLETE |
+| 数据迁移工具 | NOT_COMPLETE |
+| 生产部署 | NOT_EXECUTED |
 
-见 refactor-final-acceptance.md §2。
+## 创新原则
 
-## 3. 方言
-
-PostgreSQL 16 权威；SQLite 测。
+- 保留业务能力与不变量，不照搬 Java 实现
+- 配置化规则、自动待办、工作台优先
+- AI 仅建议，不绕过权限/财务
