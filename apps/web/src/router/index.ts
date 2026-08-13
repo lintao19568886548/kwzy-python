@@ -8,6 +8,7 @@ import LeasesView from "@/views/LeasesView.vue";
 import BillsView from "@/views/BillsView.vue";
 import PaymentsView from "@/views/PaymentsView.vue";
 import TodosView from "@/views/TodosView.vue";
+import LeadsView from "@/views/LeadsView.vue";
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -20,6 +21,7 @@ export const router = createRouter({
         { path: "", redirect: "/workbench" },
         { path: "workbench", name: "workbench", component: WorkbenchView },
         { path: "todos", name: "todos", component: TodosView },
+        { path: "leads", name: "leads", component: LeadsView },
         { path: "parties", name: "parties", component: PartiesView },
         { path: "leases", name: "leases", component: LeasesView },
         { path: "bills", name: "bills", component: BillsView },

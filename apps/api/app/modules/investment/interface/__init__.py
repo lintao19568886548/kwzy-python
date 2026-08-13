@@ -1,0 +1,1 @@
+"""Investment HTTP interface."""

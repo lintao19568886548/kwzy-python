@@ -65,9 +65,14 @@ tables:
     status: PARTIAL
     notes: 新唯一键 source 幂等；非 1:1
 
+  - source: investment_lead / crm_lead
+    target: leads
+    strategy: REDESIGN
+    status: PARTIAL
+    notes: v1 状态机 NEW/FOLLOWING/WON/LOST；渠道雷达字段待映射
+
 unmapped_domains:
   domains:
-    - investment_leads
     - work_orders
     - approval_flows
     - sms_logs

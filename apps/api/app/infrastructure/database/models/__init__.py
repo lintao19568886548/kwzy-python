@@ -32,6 +32,7 @@ from app.infrastructure.database.models.party import (
     PartyRole,
 )
 from app.infrastructure.database.models.workbench import WorkItem
+from app.infrastructure.database.models.investment import Lead
 
 __all__ = [
     "Tenant",
@@ -66,4 +67,5 @@ __all__ = [
     "NumberSequence",
     "IdempotencyKey",
     "WorkItem",
+    "Lead",
 ]

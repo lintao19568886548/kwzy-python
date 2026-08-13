@@ -1720,6 +1720,9 @@ paths:
           schema: { type: integer, format: int64 }
         - name: status
           in: query
+          schema: { type: string, enum: [NEW, FOLLOWING, WON, LOST, CANCELLED] }
+        - name: keyword
+          in: query
           schema: { type: string }
       responses:
         '200':
@@ -1740,18 +1743,60 @@ paths:
             schema:
               $ref: '#/components/schemas/LeadCreate'
       responses:
-        '201':
-          description: Created
+        '200':
+          description: OK（统一 envelope）
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Lead'
 
-  /leads/{lead_id}/convert:
+  /leads/{lead_id}:
+    get:
+      tags: [Leads]
+      summary: 线索详情
+      operationId: getLead
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+    patch:
+      tags: [Leads]
+      summary: 更新线索
+      operationId: updateLead
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeadUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+
+  /leads/{lead_id}/lose:
     post:
       tags: [Leads]
-      summary: 线索转化为合同草稿
-      operationId: convertLead
+      summary: 线索输单
+      operationId: loseLead
       security: [{ bearerAuth: [] }]
       parameters:
         - name: lead_id
@@ -1764,11 +1809,27 @@ paths:
             schema:
               type: object
               properties:
-                unit_ids:
-                  type: array
-                  items: { type: integer, format: int64 }
-                start_date: { type: string, format: date }
-                end_date: { type: string, format: date }
+                reason: { type: string }
+      responses:
+        '200':
+          description: OK
+
+  /leads/{lead_id}/convert:
+    post:
+      tags: [Leads]
+      summary: 线索转化为主体，可选合同草稿
+      operationId: convertLead
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: lead_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeadConvert'
       responses:
         '200':
           description: OK
@@ -1783,6 +1844,7 @@ paths:
                     $ref: '#/components/schemas/Party'
                   lease:
                     $ref: '#/components/schemas/Lease'
+                    nullable: true
 
   /ai/bill-recognize/jobs:
     post:
@@ -2862,12 +2924,21 @@ components:
       type: object
       properties:
         id: { type: integer, format: int64 }
+        tenant_id: { type: integer, format: int64 }
         park_id: { type: integer, format: int64 }
         name: { type: string }
         contact_phone: { type: string }
-        status: { type: string }
+        contact_name: { type: string, nullable: true }
+        agent_name: { type: string, nullable: true }
+        status: { type: string, enum: [NEW, FOLLOWING, WON, LOST, CANCELLED] }
         intent_level: { type: string, nullable: true }
-        intent_area: { type: number, nullable: true }
+        intent_area: { type: string, nullable: true }
+        owner_user_id: { type: integer, format: int64, nullable: true }
+        party_id: { type: integer, format: int64, nullable: true }
+        lease_id: { type: integer, format: int64, nullable: true }
+        converted_at: { type: string, format: date-time, nullable: true }
+        lost_reason: { type: string, nullable: true }
+        remark: { type: string, nullable: true }
     LeadCreate:
       type: object
       required: [park_id, name, contact_phone]
@@ -2875,10 +2946,36 @@ components:
         park_id: { type: integer, format: int64 }
         name: { type: string }
         contact_phone: { type: string }
+        contact_name: { type: string }
         agent_name: { type: string }
         intent_level: { type: string }
         intent_area: { type: number }
         remark: { type: string }
+        owner_user_id: { type: integer, format: int64 }
+    LeadUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        contact_phone: { type: string }
+        contact_name: { type: string }
+        agent_name: { type: string }
+        intent_level: { type: string }
+        intent_area: { type: number }
+        remark: { type: string }
+        owner_user_id: { type: integer, format: int64, nullable: true }
+        status: { type: string }
+    LeadConvert:
+      type: object
+      properties:
+        unit_ids:
+          type: array
+          items: { type: integer, format: int64 }
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date }
+        party_type: { type: string, default: ORGANIZATION }
+        occupied_area: { type: number }
+        unit_rent_price: { type: number }
+        deposit_amount: { type: number }
     LeadPage:
       type: object
       properties:
