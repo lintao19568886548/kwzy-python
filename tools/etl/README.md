@@ -21,6 +21,7 @@ tools/etl/
 python tools/etl/dry_run.py
 python tools/etl/dry_run.py --mapping tools/etl/mapping/table_map.v1.yaml
 python tools/etl/run_asset_etl_drill.py --database-url postgresql+psycopg://... --out infra/local-staging/out/asset_etl/asset_etl.json
+python tools/etl/run_crm_etl_drill.py --database-url postgresql+psycopg://... --out infra/local-staging/out/crm_etl/crm_etl.json
 ```
 
 退出码：映射缺字段或非法状态时非 0。
@@ -28,5 +29,5 @@ python tools/etl/run_asset_etl_drill.py --database-url postgresql+psycopg://... 
 ## 状态
 
 `KWZY_DATA_MIGRATION_READINESS=CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA` —
-核心与资产合成数据已具备校验、首次应用、幂等重跑、对账与隔离回滚演练；
+核心、Identity、资产与招商 CRM 合成数据已具备校验、首次应用、幂等重跑、对账与隔离回滚演练；
 真实旧库仍需结构快照、脱敏样例和人工映射裁决，生产切换未获授权。

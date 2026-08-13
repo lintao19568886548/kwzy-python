@@ -119,6 +119,46 @@ nav a.router-link-active {
 @media (max-width: 900px) {
   .shell {
     grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: start;
+  }
+  .side {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  nav {
+    flex-direction: row;
+    gap: 0.25rem;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  nav a {
+    flex: 0 0 auto;
+    padding: 0.45rem 0.65rem;
+    white-space: nowrap;
+  }
+  .side-foot {
+    margin-top: 0;
+    flex-direction: row;
+    align-items: center;
+  }
+  .side-foot .muted {
+    display: none;
+  }
+  .side-foot .btn {
+    padding: 0.45rem 0.7rem;
+  }
+}
+@media (max-width: 560px) {
+  .side {
+    grid-template-columns: 1fr auto;
+  }
+  nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 }
 </style>

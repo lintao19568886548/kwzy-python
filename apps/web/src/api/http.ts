@@ -1,6 +1,18 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/stores/auth";
 
+export class ApiRequestError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly status: number,
+    public readonly data: unknown = null
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
+}
+
 export const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE || "/api/v1",
   timeout: 20000,
@@ -22,11 +34,13 @@ http.interceptors.response.use(
   (resp) => {
     const body = resp.data;
     if (body && typeof body === "object" && "code" in body && body.code !== "OK") {
-      return Promise.reject(new Error(body.message || body.code || "请求失败"));
+      return Promise.reject(
+        new ApiRequestError(body.message || body.code || "请求失败", body.code, resp.status, body.data)
+      );
     }
     return resp;
   },
-  async (err: AxiosError<{ message?: string; code?: string }>) => {
+  async (err: AxiosError<{ message?: string; code?: string; data?: unknown }>) => {
     const status = err.response?.status;
     const original = err.config as InternalAxiosRequestConfig & { _retry?: boolean };
     const auth = useAuthStore();
@@ -58,6 +72,13 @@ http.interceptors.response.use(
       err.response?.data?.code ||
       err.message ||
       "网络错误";
-    return Promise.reject(new Error(msg));
+    return Promise.reject(
+      new ApiRequestError(
+        msg,
+        err.response?.data?.code || "NETWORK_ERROR",
+        status || 0,
+        err.response?.data?.data ?? null
+      )
+    );
   }
 );

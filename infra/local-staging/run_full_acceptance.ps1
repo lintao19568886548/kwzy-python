@@ -114,6 +114,11 @@ try {
     & $Py (Join-Path $Root "tools\etl\run_asset_etl_drill.py") --database-url $pgUrl --out $assetReport
   }
 
+  Step "crm_etl_acceptance" {
+    $crmReport = Join-Path $ReportDir "crm_etl\crm_etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_crm_etl_drill.py") --database-url $pgUrl --out $crmReport
+  }
+
   Step "backup_restore" {
     $bakDir = Join-Path $ReportDir "backup"
     New-Item -ItemType Directory -Force -Path $bakDir | Out-Null
@@ -257,6 +262,7 @@ $summary = [ordered]@{
   etl_acceptance = (Join-Path $ReportDir "etl_acceptance")
   identity_etl = (Join-Path $ReportDir "identity_etl\identity_etl.json")
   asset_etl = (Join-Path $ReportDir "asset_etl\asset_etl.json")
+  crm_etl = (Join-Path $ReportDir "crm_etl\crm_etl.json")
   backup = (Join-Path $ReportDir "backup")
 }
 $summary | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding utf8

@@ -129,3 +129,63 @@ def test_step1_runtime_paths_covered_by_openapi() -> None:
             for op in openapi_with_prefix
         )
         assert found, f"runtime route {rp} not reflected in OpenAPI ({resource})"
+
+
+def test_investment_crm_v2_openapi_matches_runtime_and_legacy_stage_mapping() -> None:
+    """CRM V2 contract enumerates every route and makes FOLLOWING compatibility explicit."""
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    paths = document["paths"]
+    expected_methods = {
+        "/leads": {"get", "post"},
+        "/leads/duplicates/check": {"post"},
+        "/crm/assignees": {"get"},
+        "/crm/unit-locks/sweep": {"post"},
+        "/crm/summary": {"get"},
+        "/crm/board": {"get"},
+        "/leads/{lead_id}": {"get", "patch"},
+        "/leads/{lead_id}/activities": {"post"},
+        "/leads/{lead_id}/assign": {"post"},
+        "/leads/{lead_id}/claim": {"post"},
+        "/leads/{lead_id}/release": {"post"},
+        "/leads/{lead_id}/recycle": {"post"},
+        "/leads/{lead_id}/reopen": {"post"},
+        "/leads/{lead_id}/merge": {"post"},
+        "/leads/{lead_id}/unit-matches": {"get"},
+        "/leads/{lead_id}/unit-locks": {"post"},
+        "/leads/{lead_id}/unit-locks/{lock_id}/release": {"post"},
+        "/leads/{lead_id}/unit-locks/{lock_id}/renew": {"post"},
+        "/leads/{lead_id}/lose": {"post"},
+        "/leads/{lead_id}/convert": {"post"},
+    }
+    runtime_paths = create_app().openapi()["paths"]
+    for path, methods in expected_methods.items():
+        assert path in paths, f"CRM path absent from controlled YAML: {path}"
+        assert methods <= {key.lower() for key in paths[path]}, path
+        runtime_path = "/api/v1" + path
+        assert runtime_path in runtime_paths, f"CRM path absent at runtime: {runtime_path}"
+        assert methods <= {key.lower() for key in runtime_paths[runtime_path]}, path
+
+    schemas = document["components"]["schemas"]
+    current_stages = set(schemas["LeadStage"]["enum"])
+    accepted_filters = set(schemas["LeadStageFilter"]["enum"])
+    assert "FOLLOWING" not in current_stages
+    assert "CONTACTING" in current_stages
+    assert "FOLLOWING" in accepted_filters
+    assert schemas["LeadStageFilter"]["x-legacy-value-mapping"] == {
+        "FOLLOWING": "CONTACTING"
+    }
+    for command in (
+        "LeadUpdate",
+        "LeadActivityCreate",
+        "LeadAssign",
+        "LeadVersionCommand",
+        "LeadLose",
+        "LeadReopen",
+        "LeadMerge",
+        "LeadUnitLockCreate",
+        "LeadUnitLockCommand",
+        "LeadConvert",
+    ):
+        assert "expected_version" in schemas[command]["required"], command

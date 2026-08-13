@@ -58,15 +58,16 @@ def test_lead_create_list_follow_lose(client) -> None:
     updated = client.patch(
         f"/api/v1/leads/{lid}",
         headers=h,
-        json={"status": "FOLLOWING", "remark": "已约看房"},
+        json={"expected_version": lead["lock_version"], "status": "FOLLOWING", "remark": "已约看房"},
     )
     assert updated.status_code == 200, updated.text
-    assert updated.json()["data"]["status"] == "FOLLOWING"
+    updated_lead = updated.json()["data"]
+    assert updated_lead["status"] == "CONTACTING"
 
     lost = client.post(
         f"/api/v1/leads/{lid}/lose",
         headers=h,
-        json={"reason": "预算不够"},
+        json={"expected_version": updated_lead["lock_version"], "reason": "预算不够"},
     )
     assert lost.status_code == 200
     assert lost.json()["data"]["status"] == "LOST"
@@ -100,10 +101,23 @@ def test_lead_convert_to_party_and_lease(client) -> None:
         },
     ).json()["data"]
 
+    lock = client.post(
+        f"/api/v1/leads/{lead['id']}/unit-locks",
+        headers=h,
+        json={
+            "expected_version": lead["lock_version"],
+            "unit_id": unit["id"],
+            "duration_hours": 48,
+        },
+    )
+    assert lock.status_code == 200, lock.text
+    lock_data = lock.json()["data"]
+
     conv = client.post(
         f"/api/v1/leads/{lead['id']}/convert",
         headers=h,
         json={
+            "expected_version": lock_data["lead_lock_version"],
             "unit_ids": [unit["id"]],
             "start_date": "2026-04-01",
             "end_date": "2027-03-31",
@@ -147,7 +161,11 @@ def test_lead_convert_party_only(client) -> None:
             "contact_phone": "13700137000",
         },
     ).json()["data"]
-    conv = client.post(f"/api/v1/leads/{lead['id']}/convert", headers=h, json={})
+    conv = client.post(
+        f"/api/v1/leads/{lead['id']}/convert",
+        headers=h,
+        json={"expected_version": lead["lock_version"]},
+    )
     assert conv.status_code == 200, conv.text
     assert conv.json()["data"]["lead"]["status"] == "WON"
     assert conv.json()["data"]["party"]["id"] > 0

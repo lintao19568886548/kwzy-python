@@ -19,6 +19,7 @@ export const useAuthStore = defineStore("auth", {
     realName: "" as string,
     permissions: [] as string[],
     parkIds: [] as number[],
+    userId: 0 as number,
     tenantId: 0 as number,
   }),
   getters: {
@@ -48,6 +49,7 @@ export const useAuthStore = defineStore("auth", {
       const { data } = await http.get<Envelope<Record<string, unknown>>>("/auth/me");
       this.username = String(data.data.username || this.username);
       this.realName = String(data.data.real_name || "");
+      this.userId = Number(data.data.id || data.data.user_id || 0);
       this.tenantId = Number(data.data.tenant_id || 0);
       const perms = data.data.permissions;
       this.permissions = Array.isArray(perms) ? (perms as string[]) : [];
@@ -68,6 +70,7 @@ export const useAuthStore = defineStore("auth", {
       this.realName = "";
       this.permissions = [];
       this.parkIds = [];
+      this.userId = 0;
       this.tenantId = 0;
       this._persist();
     },

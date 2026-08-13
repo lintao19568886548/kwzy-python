@@ -303,7 +303,7 @@ class PartyService:
         ]
         return data
 
-    def create_party(self, data: dict[str, Any]) -> dict[str, Any]:
+    def create_party(self, data: dict[str, Any], *, commit: bool = True) -> dict[str, Any]:
         """功能说明：
             在当前租户创建主体，可选初始园区关系。
 
@@ -436,16 +436,19 @@ class PartyService:
             resource_id=model.id,
             detail={"party_type": model.party_type, "status": model.status},
         )
-        self.session.commit()
-        self.session.refresh(model)
-        log_business_success(
-            logger,
-            "创建主体成功",
-            ctx=self.ctx,
-            module="party",
-            action="create",
-            resource_id=model.id,
-        )
+        if commit:
+            self.session.commit()
+            self.session.refresh(model)
+            log_business_success(
+                logger,
+                "创建主体成功",
+                ctx=self.ctx,
+                module="party",
+                action="create",
+                resource_id=model.id,
+            )
+        else:
+            self.session.flush()
         return self.get_party(model.id)
 
     def update_party(self, party_id: int, data: dict[str, Any]) -> dict[str, Any]:

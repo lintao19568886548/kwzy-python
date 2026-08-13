@@ -41,6 +41,7 @@ from app.modules.lease.infrastructure.mappers import (
     LeaseContractUnitMapper,
     LeaseTermMapper,
 )
+from app.modules.investment.infrastructure.crm_repository import LeadUnitLockRepository
 from app.modules.park_property.infrastructure.park_repository import ParkRepository
 from app.modules.park_property.infrastructure.unit_repository import UnitRepository
 from app.modules.party.infrastructure.party_repository import PartyRepository
@@ -70,6 +71,7 @@ class LeaseService:
         self.units = UnitRepository(session, ctx)
         self.parties = PartyRepository(session, ctx)
         self.occupancy = OccupancyService(session, ctx)
+        self.lead_unit_locks = LeadUnitLockRepository(session, ctx)
         self.audit = AuditRecorder(session, ctx)
         self.work_items = WorkItemService(session, ctx)
 
@@ -278,7 +280,7 @@ class LeaseService:
         model = self._require_contract(contract_id)
         return self._to_dict(model, with_children=True)
 
-    def create_contract(self, data: dict[str, Any]) -> dict[str, Any]:
+    def create_contract(self, data: dict[str, Any], *, commit: bool = True) -> dict[str, Any]:
         """功能说明：
             创建 DRAFT 合同及可选占用/条款。
 
@@ -355,17 +357,20 @@ class LeaseService:
             park_id=park_id,
             detail={"contract_no": contract_no, "party_id": party_id},
         )
-        self.session.commit()
-        self.session.refresh(model)
-        log_business_success(
-            logger,
-            "创建合同成功",
-            ctx=self.ctx,
-            module="lease",
-            action="create",
-            resource_id=model.id,
-            park_id=park_id,
-        )
+        if commit:
+            self.session.commit()
+            self.session.refresh(model)
+            log_business_success(
+                logger,
+                "创建合同成功",
+                ctx=self.ctx,
+                module="lease",
+                action="create",
+                resource_id=model.id,
+                park_id=park_id,
+            )
+        else:
+            self.session.flush()
         return self.get_contract(int(model.id))
 
     def update_contract(self, contract_id: int, data: dict[str, Any]) -> dict[str, Any]:
@@ -495,6 +500,8 @@ class LeaseService:
             raise AppError("激活前须配置占用单元", code="LEASE_UNITS_REQUIRED", status_code=400)
 
         unit_area: list[tuple[Any, Decimal]] = []
+        consumed_locks: list[Any] = []
+        now = utc_now()
         for line in lines:
             # Serialize activation with structural version/split/merge writes.
             # A pending lease may only activate against the current unit version.
@@ -503,6 +510,21 @@ class LeaseService:
                 raise AppError("单元不存在", code="UNIT_NOT_FOUND", status_code=404)
             if int(unit.park_id) != int(model.park_id):
                 raise AppError("单元不属于合同园区", code="UNIT_PARK_MISMATCH", status_code=400)
+            active_lock = self.lead_unit_locks.active_for_unit(int(unit.id), for_update=True)
+            if active_lock is not None and active_lock.expires_at <= now:
+                active_lock.status = "EXPIRED"
+                active_lock.released_at = now
+                active_lock.lock_version += 1
+                self.session.add(active_lock)
+                active_lock = None
+            if active_lock is not None:
+                if int(active_lock.lease_id or 0) != int(model.id):
+                    raise AppError(
+                        "单元存在不属于当前合同的有效招商锁",
+                        code="UNIT_ALREADY_LOCKED",
+                        status_code=409,
+                    )
+                consumed_locks.append(active_lock)
             unit_area.append((unit, Decimal(str(line.occupied_area or 0))))
 
         self.occupancy.assert_can_activate_lines(contract_id=contract_id, lines=unit_area)
@@ -511,6 +533,11 @@ class LeaseService:
         self.contracts.save(model)
         for unit, _ in unit_area:
             self.occupancy.recompute_unit_used_area(unit)
+        for lock in consumed_locks:
+            lock.status = "CONSUMED"
+            lock.consumed_at = now
+            lock.lock_version += 1
+            self.session.add(lock)
         self._open_expiring_todo(model)
 
         self.audit.record(

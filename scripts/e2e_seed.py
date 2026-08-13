@@ -183,6 +183,23 @@ def main() -> int:
             role=asset_viewer_role,
             reset_password=True,
         )
+        crm_viewer_role = _ensure_role(
+            db,
+            tenant_id=tenant.id,
+            code="E2E_CRM_VIEWER",
+            name="E2E招商只读",
+            perm_codes=["park:read", "lead:read"],
+            all_parks=True,
+        )
+        _ensure_user(
+            db,
+            tenant_id=tenant.id,
+            username="e2e_crm_viewer",
+            password="viewer123",
+            real_name="招商只读用户",
+            role=crm_viewer_role,
+            reset_password=True,
+        )
 
         # Second tenant for cross-tenant isolation tests
         t2 = db.scalars(select(Tenant).where(Tenant.code == "tenant_b")).first()
@@ -277,7 +294,7 @@ def main() -> int:
             "E2E_SEED=OK "
             f"tenant=default park_id={park.id} "
             "admin=admin e2e_limited=e2e_limited "
-            "e2e_asset_viewer=e2e_asset_viewer tenant_b=admin_b"
+            "e2e_asset_viewer=e2e_asset_viewer e2e_crm_viewer=e2e_crm_viewer tenant_b=admin_b"
         )
         return 0
     except Exception as exc:

@@ -158,14 +158,25 @@ function scopeMode(row: { all_parks: boolean; park_ids: number[] }): ScopeMode {
   return row.park_ids.length ? "LIST" : "NONE";
 }
 
-function flash(message: string) {
+let latestMutationId = 0;
+let successTimer: number | undefined;
+
+function beginMutation() {
+  error.value = "";
+  return ++latestMutationId;
+}
+
+function flash(message: string, mutationId: number) {
+  if (mutationId !== latestMutationId) return;
   success.value = message;
-  window.setTimeout(() => {
-    success.value = "";
+  if (successTimer !== undefined) window.clearTimeout(successTimer);
+  successTimer = window.setTimeout(() => {
+    if (mutationId === latestMutationId) success.value = "";
   }, 2500);
 }
 
-function fail(reason: unknown) {
+function fail(reason: unknown, mutationId?: number) {
+  if (mutationId !== undefined && mutationId !== latestMutationId) return;
   error.value = reason instanceof Error ? reason.message : "操作失败";
 }
 
@@ -219,14 +230,15 @@ async function loadDictItems() {
 
 async function createOrg() {
   if (saving.value) return;
+  const mutationId = beginMutation();
   saving.value = true;
   try {
     await http.post("/system/org-units", orgForm.value);
     orgForm.value = { code: "", name: "" };
-    flash("组织已创建");
+    flash("组织已创建", mutationId);
     await load();
   } catch (reason) {
-    fail(reason);
+    fail(reason, mutationId);
   } finally {
     saving.value = false;
   }
@@ -234,14 +246,15 @@ async function createOrg() {
 
 async function saveParam() {
   if (saving.value) return;
+  const mutationId = beginMutation();
   saving.value = true;
   try {
     await http.put("/system/params", paramForm.value);
     paramForm.value = { param_key: "", param_value: "", is_secret: false };
-    flash("参数已保存");
+    flash("参数已保存", mutationId);
     await load();
   } catch (reason) {
-    fail(reason);
+    fail(reason, mutationId);
   } finally {
     saving.value = false;
   }
@@ -253,6 +266,7 @@ async function saveUser() {
     error.value = "新用户密码至少 6 位";
     return;
   }
+  const mutationId = beginMutation();
   saving.value = true;
   try {
     const scope = scopePayload(userForm.value.scope_mode, userForm.value.park_ids);
@@ -267,19 +281,19 @@ async function saveUser() {
         ...common,
         ...(userForm.value.password ? { password: userForm.value.password } : {}),
       });
-      flash("用户授权已更新，旧会话已失效");
+      flash("用户授权已更新，旧会话已失效", mutationId);
     } else {
       await http.post("/system/users", {
         username: userForm.value.username,
         password: userForm.value.password,
         ...common,
       });
-      flash("用户已创建");
+      flash("用户已创建", mutationId);
     }
     userForm.value = emptyUserForm();
     await load();
   } catch (reason) {
-    fail(reason);
+    fail(reason, mutationId);
   } finally {
     saving.value = false;
   }
@@ -301,31 +315,34 @@ function editUser(user: UserRow) {
 
 async function setUserStatus(user: UserRow, enabled: boolean) {
   if (!window.confirm(enabled ? "确认启用该用户？" : "确认停用该用户？")) return;
+  const mutationId = beginMutation();
   try {
     if (enabled) {
       await http.put(`/system/users/${user.id}`, { status: "ACTIVE" });
     } else {
       await http.delete(`/system/users/${user.id}`);
     }
-    flash(enabled ? "用户已启用" : "用户已停用，旧会话已失效");
+    flash(enabled ? "用户已启用" : "用户已停用，旧会话已失效", mutationId);
     await load();
   } catch (reason) {
-    fail(reason);
+    fail(reason, mutationId);
   }
 }
 
 async function revokeUserSessions(user: UserRow) {
   if (!window.confirm(`确认撤销 ${user.username} 的全部会话？`)) return;
+  const mutationId = beginMutation();
   try {
     await http.post(`/system/users/${user.id}/revoke-sessions`);
-    flash("用户会话已撤销");
+    flash("用户会话已撤销", mutationId);
   } catch (reason) {
-    fail(reason);
+    fail(reason, mutationId);
   }
 }
 
 async function saveRole() {
   if (saving.value) return;
+  const mutationId = beginMutation();
   saving.value = true;
   try {
     const payload = {
@@ -337,18 +354,18 @@ async function saveRole() {
     };
     if (roleForm.value.id) {
       await http.put(`/system/roles/${roleForm.value.id}`, payload);
-      flash("角色授权已更新，相关用户旧会话已失效");
+      flash("角色授权已更新，相关用户旧会话已失效", mutationId);
     } else {
       await http.post("/system/roles", {
         code: roleForm.value.code,
         ...payload,
       });
-      flash("角色已创建");
+      flash("角色已创建", mutationId);
     }
     roleForm.value = emptyRoleForm();
     await load();
   } catch (reason) {
-    fail(reason);
+    fail(reason, mutationId);
   } finally {
     saving.value = false;
   }
@@ -370,17 +387,19 @@ function editRole(role: RoleRow) {
 
 async function deactivateRole(role: RoleRow) {
   if (!window.confirm(`确认停用角色 ${role.code}？`)) return;
+  const mutationId = beginMutation();
   try {
     await http.put(`/system/roles/${role.id}`, { status: "DISABLED" });
-    flash("角色已停用，相关用户旧会话已失效");
+    flash("角色已停用，相关用户旧会话已失效", mutationId);
     await load();
   } catch (reason) {
-    fail(reason);
+    fail(reason, mutationId);
   }
 }
 
 async function saveMenu() {
   if (saving.value) return;
+  const mutationId = beginMutation();
   saving.value = true;
   try {
     const payload = {
@@ -393,15 +412,15 @@ async function saveMenu() {
     };
     if (menuForm.value.id) {
       await http.put(`/system/menus/${menuForm.value.id}`, payload);
-      flash("菜单已更新");
+      flash("菜单已更新", mutationId);
     } else {
       await http.post("/system/menus", payload);
-      flash("菜单已创建");
+      flash("菜单已创建", mutationId);
     }
     menuForm.value = emptyMenuForm();
     await load();
   } catch (reason) {
-    fail(reason);
+    fail(reason, mutationId);
   } finally {
     saving.value = false;
   }
@@ -421,27 +440,29 @@ function editMenu(menu: MenuRow) {
 
 async function deactivateMenu(menu: MenuRow) {
   if (!window.confirm(`确认停用菜单 ${menu.name} 及其子菜单？`)) return;
+  const mutationId = beginMutation();
   try {
     await http.delete(`/system/menus/${menu.id}`);
-    flash("菜单及子菜单已停用");
+    flash("菜单及子菜单已停用", mutationId);
     await load();
   } catch (reason) {
-    fail(reason);
+    fail(reason, mutationId);
   }
 }
 
 async function createDictType() {
   if (saving.value) return;
+  const mutationId = beginMutation();
   saving.value = true;
   try {
     await http.post("/system/dict-types", dictTypeForm.value);
     dictCode.value = dictTypeForm.value.code;
     dictTypeForm.value = { code: "", name: "" };
-    flash("字典类型已创建");
+    flash("字典类型已创建", mutationId);
     await load();
     await loadDictItems();
   } catch (reason) {
-    fail(reason);
+    fail(reason, mutationId);
   } finally {
     saving.value = false;
   }
@@ -449,14 +470,15 @@ async function createDictType() {
 
 async function createDictItem() {
   if (saving.value) return;
+  const mutationId = beginMutation();
   saving.value = true;
   try {
     await http.post(`/system/dict-types/${dictCode.value}/items`, dictItemForm.value);
     dictItemForm.value = { item_label: "", item_value: "" };
-    flash("字典项已创建");
+    flash("字典项已创建", mutationId);
     await loadDictItems();
   } catch (reason) {
-    fail(reason);
+    fail(reason, mutationId);
   } finally {
     saving.value = false;
   }

@@ -58,10 +58,18 @@ def test_main_chain_happy_path(client) -> None:
             "intent_level": "HIGH",
         },
     ).json()["data"]
+    lock = client.post(
+        f"/api/v1/leads/{lead['id']}/unit-locks",
+        headers=h,
+        json={"expected_version": lead["lock_version"], "unit_id": unit["id"]},
+    )
+    assert lock.status_code == 200, lock.text
+    lead_version = lock.json()["data"]["lead_lock_version"]
     conv = client.post(
         f"/api/v1/leads/{lead['id']}/convert",
         headers=h,
         json={
+            "expected_version": lead_version,
             "unit_ids": [unit["id"]],
             "start_date": "2026-06-01",
             "end_date": "2027-05-31",
@@ -80,6 +88,11 @@ def test_main_chain_happy_path(client) -> None:
     act = client.post(f"/api/v1/leases/{lease_id}/activate", headers=h)
     assert act.status_code == 200, act.text
     assert act.json()["data"]["status"] == "ACTIVE"
+    lead_after_activation = client.get(
+        f"/api/v1/leads/{lead['id']}", headers=h
+    ).json()["data"]
+    assert lead_after_activation["unit_locks"][0]["status"] == "CONSUMED"
+    assert lead_after_activation["unit_locks"][0]["consumed_at"] is not None
 
     # 到期待办已开
     todos = client.get(

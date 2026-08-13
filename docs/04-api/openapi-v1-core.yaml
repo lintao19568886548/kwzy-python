@@ -5,7 +5,7 @@ info:
   description: |
     AI 智慧园区平台核心主链 OpenAPI v1.1（05.1 修订）。
     统一 snake_case；统一响应 envelope；Payment=收款登记；Bill 无 OVERDUE 主状态。
-    覆盖：认证、园区/单元、合同、账单、收款催缴、线索转化。
+    覆盖：认证、园区/单元、合同、账单、收款催缴、招商 CRM 漏斗与线索转化。
     响应约定：成功/失败均为 {code, message, data}；错误见 ErrorResponse。
     路径与字段一律 snake_case。
 servers:
@@ -1939,10 +1939,16 @@ paths:
           schema: { type: integer, format: int64 }
         - name: status
           in: query
-          schema: { type: string, enum: [NEW, FOLLOWING, WON, LOST, CANCELLED] }
+          schema:
+            $ref: '#/components/schemas/LeadStageFilter'
         - name: keyword
           in: query
           schema: { type: string }
+        - { name: owner_user_id, in: query, schema: { type: integer, format: int64 } }
+        - { name: pool_status, in: query, schema: { $ref: '#/components/schemas/LeadPoolStatus' } }
+        - { name: source_type, in: query, schema: { type: string } }
+        - { name: created_from, in: query, schema: { type: string, format: date-time } }
+        - { name: created_to, in: query, schema: { type: string, format: date-time } }
       responses:
         '200':
           description: OK
@@ -1969,6 +1975,85 @@ paths:
               schema:
                 $ref: '#/components/schemas/Lead'
 
+  /leads/duplicates/check:
+    post:
+      tags: [Leads]
+      summary: 查询租户授权园区范围内的重复线索候选
+      operationId: checkLeadDuplicates
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeadDuplicateQuery' }
+      responses:
+        '200': { description: 已脱敏且按置信原因排序的候选列表 }
+        '403':
+          description: 无查看权限
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+
+  /crm/assignees:
+    get:
+      tags: [Leads]
+      summary: 获取当前租户可选负责人（经理权限）
+      operationId: listCrmAssignees
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 可选负责人列表 }
+        '403': { description: 无线索管理权限 }
+
+  /crm/unit-locks/sweep:
+    post:
+      tags: [Leads]
+      summary: 清理已到期房源锁并恢复合法空置投影
+      operationId: sweepCrmUnitLocks
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: park_id, in: query, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 清理数量与 UTC 截止时间 }
+        '403': { description: 无线索管理权限 }
+
+  /crm/summary:
+    get:
+      tags: [Leads]
+      summary: 获取与线索列表同口径的招商漏斗指标
+      operationId: getCrmSummary
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/LeadStageFilter' } }
+        - { name: park_id, in: query, schema: { type: integer, format: int64 } }
+        - { name: keyword, in: query, schema: { type: string } }
+        - { name: owner_user_id, in: query, schema: { type: integer, format: int64 } }
+        - { name: pool_status, in: query, schema: { $ref: '#/components/schemas/LeadPoolStatus' } }
+        - { name: source_type, in: query, schema: { type: string } }
+        - { name: created_from, in: query, schema: { type: string, format: date-time } }
+        - { name: created_to, in: query, schema: { type: string, format: date-time } }
+      responses:
+        '200':
+          description: 汇总结果
+          content: { application/json: { schema: { $ref: '#/components/schemas/CrmSummary' } } }
+
+  /crm/board:
+    get:
+      tags: [Leads]
+      summary: 获取与线索列表同口径的招商阶段看板
+      operationId: getCrmBoard
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/LeadStageFilter' } }
+        - { name: park_id, in: query, schema: { type: integer, format: int64 } }
+        - { name: keyword, in: query, schema: { type: string } }
+        - { name: owner_user_id, in: query, schema: { type: integer, format: int64 } }
+        - { name: pool_status, in: query, schema: { $ref: '#/components/schemas/LeadPoolStatus' } }
+        - { name: source_type, in: query, schema: { type: string } }
+        - { name: created_from, in: query, schema: { type: string, format: date-time } }
+        - { name: created_to, in: query, schema: { type: string, format: date-time } }
+      responses:
+        '200':
+          description: 阶段列及线索
+          content: { application/json: { schema: { $ref: '#/components/schemas/CrmBoard' } } }
+
   /leads/{lead_id}:
     get:
       tags: [Leads]
@@ -1986,7 +2071,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Lead'
+                $ref: '#/components/schemas/LeadDetail'
     patch:
       tags: [Leads]
       summary: 更新线索
@@ -2011,6 +2096,171 @@ paths:
               schema:
                 $ref: '#/components/schemas/Lead'
 
+  /leads/{lead_id}/activities:
+    post:
+      tags: [Leads]
+      summary: 追加线索活动并可推进阶段
+      operationId: addLeadActivity
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: lead_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LeadActivityCreate' } } }
+      responses:
+        '200': { description: 活动已追加 }
+        '409': { description: 线索版本冲突 }
+
+  /leads/{lead_id}/assign:
+    post:
+      tags: [Leads]
+      summary: 分配或转派负责人并追加归属事件
+      operationId: assignLead
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: lead_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LeadAssign' } } }
+      responses:
+        '200': { description: 已分配 }
+        '403': { description: 无线索管理权限 }
+        '409': { description: 线索版本冲突 }
+
+  /leads/{lead_id}/claim:
+    post:
+      tags: [Leads]
+      summary: 原子领取公海线索
+      operationId: claimLead
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: lead_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LeadVersionCommand' } } }
+      responses:
+        '200': { description: 领取成功 }
+        '409': { description: 已被领取或版本冲突 }
+
+  /leads/{lead_id}/release:
+    post:
+      tags: [Leads]
+      summary: 释放私有线索到公海
+      operationId: releaseLead
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: lead_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LeadVersionCommand' } } }
+      responses:
+        '200': { description: 已释放 }
+        '409': { description: 线索版本冲突 }
+
+  /leads/{lead_id}/recycle:
+    post:
+      tags: [Leads]
+      summary: 到期回收私有线索
+      operationId: recycleLead
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: lead_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LeadVersionCommand' } } }
+      responses:
+        '200': { description: 已回收或已处于公海 }
+        '409': { description: 尚未到回收时间或版本冲突 }
+
+  /leads/{lead_id}/reopen:
+    post:
+      tags: [Leads]
+      summary: 以原因重开输单线索
+      operationId: reopenLead
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: lead_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LeadReopen' } } }
+      responses:
+        '200': { description: 已重开 }
+        '409': { description: 线索版本冲突 }
+
+  /leads/{lead_id}/merge:
+    post:
+      tags: [Leads]
+      summary: 合并同园区重复线索并保留来源链
+      operationId: mergeLead
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: lead_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LeadMerge' } } }
+      responses:
+        '200': { description: 返回 MERGED 来源与保留目标 }
+        '409': { description: 任一线索版本冲突 }
+
+  /leads/{lead_id}/unit-matches:
+    get:
+      tags: [Leads]
+      summary: 获取可解释的当前空置房源匹配
+      operationId: matchLeadUnits
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: lead_id, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      responses:
+        '200': { description: 按得分、面积差与单元 ID 确定性排序 }
+
+  /leads/{lead_id}/unit-locks:
+    post:
+      tags: [Leads]
+      summary: 为线索原子锁定房源
+      operationId: acquireLeadUnitLock
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: lead_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LeadUnitLockCreate' } } }
+      responses:
+        '200': { description: 锁定成功 }
+        '409': { description: 房源已锁或版本冲突 }
+
+  /leads/{lead_id}/unit-locks/{lock_id}/release:
+    post:
+      tags: [Leads]
+      summary: 释放房源锁
+      operationId: releaseLeadUnitLock
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: lead_id, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: lock_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LeadUnitLockCommand' } } }
+      responses:
+        '200': { description: 已释放 }
+        '409': { description: 房源锁版本冲突 }
+
+  /leads/{lead_id}/unit-locks/{lock_id}/renew:
+    post:
+      tags: [Leads]
+      summary: 续期有效房源锁
+      operationId: renewLeadUnitLock
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: lead_id, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: lock_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LeadUnitLockCommand' } } }
+      responses:
+        '200': { description: 已续期 }
+        '409': { description: 锁已失效或版本冲突 }
+
   /leads/{lead_id}/lose:
     post:
       tags: [Leads]
@@ -2023,12 +2273,11 @@ paths:
           required: true
           schema: { type: integer, format: int64 }
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                reason: { type: string }
+              $ref: '#/components/schemas/LeadLose'
       responses:
         '200':
           description: OK
@@ -2045,6 +2294,7 @@ paths:
           required: true
           schema: { type: integer, format: int64 }
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -3461,62 +3711,225 @@ components:
           items:
             $ref: '#/components/schemas/CollectionCase'
 
+    LeadStage:
+      type: string
+      enum: [NEW, CONTACTING, VISITING, QUOTING, NEGOTIATING, WON, LOST, CANCELLED, MERGED]
+    LeadStageFilter:
+      type: string
+      enum: [NEW, CONTACTING, VISITING, QUOTING, NEGOTIATING, WON, LOST, CANCELLED, MERGED, FOLLOWING]
+      description: FOLLOWING 仅为旧客户端兼容输入，服务端确定性映射为 CONTACTING；响应永不返回 FOLLOWING。
+      x-legacy-value-mapping:
+        FOLLOWING: CONTACTING
+    LeadPoolStatus:
+      type: string
+      enum: [PUBLIC, PRIVATE]
     Lead:
       type: object
+      required: [id, tenant_id, park_id, name, contact_phone, status, source_type, pool_status, lock_version, public_summary]
       properties:
         id: { type: integer, format: int64 }
         tenant_id: { type: integer, format: int64 }
         park_id: { type: integer, format: int64 }
         name: { type: string }
-        contact_phone: { type: string }
+        contact_phone: { type: string, description: 公海只读摘要可能被掩码 }
         contact_name: { type: string, nullable: true }
         agent_name: { type: string, nullable: true }
-        status: { type: string, enum: [NEW, FOLLOWING, WON, LOST, CANCELLED] }
         intent_level: { type: string, nullable: true }
         intent_area: { type: string, nullable: true }
+        desired_usage: { type: string, nullable: true }
+        budget_unit_price: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/LeadStage' }
+        source_type: { type: string }
+        source_ref: { type: string, nullable: true }
+        pool_status: { $ref: '#/components/schemas/LeadPoolStatus' }
+        remark: { type: string, nullable: true }
         owner_user_id: { type: integer, format: int64, nullable: true }
         party_id: { type: integer, format: int64, nullable: true }
         lease_id: { type: integer, format: int64, nullable: true }
         converted_at: { type: string, format: date-time, nullable: true }
         lost_reason: { type: string, nullable: true }
-        remark: { type: string, nullable: true }
+        merged_into_lead_id: { type: integer, format: int64, nullable: true }
+        assigned_at: { type: string, format: date-time, nullable: true }
+        first_contact_at: { type: string, format: date-time, nullable: true }
+        last_activity_at: { type: string, format: date-time, nullable: true }
+        next_follow_up_at: { type: string, format: date-time, nullable: true }
+        recycle_due_at: { type: string, format: date-time, nullable: true }
+        overdue: { type: boolean }
+        lock_version: { type: integer, minimum: 1 }
+        public_summary: { type: boolean }
+        created_at: { type: string, format: date-time, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+    LeadActivity:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        activity_type: { type: string, enum: [CALL, NOTE, VISIT, QUOTE, NEGOTIATION, SYSTEM] }
+        content: { type: string }
+        actor_user_id: { type: integer, format: int64, nullable: true }
+        occurred_at: { type: string, format: date-time }
+        next_follow_up_at: { type: string, format: date-time, nullable: true }
+        stage_from: { $ref: '#/components/schemas/LeadStage' }
+        stage_to: { $ref: '#/components/schemas/LeadStage' }
+        attributes: { type: object, additionalProperties: true }
+    LeadAssignmentEvent:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        event_type: { type: string, enum: [ASSIGN, REASSIGN, CLAIM, RELEASE, RECYCLE] }
+        from_owner_user_id: { type: integer, format: int64, nullable: true }
+        to_owner_user_id: { type: integer, format: int64, nullable: true }
+        reason: { type: string, nullable: true }
+        actor_user_id: { type: integer, format: int64, nullable: true }
+        occurred_at: { type: string, format: date-time }
+    LeadUnitLock:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        lead_id: { type: integer, format: int64 }
+        unit_id: { type: integer, format: int64 }
+        lease_id: { type: integer, format: int64, nullable: true }
+        status: { type: string, enum: [ACTIVE, RELEASED, EXPIRED] }
+        expires_at: { type: string, format: date-time }
+        released_at: { type: string, format: date-time, nullable: true }
+        consumed_at: { type: string, format: date-time, nullable: true }
+        lock_version: { type: integer, minimum: 1 }
+    LeadDetail:
+      allOf:
+        - $ref: '#/components/schemas/Lead'
+        - type: object
+          properties:
+            activities:
+              type: array
+              items: { $ref: '#/components/schemas/LeadActivity' }
+            assignment_events:
+              type: array
+              items: { $ref: '#/components/schemas/LeadAssignmentEvent' }
+            merged_sources:
+              type: array
+              items: { type: integer, format: int64 }
+            unit_locks:
+              type: array
+              items: { $ref: '#/components/schemas/LeadUnitLock' }
     LeadCreate:
       type: object
       required: [park_id, name, contact_phone]
       properties:
         park_id: { type: integer, format: int64 }
-        name: { type: string }
-        contact_phone: { type: string }
-        contact_name: { type: string }
-        agent_name: { type: string }
-        intent_level: { type: string }
-        intent_area: { type: number }
-        remark: { type: string }
-        owner_user_id: { type: integer, format: int64 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        contact_phone: { type: string, minLength: 5, maxLength: 32 }
+        contact_name: { type: string, nullable: true }
+        agent_name: { type: string, nullable: true }
+        intent_level: { type: string, nullable: true }
+        intent_area: { type: number, minimum: 0, nullable: true }
+        desired_usage: { type: string, nullable: true }
+        budget_unit_price: { type: number, minimum: 0, nullable: true }
+        remark: { type: string, nullable: true }
+        owner_user_id: { type: integer, format: int64, nullable: true }
+        pool_status: { $ref: '#/components/schemas/LeadPoolStatus' }
+        source_type: { type: string, default: MANUAL }
+        source_ref: { type: string, nullable: true }
+        duplicate_override_reason: { type: string, nullable: true }
+        next_follow_up_at: { type: string, format: date-time, nullable: true }
     LeadUpdate:
       type: object
+      required: [expected_version]
       properties:
-        name: { type: string }
-        contact_phone: { type: string }
-        contact_name: { type: string }
-        agent_name: { type: string }
-        intent_level: { type: string }
-        intent_area: { type: number }
-        remark: { type: string }
-        owner_user_id: { type: integer, format: int64, nullable: true }
-        status: { type: string }
+        expected_version: { type: integer, minimum: 1 }
+        name: { type: string, nullable: true }
+        contact_phone: { type: string, nullable: true }
+        contact_name: { type: string, nullable: true }
+        agent_name: { type: string, nullable: true }
+        intent_level: { type: string, nullable: true }
+        intent_area: { type: number, minimum: 0, nullable: true }
+        desired_usage: { type: string, nullable: true }
+        budget_unit_price: { type: number, minimum: 0, nullable: true }
+        remark: { type: string, nullable: true }
+        status: { $ref: '#/components/schemas/LeadStageFilter' }
+        stage_reason: { type: string, nullable: true }
+    LeadDuplicateQuery:
+      type: object
+      required: [park_id, name, contact_phone]
+      properties:
+        park_id: { type: integer, format: int64 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        contact_phone: { type: string, minLength: 5, maxLength: 32 }
+        source_type: { type: string, default: MANUAL }
+        source_ref: { type: string, nullable: true }
+    LeadActivityCreate:
+      type: object
+      required: [expected_version, activity_type, content]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        activity_type: { type: string, enum: [CALL, NOTE, VISIT, QUOTE, NEGOTIATION] }
+        content: { type: string, minLength: 1 }
+        next_follow_up_at: { type: string, format: date-time, nullable: true }
+        stage_to: { $ref: '#/components/schemas/LeadStageFilter' }
+        attributes: { type: object, additionalProperties: true }
+    LeadAssign:
+      type: object
+      required: [expected_version, owner_user_id]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        owner_user_id: { type: integer, format: int64 }
+        reason: { type: string, nullable: true }
+    LeadVersionCommand:
+      type: object
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, nullable: true }
+    LeadLose:
+      type: object
+      required: [expected_version, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 255 }
+    LeadReopen:
+      type: object
+      required: [expected_version, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 255 }
+        target_status:
+          type: string
+          enum: [NEW, CONTACTING, VISITING, QUOTING, NEGOTIATING]
+          default: CONTACTING
+    LeadMerge:
+      type: object
+      required: [expected_version, target_lead_id, target_expected_version, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        target_lead_id: { type: integer, format: int64 }
+        target_expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 255 }
+    LeadUnitLockCreate:
+      type: object
+      required: [expected_version, unit_id]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        unit_id: { type: integer, format: int64 }
+        duration_hours: { type: integer, minimum: 1, maximum: 168, default: 48 }
+    LeadUnitLockCommand:
+      type: object
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        duration_hours: { type: integer, minimum: 1, maximum: 168, default: 48 }
     LeadConvert:
       type: object
+      required: [expected_version]
       properties:
+        expected_version: { type: integer, minimum: 1 }
         unit_ids:
           type: array
           items: { type: integer, format: int64 }
-        start_date: { type: string, format: date }
-        end_date: { type: string, format: date }
-        party_type: { type: string, default: ORGANIZATION }
-        occupied_area: { type: number }
-        unit_rent_price: { type: number }
-        deposit_amount: { type: number }
+          description: 建合同草稿时必须是本线索持有的有效锁定单元；空数组仅创建主体。
+        start_date: { type: string, format: date, nullable: true }
+        end_date: { type: string, format: date, nullable: true }
+        party_type: { type: string, enum: [ORGANIZATION, PERSON], default: ORGANIZATION }
+        occupied_area: { type: number, exclusiveMinimum: 0, nullable: true }
+        unit_rent_price: { type: number, minimum: 0, nullable: true }
+        deposit_amount: { type: number, minimum: 0, nullable: true }
     LeadPage:
       type: object
       properties:
@@ -3525,8 +3938,54 @@ components:
         page_size: { type: integer }
         items:
           type: array
+          items: { $ref: '#/components/schemas/Lead' }
+    CrmSummary:
+      type: object
+      properties:
+        as_of_utc: { type: string, format: date-time }
+        counts:
+          type: object
+          properties:
+            total: { type: integer }
+            new: { type: integer }
+            open: { type: integer }
+            won: { type: integer }
+            lost: { type: integer }
+            public: { type: integer }
+            overdue: { type: integer }
+        stage_counts:
+          type: object
+          additionalProperties: { type: integer }
+        conversion_rate: { type: number, minimum: 0, maximum: 1 }
+        average_first_follow_seconds: { type: number, minimum: 0, nullable: true }
+        source_breakdown:
+          type: array
           items:
-            $ref: '#/components/schemas/Lead'
+            type: object
+            properties:
+              source_type: { type: string }
+              count: { type: integer }
+        owner_breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              owner_user_id: { type: integer, format: int64, nullable: true }
+              count: { type: integer }
+    CrmBoard:
+      type: object
+      properties:
+        total: { type: integer }
+        columns:
+          type: array
+          items:
+            type: object
+            properties:
+              status: { $ref: '#/components/schemas/LeadStage' }
+              count: { type: integer }
+              items:
+                type: array
+                items: { $ref: '#/components/schemas/Lead' }
 
 
     CollectionCaseCreate:

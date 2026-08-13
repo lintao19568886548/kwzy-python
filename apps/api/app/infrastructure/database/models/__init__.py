@@ -35,7 +35,13 @@ from app.infrastructure.database.models.party import (
     PartyRole,
 )
 from app.infrastructure.database.models.workbench import WorkItem
-from app.infrastructure.database.models.investment import Lead
+from app.infrastructure.database.models.investment import (
+    Lead,
+    LeadActivity,
+    LeadAssignmentEvent,
+    LeadMergeLink,
+    LeadUnitLock,
+)
 from app.infrastructure.database.models.system_config import (
     DictItem,
     DictType,
@@ -86,6 +92,10 @@ __all__ = [
     "IdempotencyKey",
     "WorkItem",
     "Lead",
+    "LeadActivity",
+    "LeadAssignmentEvent",
+    "LeadMergeLink",
+    "LeadUnitLock",
     "OrgUnit",
     "DictType",
     "DictItem",
