@@ -7,7 +7,7 @@
 ## 当前整改纵切
 
 - 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
-- OpenSpec：设施设备/巡检/IoT 39 项任务的实现与 clean-SHA 证据已闭合，8 份 delta 待本次正常同步归档；`complete-investment-crm-journey` 因任务 5.5 的 `revoked` 与审批 delta 状态定义冲突保持 active、未同步归档。
+- OpenSpec：设施设备/巡检/IoT 39/39 任务、8 份主规格已同步并归档为 `2026-08-14-complete-facility-device-inspection-iot`，归档后 strict 101/101；`complete-investment-crm-journey` 因任务 5.5 的 `revoked` 与审批 delta 状态定义冲突保持 active、未同步归档。
 - 已关闭证据：受控设备台账和追加式历史、模板发布版本、周计划和确定性任务、类型化巡检、异常/漏检转 WorkItem/WorkOrder、IoT 提供方真相/绑定历史、严格授权幂等摄入、告警关联/升级/处置及 PC 响应式工作区。精确 `e28678b` 的 PG16、352 条后端、60 条全量浏览器、32 个 runtime/YAML 方法对、性能、备份恢复和合成 ETL 总门禁均通过。
 - 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 

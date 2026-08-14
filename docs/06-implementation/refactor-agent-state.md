@@ -9,10 +9,10 @@
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
 | 已验证 HEAD | `e28678b5785b7f8bf03141bd7cffbd162932315b`：设施设备/巡检/IoT 35/35 精确提交全验收，352 后端、60 浏览器、前端四门禁、OpenAPI/OpenSpec、1000/25 性能、备份恢复和合成迁移通过 |
 | 远程同步 | 实现及修复至 `e28678b5785b7f8bf03141bd7cffbd162932315b` 已正常推送到 `origin/feat/full-rebuild-completion`；未 force、未触达 main |
-| 工作树 | 待提交本纵切 clean-SHA 报告、3 张新视觉证据、8 份主规格和归档；11 张用户视觉证据及 7 张本轮无关重生成证据继续保持未暂存、不得删除或还原 |
+| 工作树 | clean-SHA 证据提交 `ea15519` 已推送，待提交 8 份主规格和归档；11 张用户视觉证据及 7 张本轮无关重生成证据继续保持未暂存、不得删除或还原 |
 | Alembic | 唯一 head `z2c80e5f6a64`；PG16 fresh head、`current == heads`、`head→-1→head`、130 表备份删除恢复通过，既有历史迁移未修改 |
 | 当前阶段 | 独立验收为 10 implemented / 1 blocked / 9 missing；组合能力 1–10 已关闭本地产品范围，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | 设施设备/巡检/IoT 39 项任务的实现和 clean-SHA 证据已闭合，8 份 delta 待本次同步归档；CRM `revoked` 语义冲突仍保持 active |
+| 当前 OpenSpec | 设施设备/巡检/IoT 39/39，8 份主规格已同步并归档为 `2026-08-14-complete-facility-device-inspection-iot`，归档后 strict 101/101；CRM `revoked` 语义冲突仍保持 active |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -182,7 +182,7 @@
 
 ## 下一恢复点
 
-1. 提交设施设备/巡检/IoT clean-SHA 机器证据、主规格与归档并正常推送。
+1. 提交设施设备/巡检/IoT 主规格与归档并正常推送。
 2. 从能力矩阵第 13 项档案、签章、印章进入下一纵切，继续关闭剩余 9 个 `MISSING`。
 3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 

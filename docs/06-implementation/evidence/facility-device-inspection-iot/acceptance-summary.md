@@ -26,7 +26,7 @@
 | 前端 | ESLint 0 warning；vue-tsc 通过；3 文件/6 Vitest；144 modules production build |
 | 浏览器 | 60 Playwright / 0 failed / 0 skipped；真实 PG16 + FastAPI + production Vite；设施主旅程 1/1 |
 | OpenAPI | 14/14 契约测试及 YAML OpenAPI 3.1 strict；设施 runtime/YAML 32 个方法精确一致 |
-| OpenSpec | 精确实现提交 strict 94/94；39 项任务和 8 份 delta |
+| OpenSpec | 精确实现提交 strict 94/94；39/39 任务、8 份主规格同步并归档后 strict 101/101 |
 | 性能 | 登录后 1000 请求、并发 25、预热 40；p95 320.076 ms、135.6 RPS、0% 错误 |
 | 合成迁移 | 4 台设备、4 条历史、1 条隔离；dry/interruption/apply/reapply/reconcile/rollback 全部通过；伪造计划/绑定/告警均为 0 |
 | 密钥扫描 | tracked + untracked non-ignored 982 文件，0 hits |
