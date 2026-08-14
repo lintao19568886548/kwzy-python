@@ -173,6 +173,19 @@ test.describe("records, signature and seal governance", () => {
       scrollWidth: element.scrollWidth,
     }));
     expect(bodySize.scrollWidth).toBeLessThanOrEqual(bodySize.clientWidth + 1);
+    const mobileLayout = await page.evaluate(() => {
+      const viewportWidth = document.documentElement.clientWidth;
+      const tabRects = Array.from(document.querySelectorAll<HTMLElement>(".tabs button")).map((element) =>
+        element.getBoundingClientRect()
+      );
+      const tableWrap = document.querySelector<HTMLElement>("[data-testid='record-table']")?.parentElement;
+      return {
+        tabsInsideViewport: tabRects.every((rect) => rect.left >= 0 && rect.right <= viewportWidth + 1),
+        tableFitsContainer: tableWrap ? tableWrap.scrollWidth <= tableWrap.clientWidth + 1 : false,
+      };
+    });
+    expect(mobileLayout.tabsInsideViewport).toBe(true);
+    expect(mobileLayout.tableFitsContainer).toBe(true);
     await page.screenshot({
       path: path.join(evidenceDir, "pc-mobile-records-offline-retry.png"),
       fullPage: true,

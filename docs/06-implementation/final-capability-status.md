@@ -1,7 +1,7 @@
 # 瞰维智管 V2 当前能力状态
 
 > 更新时间：2026-08-15（Asia/Shanghai）
-> 最新已完成纵切：租户服务、工单、派单/SLA、报价、履约、验收与评价；精确提交 `ffa72e2531396997cfe24ef1b1e42526cd4735fe` 全门禁已通过并正常推送
+> 最新已完成纵切：档案、电子签章与印章治理；精确提交 `83697f99d3ca3b55f726b8ae2db246347d0919e8` 全门禁已通过并正常推送
 > 完整报告：`independent-final-acceptance-report-20260814.md`
 > 能力权威表：`full-rebuild-traceability-matrix.md`
 
@@ -11,6 +11,8 @@
 - 现有 PC 切片：Identity/System、Party、资产租控、招商 CRM、合同、应收全生命周期、待办、租户服务与完整工单生命周期。
 - 应收闭环：履约计划自动出账、到账单箱、可解释候选、财务确认/经理争议、多账单与预收后续核销、冲正、L1-L4 催缴和调整双人审批；外部渠道连接状态不伪造。
 - 租户服务闭环：数据库派生 User→Party→园区主体授权、员工/租户受理、不可变规则发布/退役、自动与人工派单、SLA、版本报价/决定、追加式成本/冲正、完工证据、返工/验收、一次性评价及脱敏时间线。
+- 设施闭环：设备台账/历史、周巡检模板/计划/任务、异常/漏检转工单、IoT 提供方真相/绑定/告警关联与升级；真实 IoT 仍保持 `NOT_CONNECTED`。
+- 档案/签章/印章闭环：版本化分类与保管、档号/附件版本/哈希完整性、保全/借阅/处置、印章保管与高风险用印职责分离、签章信封/事件和真实提供方状态；沙箱不产生法律 `SIGNED`。
 - 安全加固：密码策略、JWT/会话撤销、附件归属、RBAC/tenant/park scope、CSRF/Host/安全头、生产 fail-closed。
 - 工程门禁：PG16 单 head 升降级、ORM/迁移契约、并发/回滚、OpenAPI、OpenSpec、依赖漏洞、容器、备份恢复和本地 HTTP 性能。
 
@@ -18,11 +20,13 @@
 
 租户服务/工单精确提交 `ffa72e2` 全验收已通过 33/33 步、342 pytest、真实 PG16、59 条全量 Playwright、前端 lint/typecheck/6 Vitest/production build、OpenAPI 13/13+YAML strict、OpenSpec 86/86、1000/25 性能（p95 302.333 ms、132.87 RPS、0 错误）、1,383,498 bytes/114 表备份恢复、工单合成 ETL 和 942 文件 secrets scan。机器报告为 `evidence/tenant-service-work-order-lifecycle/acceptance-clean-ffa72e2.json`；39/39 OpenSpec 任务、8 份主规格同步和归档后 strict 93/93 通过。真实旧 `repair_order` 与供应商接入仍按证据保持阻塞/未连接。
 
+档案/签章/印章精确提交 `83697f9` 全验收已通过 35/35 步、366 pytest、真实 PG16、61 条全量 Playwright、前端 lint/typecheck/6 Vitest/production build、OpenAPI 15/15+YAML strict、OpenSpec 102/102、1000/25 性能（p95 298.74 ms、141.422 RPS、0 错误）、1,595,724 bytes/146 表备份恢复、21/21 真实 HTTP、档案合成 ETL和 1,039 文件 secrets scan。机器报告为 `evidence/records-signature-seal-governance/acceptance-clean-83697f9.json`；合法电子签/CA/时间戳/存证、真实印章设备及真实旧档案/二进制迁移没有凭据或授权，不计 live 完成。
+
 ## 不能外推为完成的范围
 
 - 员工移动端和租户微信小程序不存在。
-- 设备/巡检/IoT、HR、供应链、园企服务、完整驾驶舱、真实 AI 业务层缺失。
-- 设备巡检/IoT、档案印章、HR、供应链、园企服务、驾驶舱、AI、外部平台等组合能力仍有关键环节缺失；员工移动端和租户微信小程序不因 PC 租户服务闭环而被计为完成。
+- HR、供应链、园企服务、完整驾驶舱、真实 AI 业务层缺失。
+- 员工移动端、租户微信小程序、HR、供应链、园企服务、驾驶舱、AI、外部平台八个组合能力仍为 `MISSING`；设备/巡检/IoT 与档案/签章/印章只关闭本地产品纵切，live 供应商与真实旧数据仍由外部适配器/迁移条目保持缺口或阻塞。
 - 没有经授权的旧生产 schema 或脱敏快照，无法完成真实迁移、对账、增量和切换演练。
 - 没有外部厂商凭据、远程预发证据或生产部署授权。
 
@@ -31,8 +35,8 @@
 ```text
 KWZY_INDEPENDENT_ACCEPTANCE=CONDITIONAL_IMPLEMENTED_SCOPE_ONLY
 KWZY_BUSINESS_CLOSURE=BLOCKED
-KWZY_BACKEND_REBUILD=CONDITIONAL_CORE_AND_CONTRACT_SLICE_ONLY
-KWZY_PC_UI_REBUILD=CONDITIONAL_CORE_AND_CONTRACT_SLICE_ONLY
+KWZY_BACKEND_REBUILD=CONDITIONAL_IMPLEMENTED_SCOPE_ONLY
+KWZY_PC_UI_REBUILD=CONDITIONAL_IMPLEMENTED_SCOPE_ONLY
 KWZY_EMPLOYEE_MOBILE=MISSING
 KWZY_TENANT_MINIPROGRAM=MISSING
 KWZY_LEGACY_REPLACEMENT=BLOCKED

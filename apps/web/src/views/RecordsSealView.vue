@@ -615,12 +615,12 @@ onBeforeUnmount(() => {
             <thead><tr><th>档案号 / 标题</th><th>来源</th><th>密级</th><th>保管</th><th>状态</th><th>操作</th></tr></thead>
             <tbody>
               <tr v-for="record in records" :key="record.id">
-                <td><b>{{ record.record_no }}</b><small>{{ record.title }}</small></td>
-                <td>{{ record.source_type }}<small>{{ record.source_id }}</small></td>
-                <td>{{ record.confidentiality }}</td>
-                <td>{{ record.retention_mode === 'PERMANENT' ? '永久' : record.retention_until }}</td>
-                <td><span class="status" :class="statusClass(record.status)">{{ record.status }}</span></td>
-                <td><button class="link-btn" type="button" :aria-label="`查看档案 ${record.record_no}`" @click="openRecord(record.id)">查看</button></td>
+                <td data-label="档案号 / 标题"><b>{{ record.record_no }}</b><small>{{ record.title }}</small></td>
+                <td data-label="来源">{{ record.source_type }}<small>{{ record.source_id }}</small></td>
+                <td data-label="密级">{{ record.confidentiality }}</td>
+                <td data-label="保管">{{ record.retention_mode === 'PERMANENT' ? '永久' : record.retention_until }}</td>
+                <td data-label="状态"><span class="status" :class="statusClass(record.status)">{{ record.status }}</span></td>
+                <td data-label="操作"><button class="link-btn" type="button" :aria-label="`查看档案 ${record.record_no}`" @click="openRecord(record.id)">查看</button></td>
               </tr>
               <tr v-if="records.length === 0"><td colspan="6" class="empty">没有符合权限范围的档案</td></tr>
             </tbody>
@@ -702,7 +702,7 @@ onBeforeUnmount(() => {
         </form>
         <div class="table-wrap">
           <table class="table" data-testid="signature-envelope-table"><thead><tr><th>信封号</th><th>档案 / 版本</th><th>校验值</th><th>真实性</th><th>状态</th><th>操作</th></tr></thead><tbody>
-            <tr v-for="envelope in envelopes" :key="envelope.id"><td><b>{{ envelope.envelope_no }}</b><small>{{ envelope.purpose }}</small></td><td>#{{ envelope.record_id }} / v{{ envelope.revision_id }}</td><td class="mono">{{ shortHash(envelope.revision_checksum) }}</td><td>{{ envelope.live_verified ? '真实已验证' : '未验证 / 沙箱' }}</td><td><span class="status" :class="statusClass(envelope.status)">{{ envelope.status }}</span></td><td><button v-if="envelope.status === 'DRAFT' && canSignatureDispatch" class="link-btn" type="button" :disabled="saving" @click="dispatchEnvelope(envelope)">发送</button><span v-else>—</span></td></tr>
+            <tr v-for="envelope in envelopes" :key="envelope.id"><td data-label="信封号"><b>{{ envelope.envelope_no }}</b><small>{{ envelope.purpose }}</small></td><td data-label="档案 / 版本">#{{ envelope.record_id }} / v{{ envelope.revision_id }}</td><td class="mono" data-label="校验值">{{ shortHash(envelope.revision_checksum) }}</td><td data-label="真实性">{{ envelope.live_verified ? '真实已验证' : '未验证 / 沙箱' }}</td><td data-label="状态"><span class="status" :class="statusClass(envelope.status)">{{ envelope.status }}</span></td><td data-label="操作"><button v-if="envelope.status === 'DRAFT' && canSignatureDispatch" class="link-btn" type="button" :disabled="saving" @click="dispatchEnvelope(envelope)">发送</button><span v-else>—</span></td></tr>
             <tr v-if="envelopes.length === 0"><td colspan="6" class="empty">暂无签署信封</td></tr>
           </tbody></table>
         </div>
@@ -750,5 +750,25 @@ onBeforeUnmount(() => {
 .state, .empty { min-height: 160px; display: grid; place-content: center; justify-items: center; color: var(--muted); text-align: center; }.spinner { width: 1.6rem; height: 1.6rem; border: 3px solid #dce8e4; border-top-color: #0c6e8d; border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 1050px) { .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.form-grid, .form-grid.wide { grid-template-columns: repeat(2, minmax(0, 1fr)); }.card-grid, .provider-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .page-head { align-items: flex-start; }.page-head .btn { flex: 0 0 auto; padding-inline: .7rem; }.metric-grid, .card-grid, .provider-grid, .form-grid, .form-grid.wide { grid-template-columns: 1fr; }.span-2 { grid-column: auto; }.tabs { overflow-x: auto; }.tabs button { flex: 0 0 auto; min-width: 8rem; }.panel { padding: .8rem; }.section-head { align-items: flex-start; }.table { min-width: 680px; }.notice { align-items: flex-start; flex-wrap: wrap; }.notice button { margin-left: 0; }.action-grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+  .page-head { align-items: flex-start; }
+  .page-head .btn { flex: 0 0 auto; padding-inline: .7rem; }
+  .metric-grid, .card-grid, .provider-grid, .form-grid, .form-grid.wide { grid-template-columns: 1fr; }
+  .span-2 { grid-column: auto; }
+  .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: visible; }
+  .tabs button { min-width: 0; padding-inline: .35rem; overflow-wrap: anywhere; }
+  .panel { padding: .8rem; }
+  .section-head { align-items: flex-start; }
+  .table-wrap { overflow: visible; }
+  .table, .table tbody { display: block; width: 100%; min-width: 0; }
+  .table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+  .table tr { display: grid; gap: .45rem; width: 100%; padding: .75rem 0; border-bottom: 1px solid var(--border); }
+  .table td { display: grid; grid-template-columns: minmax(6.5rem, 42%) minmax(0, 1fr); gap: .55rem; width: 100%; padding: 0; border: 0; overflow-wrap: anywhere; }
+  .table td::before { content: attr(data-label); color: var(--muted); font-size: .72rem; font-weight: 700; }
+  .table td.empty { display: grid; grid-template-columns: 1fr; }
+  .table td.empty::before { content: none; }
+  .notice { align-items: flex-start; flex-wrap: wrap; }
+  .notice button { margin-left: 0; }
+  .action-grid { grid-template-columns: 1fr; }
+}
 </style>

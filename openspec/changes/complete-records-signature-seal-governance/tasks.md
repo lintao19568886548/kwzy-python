@@ -64,9 +64,9 @@
 - [x] 10.1 Add domain/repository/API/PG concurrency and real HTTP regression coverage
 - [x] 10.2 Add Playwright role, responsive, conflict/error and visual evidence
 - [x] 10.3 Run focused PG16/backend/frontend/OpenAPI/OpenSpec/stub/secrets gates
-- [ ] 10.4 Run clean-SHA full acceptance including performance, backup/restore and all migrations
+- [x] 10.4 Run clean-SHA full acceptance including performance, backup/restore and all migrations
 
 ## 11. Closure
 
-- [ ] 11.1 Update matrix/register/roadmap/state and versioned evidence without claiming live provider or real migration
+- [x] 11.1 Update matrix/register/roadmap/state and versioned evidence without claiming live provider or real migration
 - [ ] 11.2 Normally commit/push, sync specs and archive without force
