@@ -7,7 +7,7 @@
 ## 当前整改纵切
 
 - 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
-- OpenSpec：组织治理与审批/审计已归档；`complete-platform-workbench-automation` 覆盖事件、规则、通知、调度、工作项治理、角色/个人布局、PC 和迁移证据，已完成实现与 clean-SHA 验收，等待本轮规格同步和归档提交。
+- OpenSpec：组织治理、审批/审计与 `2026-08-14-complete-platform-workbench-automation` 均已同步主规格并归档；后者覆盖事件、规则、通知、调度、工作项治理、角色/个人布局、PC 和迁移证据。
 - 已关闭证据：组织/审批/审计；事务事件、有限重试/死信/replay、受限规则、通知、持久调度、来源工作项、多角色布局和 PC 控制面；PG16、HTTP、浏览器、性能和合成 ETL 均有独立证据。
 - 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 

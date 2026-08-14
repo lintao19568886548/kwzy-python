@@ -31,7 +31,7 @@
 
 1. `complete-platform-organization-governance`：已提交、clean-SHA 复验、同步并归档。
 2. `complete-platform-approval-audit-center`：实现提交 `13243b4` 与归档证据 `008d6ac` 已推送；PG16、264 后端、46 浏览器、独立 HTTP、性能、备份恢复和合成 ETL 的 26/26 clean-SHA 总门禁通过；9 个 delta 已同步主规格并归档，纵切关闭。
-3. `complete-platform-workbench-automation`：实现提交 `fedc98e` 已正常推送；28/28 clean-SHA 总门禁、277 后端、50 浏览器、真实 HTTP、p95 250.49 ms、备份恢复和合成 ETL 已通过；正在同步主规格并归档后关闭纵切。
+3. `2026-08-14-complete-platform-workbench-automation`：实现提交 `fedc98e` 与证据/主规格同步 `7741351` 已正常推送；28/28 clean-SHA 总门禁、277 后端、50 浏览器、真实 HTTP、p95 250.49 ms、备份恢复和合成 ETL 已通过；归档后 strict 66/66，纵切关闭。
 4. 下一业务纵切从资产业态模板、招商自动分配/意向审批、企业画像、账收匹配催缴、租户服务、设备巡检 IoT、档案签章、HR、供应链、园企服务、驾驶舱、AI/集成中按证据顺序继续关闭。
 5. 建设员工移动端与租户微信小程序并完成真实 API/数据库/浏览器（或小程序运行器）旅程，不能用 WebView 壳或本地 JSON替代。
 6. 数据负责人/DBA 提供经授权旧 schema dump 与脱敏快照；在隔离 PG16 重跑全量/增量/中断/回滚/对账。

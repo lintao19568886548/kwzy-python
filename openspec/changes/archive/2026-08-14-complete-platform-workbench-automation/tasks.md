@@ -90,4 +90,4 @@
 
 - [x] 12.1 Run focused backend/frontend tests, Ruff, type checks, build, migration drill and strict OpenSpec validation
 - [x] 12.2 Run full PostgreSQL 16 acceptance, backup/restore and update evidence, matrix, roadmap and agent state with exact results
-- [ ] 12.3 Commit and normally push the vertical, re-run clean-SHA gates, sync main specs and archive without force
+- [x] 12.3 Commit and normally push the vertical, re-run clean-SHA gates, sync main specs and archive without force
