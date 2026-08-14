@@ -47,7 +47,7 @@ const routes: RouteRecordRaw[] = [
         path: "work-orders",
         name: "work-orders",
         component: WorkOrdersView,
-        meta: { permission: "work_order:read" },
+        meta: { permissionAny: ["work_order:read", "tenant_service:read_own"] },
       },
       {
         path: "collection",
@@ -142,6 +142,7 @@ router.beforeEach(async (to) => {
   }
   if (to.name === "login" && auth.isAuthed) {
     if (auth.can("work_item:read") || auth.can("*")) return { name: "workbench" };
+    if (auth.can("tenant_service:read_own")) return { name: "work-orders" };
     if (auth.can("party:read")) return { name: "parties" };
     return { name: "forbidden" };
   }

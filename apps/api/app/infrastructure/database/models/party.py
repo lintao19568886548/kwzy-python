@@ -8,7 +8,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -54,17 +53,17 @@ class Party(Base, PrimaryKeyMixin, TimestampMixin):
     tenant_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True)
     party_type: Mapped[str] = mapped_column(String(32), nullable=False, default="ORGANIZATION")
     name: Mapped[str] = mapped_column(String(128), nullable=False)
-    contact_name: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
-    contact_phone: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
-    credit_code: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    contact_name: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    contact_phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    credit_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="ACTIVE")
     risk_status: Mapped[str] = mapped_column(String(32), nullable=False, default="NORMAL")
-    blacklist_reason: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
-    blacklisted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
-    blacklisted_by: Mapped[Optional[int]] = mapped_column(FK_TYPE, nullable=True)
-    blacklist_removed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
-    blacklist_removed_by: Mapped[Optional[int]] = mapped_column(FK_TYPE, nullable=True)
-    remark: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    blacklist_reason: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    blacklisted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
+    blacklisted_by: Mapped[int | None] = mapped_column(FK_TYPE, nullable=True)
+    blacklist_removed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
+    blacklist_removed_by: Mapped[int | None] = mapped_column(FK_TYPE, nullable=True)
+    remark: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
 
 class PartyRole(Base, PrimaryKeyMixin, TimestampMixin):
@@ -96,8 +95,8 @@ class PartyRole(Base, PrimaryKeyMixin, TimestampMixin):
     party_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("parties.id"), nullable=False)
     role_code: Mapped[str] = mapped_column(String(32), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="ACTIVE")
-    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
-    ended_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
 
 
 class PartyParkRelation(Base, PrimaryKeyMixin, TimestampMixin):
@@ -139,9 +138,9 @@ class PartyParkRelation(Base, PrimaryKeyMixin, TimestampMixin):
     park_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("parks.id"), nullable=False)
     party_role_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("party_roles.id"), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="ACTIVE")
-    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
-    ended_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
-    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
 
 
 class PartyContact(Base, PrimaryKeyMixin, TimestampMixin):
@@ -165,17 +164,25 @@ class PartyContact(Base, PrimaryKeyMixin, TimestampMixin):
     """
 
     __tablename__ = "party_contacts"
+    __table_args__ = (
+        UniqueConstraint(
+            "tenant_id",
+            "party_id",
+            "id",
+            name="uk_party_contacts_tenant_party_id",
+        ),
+    )
 
     tenant_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True)
     party_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("parties.id"), nullable=False)
-    name: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
-    phone: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
-    email: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
-    role_label: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    name: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    email: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    role_label: Mapped[str | None] = mapped_column(String(64), nullable=True)
     is_primary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    linked_person_party_id: Mapped[Optional[int]] = mapped_column(FK_TYPE, nullable=True)
+    linked_person_party_id: Mapped[int | None] = mapped_column(FK_TYPE, nullable=True)
     is_deleted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
 
 
 class PartyAddress(Base, PrimaryKeyMixin, TimestampMixin):
@@ -219,16 +226,16 @@ class PartyAddress(Base, PrimaryKeyMixin, TimestampMixin):
     tenant_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True)
     party_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("parties.id"), nullable=False)
     address_type: Mapped[str] = mapped_column(String(32), nullable=False)
-    country_code: Mapped[Optional[str]] = mapped_column(String(8), nullable=True)
-    province: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
-    city: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
-    district: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
-    street: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
-    detail: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    postal_code: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    country_code: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    province: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    district: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    street: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    detail: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    postal_code: Mapped[str | None] = mapped_column(String(32), nullable=True)
     is_primary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="ACTIVE")
-    deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
 
 
 class PartyRiskEvent(Base, PrimaryKeyMixin):
@@ -259,8 +266,8 @@ class PartyRiskEvent(Base, PrimaryKeyMixin):
     previous_risk_status: Mapped[str] = mapped_column(String(32), nullable=False)
     new_risk_status: Mapped[str] = mapped_column(String(32), nullable=False)
     reason: Mapped[str] = mapped_column(String(512), nullable=False)
-    operator_user_id: Mapped[Optional[int]] = mapped_column(FK_TYPE, nullable=True)
-    request_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
-    source: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    operator_user_id: Mapped[int | None] = mapped_column(FK_TYPE, nullable=True)
+    request_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    source: Mapped[str | None] = mapped_column(String(32), nullable=True)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False)

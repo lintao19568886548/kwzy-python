@@ -20,7 +20,12 @@ const allNav: NavItem[] = [
   { to: "/workbench", label: "工作台", testid: "nav-workbench", permission: "work_item:read" },
   { to: "/todos", label: "待办", testid: "nav-todos", permission: "work_item:read" },
   { to: "/leads", label: "招商", testid: "nav-leads", permission: "lead:read" },
-  { to: "/work-orders", label: "工单", testid: "nav-work-orders", permission: "work_order:read" },
+  {
+    to: "/work-orders",
+    label: "租户服务",
+    testid: "nav-work-orders",
+    permissionAny: ["work_order:read", "tenant_service:read_own"],
+  },
   { to: "/parks", label: "园区", testid: "nav-parks", permission: "park:read" },
   { to: "/rent-control", label: "资产租控", testid: "nav-rent-control", permission: "unit:read" },
   { to: "/parties", label: "主体", testid: "nav-parties", permission: "party:read" },

@@ -5,7 +5,18 @@ from app.infrastructure.database.models.audit import AuditChainHead, AuditLog
 from app.infrastructure.database.models.billing import Bill, BillLine, FeeCatalog
 from app.infrastructure.database.models.collection import Payment, PaymentAllocation
 from app.infrastructure.database.models.collection_case import CollectionCase
-from app.infrastructure.database.models.facility_ops import WorkOrder
+from app.infrastructure.database.models.facility_ops import (
+    TenantServicePrincipal,
+    TenantServicePrincipalPark,
+    WorkOrder,
+    WorkOrderAcceptance,
+    WorkOrderAssignmentRule,
+    WorkOrderCostEntry,
+    WorkOrderEvent,
+    WorkOrderQuote,
+    WorkOrderQuoteLine,
+    WorkOrderRating,
+)
 from app.infrastructure.database.models.identity import (
     AuthSecurityEvent,
     Menu,
@@ -216,6 +227,8 @@ __all__ = [
     "SchedulerRun",
     "SystemParam",
     "Tenant",
+    "TenantServicePrincipal",
+    "TenantServicePrincipalPark",
     "Unit",
     "UnitLineage",
     "User",
@@ -225,6 +238,13 @@ __all__ = [
     "VerificationCode",
     "WorkItem",
     "WorkOrder",
+    "WorkOrderAcceptance",
+    "WorkOrderAssignmentRule",
+    "WorkOrderCostEntry",
+    "WorkOrderEvent",
+    "WorkOrderQuote",
+    "WorkOrderQuoteLine",
+    "WorkOrderRating",
     "WorkbenchLayout",
     "WorkbenchWidget",
 ]

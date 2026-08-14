@@ -1,0 +1,1 @@
+"""Pure FacilityOps domain rules."""

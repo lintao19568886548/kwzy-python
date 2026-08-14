@@ -690,3 +690,73 @@ def test_workbench_automation_openapi_matches_every_runtime_method() -> None:
     assert "expected_version" in schemas["WorkbenchVersionCommand"]["required"]
     assert "expected_version" in schemas["WorkItemTransition"]["required"]
     assert schemas["NotificationBulkRead"]["properties"]["ids"]["maxItems"] == 100
+
+
+def test_tenant_service_openapi_matches_every_runtime_method() -> None:
+    """Controlled YAML and mounted FastAPI expose the same complete service lifecycle."""
+
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    paths = document["paths"]
+    runtime_paths = create_app().openapi()["paths"]
+    expected_methods = {
+        "/work-order-assignment-rules": {"get", "post"},
+        "/work-order-assignment-rules/{rule_id}/publish": {"post"},
+        "/work-order-assignment-rules/{rule_id}/retire": {"post"},
+        "/work-orders/sla/sweep": {"post"},
+        "/work-orders": {"get", "post"},
+        "/work-orders/{work_order_id}": {"get"},
+        "/work-orders/{work_order_id}/dispatch": {"post"},
+        "/work-orders/{work_order_id}/start": {"post"},
+        "/work-orders/{work_order_id}/quotes": {"post"},
+        "/work-orders/{work_order_id}/quotes/{quote_id}/submit": {"post"},
+        "/work-orders/{work_order_id}/cost-entries": {"post"},
+        "/work-orders/{work_order_id}/cost-entries/{cost_id}/reverse": {"post"},
+        "/work-orders/{work_order_id}/complete": {"post"},
+        "/work-orders/{work_order_id}/cancel": {"post"},
+        "/tenant-service/principals": {"get", "post"},
+        "/tenant-service/principals/{principal_id}/disable": {"post"},
+        "/tenant-service/requests": {"get", "post"},
+        "/tenant-service/requests/{work_order_id}": {"get"},
+        "/tenant-service/requests/{work_order_id}/quotes/{quote_id}/decision": {"post"},
+        "/tenant-service/requests/{work_order_id}/acceptance": {"post"},
+        "/tenant-service/requests/{work_order_id}/rating": {"post"},
+    }
+    assert sum(len(methods) for methods in expected_methods.values()) == 25
+    for path, methods in expected_methods.items():
+        assert path in paths, path
+        assert methods == {
+            method.lower()
+            for method in paths[path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, path
+        runtime_path = "/api/v1" + path
+        assert runtime_path in runtime_paths, runtime_path
+        assert methods == {
+            method.lower()
+            for method in runtime_paths[runtime_path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, runtime_path
+
+    schemas = document["components"]["schemas"]
+    for command in (
+        "WorkOrderCreate",
+        "TenantServiceRequestCreate",
+        "TenantServicePrincipalGrant",
+        "WorkOrderAssignmentRuleCreate",
+        "WorkOrderAssignmentRuleRetire",
+        "WorkOrderExpectedVersion",
+        "WorkOrderDispatch",
+        "WorkOrderCancel",
+        "WorkOrderQuoteCreate",
+        "WorkOrderQuoteDecision",
+        "WorkOrderCostCreate",
+        "WorkOrderCostReverse",
+        "WorkOrderCompletion",
+        "WorkOrderAcceptance",
+        "WorkOrderRating",
+        "WorkOrderSlaSweep",
+    ):
+        assert schemas[command]["additionalProperties"] is False, command
+    assert schemas["WorkOrderAssignmentRuleRetire"]["required"] == ["reason"]

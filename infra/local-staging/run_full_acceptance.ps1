@@ -215,6 +215,16 @@ try {
     & $Py (Join-Path $Root "tools\etl\run_party_enterprise_etl_drill.py") --report $partyEnterpriseReport
   }
 
+  Step "receivables_etl_acceptance" {
+    $receivablesReport = Join-Path $ReportDir "receivables_etl\receivables-etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_receivables_etl_drill.py") --database-url $pgUrl --out $receivablesReport
+  }
+
+  Step "work_order_etl_acceptance" {
+    $workOrderReport = Join-Path $ReportDir "work_order_etl\work-order-etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_work_order_etl_drill.py") --database-url $pgUrl --out $workOrderReport
+  }
+
   Step "http_performance_seed" {
     & $Py (Join-Path $Root "scripts\e2e_seed.py")
   }
@@ -436,6 +446,8 @@ $summary = [ordered]@{
   approval_audit_etl = (Join-Path $ReportDir "approval_audit_etl\approval_audit_etl.json")
   workbench_automation_etl = (Join-Path $ReportDir "workbench_automation_etl\workbench-automation-etl.json")
   party_enterprise_etl = (Join-Path $ReportDir "party_enterprise_etl\party-enterprise-etl.json")
+  receivables_etl = (Join-Path $ReportDir "receivables_etl\receivables-etl.json")
+  work_order_etl = (Join-Path $ReportDir "work_order_etl\work-order-etl.json")
   http_performance = (Join-Path $ReportDir "performance\http-performance.json")
   approval_audit_http = (Join-Path $ReportDir "performance\approval-audit-http-journey.json")
   workbench_automation_http = (Join-Path $ReportDir "performance\workbench-automation-http-journey.json")

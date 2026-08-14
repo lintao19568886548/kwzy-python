@@ -20,6 +20,7 @@ tags:
   - name: Bills
   - name: Payments
   - name: Collection
+  - name: TenantService
   - name: WorkItems
   - name: OrganizationGovernance
   - name: Approvals
@@ -4217,37 +4218,414 @@ paths:
       responses:
         '200':
           description: OK
+  /work-order-assignment-rules:
+    get:
+      tags: [TenantService]
+      summary: 查询派单规则版本
+      operationId: listWorkOrderAssignmentRules
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [TenantService]
+      summary: 创建不可覆盖的派单规则草稿
+      operationId: createWorkOrderAssignmentRule
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderAssignmentRuleCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /work-order-assignment-rules/{rule_id}/publish:
+    post:
+      tags: [TenantService]
+      summary: 发布派单规则版本
+      operationId: publishWorkOrderAssignmentRule
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: rule_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64, minimum: 1 }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /work-order-assignment-rules/{rule_id}/retire:
+    post:
+      tags: [TenantService]
+      summary: 显式退役已发布派单规则版本
+      operationId: retireWorkOrderAssignmentRule
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: rule_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64, minimum: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderAssignmentRuleRetire' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: 派单规则不存在或不属于当前租户 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /work-orders/sla/sweep:
+    post:
+      tags: [TenantService]
+      summary: 幂等扫描响应与解决 SLA 超时事件
+      operationId: sweepWorkOrderSla
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderSlaSweep' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
   /work-orders:
     get:
-      tags: [Collection]
-      summary: 工单列表
+      tags: [TenantService]
+      summary: 员工端工单队列（租户与园区范围强制过滤）
       operationId: listWorkOrders
       security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - { name: status, in: query, schema: { type: string } }
+        - { name: park_id, in: query, schema: { type: integer, format: int64 } }
+        - { name: party_id, in: query, schema: { type: integer, format: int64 } }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: assignee_user_id, in: query, schema: { type: integer, format: int64 } }
       responses:
-        '200':
-          description: OK
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
     post:
-      tags: [Collection]
-      summary: 创建工单
+      tags: [TenantService]
+      summary: 员工受理服务请求
       operationId: createWorkOrder
       security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderCreate' }
       responses:
-        '200':
-          description: OK
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
   /work-orders/{work_order_id}:
     get:
-      tags: [Collection]
-      summary: 工单详情
+      tags: [TenantService]
+      summary: 员工端工单详情、报价、成本、验收与事件时间线
       operationId: getWorkOrder
       security: [{ bearerAuth: [] }]
       parameters:
-        - name: work_order_id
+        - $ref: '#/components/parameters/WorkOrderIdPath'
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /work-orders/{work_order_id}/dispatch:
+    post:
+      tags: [TenantService]
+      summary: 派单或改派（悲观锁与 expected_version）
+      operationId: dispatchWorkOrder
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderDispatch' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /work-orders/{work_order_id}/start:
+    post:
+      tags: [TenantService]
+      summary: 当前处理人接单开工
+      operationId: startWorkOrder
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderExpectedVersion' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /work-orders/{work_order_id}/quotes:
+    post:
+      tags: [TenantService]
+      summary: 创建 Decimal 计算的报价版本
+      operationId: createWorkOrderQuote
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderQuoteCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /work-orders/{work_order_id}/quotes/{quote_id}/submit:
+    post:
+      tags: [TenantService]
+      summary: 提交报价供租户确认
+      operationId: submitWorkOrderQuote
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderIdPath'
+        - $ref: '#/components/parameters/WorkOrderQuoteIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderExpectedVersion' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /work-orders/{work_order_id}/cost-entries:
+    post:
+      tags: [TenantService]
+      summary: 追加实际履约成本
+      operationId: createWorkOrderCost
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderIdPath'
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderCostCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /work-orders/{work_order_id}/cost-entries/{cost_id}/reverse:
+    post:
+      tags: [TenantService]
+      summary: 以负数追加记录冲正成本（禁止覆盖历史）
+      operationId: reverseWorkOrderCost
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderIdPath'
+        - $ref: '#/components/parameters/WorkOrderCostIdPath'
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderCostReverse' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /work-orders/{work_order_id}/complete:
+    post:
+      tags: [TenantService]
+      summary: 提交完工证据并进入租户验收
+      operationId: completeWorkOrder
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderCompletion' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /work-orders/{work_order_id}/cancel:
+    post:
+      tags: [TenantService]
+      summary: 有原因取消非终态工单
+      operationId: cancelWorkOrder
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderCancel' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /tenant-service/principals:
+    get:
+      tags: [TenantService]
+      summary: 查询用户到企业主体与园区的租户服务授权
+      operationId: listTenantServicePrincipals
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [TenantService]
+      summary: 授权用户代表企业主体使用租户服务
+      operationId: grantTenantServicePrincipal
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TenantServicePrincipalGrant' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /tenant-service/principals/{principal_id}/disable:
+    post:
+      tags: [TenantService]
+      summary: 禁用租户服务主体授权
+      operationId: disableTenantServicePrincipal
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: principal_id
           in: path
           required: true
-          schema: { type: integer }
+          schema: { type: integer, format: int64, minimum: 1 }
       responses:
-        '200':
-          description: OK
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /tenant-service/requests:
+    get:
+      tags: [TenantService]
+      summary: 租户端仅查询绑定企业的服务请求
+      operationId: listTenantServiceRequests
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [TenantService]
+      summary: 租户端提交绑定主体的服务请求
+      operationId: createTenantServiceRequest
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TenantServiceRequestCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /tenant-service/requests/{work_order_id}:
+    get:
+      tags: [TenantService]
+      summary: 租户端脱敏工单详情
+      operationId: getTenantServiceRequest
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderIdPath'
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /tenant-service/requests/{work_order_id}/quotes/{quote_id}/decision:
+    post:
+      tags: [TenantService]
+      summary: 租户确认或拒绝报价
+      operationId: decideTenantServiceQuote
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderIdPath'
+        - $ref: '#/components/parameters/WorkOrderQuoteIdPath'
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderQuoteDecision' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /tenant-service/requests/{work_order_id}/acceptance:
+    post:
+      tags: [TenantService]
+      summary: 租户验收通过或要求返工
+      operationId: decideTenantServiceAcceptance
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderIdPath'
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderAcceptance' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /tenant-service/requests/{work_order_id}/rating:
+    post:
+      tags: [TenantService]
+      summary: 租户提交一次性不可修改评价
+      operationId: rateTenantServiceRequest
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/WorkOrderIdPath'
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkOrderRating' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
 
   /integrations/sms/send:
     post:
@@ -5895,6 +6273,27 @@ components:
         minLength: 1
         maxLength: 128
       description: 写操作幂等键（payments 创建、bills issue 等必须支持；1–128 字符，不作为授权边界）
+    IdempotencyKeyRequired:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, minLength: 1, maxLength: 128 }
+      description: 必填命令幂等键；同租户同来源重放必须返回原结果，不同载荷复用返回 409。
+    WorkOrderIdPath:
+      name: work_order_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+    WorkOrderQuoteIdPath:
+      name: quote_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+    WorkOrderCostIdPath:
+      name: cost_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
     GroupId:
       name: group_id
       in: path
@@ -5949,6 +6348,182 @@ components:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
 
   schemas:
+    WorkOrderCreate:
+      type: object
+      additionalProperties: false
+      required: [park_id, title]
+      properties:
+        park_id: { type: integer, format: int64, minimum: 1 }
+        party_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        contact_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        contact_name: { type: string, maxLength: 64, nullable: true }
+        contact_phone: { type: string, maxLength: 32, nullable: true }
+        title: { type: string, minLength: 1, maxLength: 255 }
+        description: { type: string, maxLength: 2000, nullable: true }
+        category: { type: string, minLength: 1, maxLength: 64, default: GENERAL }
+        priority: { type: string, enum: [LOW, MEDIUM, HIGH, URGENT], default: MEDIUM }
+        unit_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        quote_required: { type: boolean, default: false }
+        request_source:
+          type: string
+          enum: [PROPERTY_STAFF, PHONE, FRONT_DESK, OTHER]
+          default: PROPERTY_STAFF
+    TenantServiceRequestCreate:
+      type: object
+      additionalProperties: false
+      required: [park_id, title]
+      properties:
+        park_id: { type: integer, format: int64, minimum: 1 }
+        contact_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        contact_name: { type: string, maxLength: 64, nullable: true }
+        contact_phone: { type: string, maxLength: 32, nullable: true }
+        title: { type: string, minLength: 1, maxLength: 255 }
+        description: { type: string, maxLength: 2000, nullable: true }
+        category: { type: string, minLength: 1, maxLength: 64, default: GENERAL }
+        priority: { type: string, enum: [LOW, MEDIUM, HIGH, URGENT], default: MEDIUM }
+        unit_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        quote_required: { type: boolean, default: false }
+    TenantServicePrincipalGrant:
+      type: object
+      additionalProperties: false
+      required: [user_id, party_id, park_ids]
+      properties:
+        user_id: { type: integer, format: int64, minimum: 1 }
+        party_id: { type: integer, format: int64, minimum: 1 }
+        park_ids:
+          type: array
+          minItems: 1
+          maxItems: 100
+          uniqueItems: true
+          items: { type: integer, format: int64, minimum: 1 }
+    WorkOrderAssignmentRuleCreate:
+      type: object
+      additionalProperties: false
+      required: [code, name, assignee_user_id, response_minutes, resolution_minutes]
+      properties:
+        code: { type: string, minLength: 2, maxLength: 64, pattern: '^[A-Z][A-Z0-9_]*$' }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        park_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        category: { type: string, maxLength: 64, nullable: true }
+        priority: { type: string, enum: [LOW, MEDIUM, HIGH, URGENT], nullable: true }
+        assignee_user_id: { type: integer, format: int64, minimum: 1 }
+        response_minutes: { type: integer, minimum: 1, maximum: 43200 }
+        resolution_minutes: { type: integer, minimum: 1, maximum: 525600 }
+        sort_order: { type: integer, minimum: 0, maximum: 100000, default: 100 }
+    WorkOrderAssignmentRuleRetire:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    WorkOrderExpectedVersion:
+      type: object
+      additionalProperties: false
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+    WorkOrderDispatch:
+      type: object
+      additionalProperties: false
+      required: [expected_version, assignee_user_id, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        assignee_user_id: { type: integer, format: int64, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    WorkOrderCancel:
+      type: object
+      additionalProperties: false
+      required: [expected_version, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    WorkOrderQuoteLine:
+      type: object
+      additionalProperties: false
+      required: [line_type, description, quantity, unit, unit_price]
+      properties:
+        line_type: { type: string, enum: [LABOR, MATERIAL, OUTSOURCE, OTHER] }
+        description: { type: string, minLength: 1, maxLength: 255 }
+        quantity: { type: number, exclusiveMinimum: 0, multipleOf: 0.0001 }
+        unit: { type: string, minLength: 1, maxLength: 32 }
+        unit_price: { type: number, minimum: 0, multipleOf: 0.01 }
+        amount: { type: number, minimum: 0, multipleOf: 0.01, nullable: true }
+    WorkOrderQuoteCreate:
+      type: object
+      additionalProperties: false
+      required: [expected_version, lines]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        currency: { type: string, minLength: 3, maxLength: 3, default: CNY }
+        total_amount: { type: number, minimum: 0, multipleOf: 0.01, nullable: true }
+        remark: { type: string, maxLength: 1000, nullable: true }
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items: { $ref: '#/components/schemas/WorkOrderQuoteLine' }
+    WorkOrderQuoteDecision:
+      type: object
+      additionalProperties: false
+      required: [expected_version, decision]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        decision: { type: string, enum: [ACCEPT, REJECT] }
+        remark: { type: string, maxLength: 1000, nullable: true }
+    WorkOrderCostCreate:
+      type: object
+      additionalProperties: false
+      required: [expected_version, entry_type, description, quantity, unit, unit_price]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        entry_type: { type: string, enum: [LABOR, MATERIAL, OUTSOURCE, OTHER] }
+        description: { type: string, minLength: 1, maxLength: 255 }
+        quantity: { type: number, exclusiveMinimum: 0, multipleOf: 0.0001 }
+        unit: { type: string, minLength: 1, maxLength: 32 }
+        unit_price: { type: number, minimum: 0, multipleOf: 0.01 }
+    WorkOrderCostReverse:
+      type: object
+      additionalProperties: false
+      required: [expected_version, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    WorkOrderCompletion:
+      type: object
+      additionalProperties: false
+      required: [expected_version, resolution_summary]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        resolution_summary: { type: string, minLength: 1, maxLength: 2000 }
+        evidence_refs:
+          type: array
+          maxItems: 20
+          items: { type: string }
+        no_evidence_reason: { type: string, maxLength: 512, nullable: true }
+    WorkOrderAcceptance:
+      type: object
+      additionalProperties: false
+      required: [expected_version, decision]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        decision: { type: string, enum: [ACCEPTED, REWORK] }
+        comment: { type: string, maxLength: 1000, nullable: true }
+    WorkOrderRating:
+      type: object
+      additionalProperties: false
+      required: [score]
+      properties:
+        score: { type: integer, minimum: 1, maximum: 5 }
+        tags:
+          type: array
+          maxItems: 10
+          items: { type: string }
+        comment: { type: string, maxLength: 1000, nullable: true }
+    WorkOrderSlaSweep:
+      type: object
+      additionalProperties: false
+      properties:
+        as_of: { type: string, format: date-time, nullable: true }
     ReceiptCreate:
       type: object
       additionalProperties: false

@@ -1,0 +1,86 @@
+{
+  "generated_at": "2026-08-14T17:49:17.498935+00:00",
+  "result": "PASS",
+  "schema": "etl_work_order_fixture",
+  "synthetic_only": true,
+  "contains_real_customer_data": false,
+  "live_legacy_verified": false,
+  "readiness": "CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA",
+  "real_legacy_readiness": "BLOCKED_PENDING_AUTHORIZED_SCHEMA_AND_DESENSITIZED_SAMPLE",
+  "fixture_sha256": "bf081e01a418d8ebc5bf22410f4afe4e4d6e109755934c41aa2b774e2b5ed00a",
+  "stages": {
+    "dry_run": {
+      "passed": true,
+      "mapped_counts": {
+        "work_orders": 3,
+        "work_order_events": 6,
+        "quarantine": 1
+      }
+    },
+    "interruption_recovery": {
+      "passed": true,
+      "partial_rows_after_rollback": 0
+    },
+    "first_apply": {
+      "passed": true,
+      "inserted": {
+        "work_orders": 3,
+        "work_order_events": 6,
+        "quarantine": 1
+      }
+    },
+    "idempotent_reapply": {
+      "passed": true,
+      "inserted": {
+        "work_orders": 0,
+        "work_order_events": 0,
+        "quarantine": 0
+      }
+    },
+    "reconciliation": {
+      "passed": true,
+      "expected_counts": {
+        "work_orders": 3,
+        "work_order_events": 6,
+        "quarantine": 1
+      },
+      "target_counts": {
+        "work_orders": 3,
+        "work_order_events": 6,
+        "quarantine": 1
+      },
+      "expected_status_counts": {
+        "SUBMITTED": 1,
+        "IN_PROGRESS": 1,
+        "WAITING_ACCEPTANCE": 1
+      },
+      "target_status_counts": {
+        "WAITING_ACCEPTANCE": 1,
+        "IN_PROGRESS": 1,
+        "SUBMITTED": 1
+      },
+      "orphan_events": 0,
+      "bad_phone_masks": 0,
+      "raw_pii_hits": 0,
+      "timestamp_violations": 0,
+      "quarantine_reasons": {
+        "UNKNOWN_STATUS": 1
+      },
+      "fabricated_quotes": 0,
+      "fabricated_ratings": 0,
+      "fabricated_provider_deliveries": 0
+    },
+    "rollback": {
+      "passed": true,
+      "schema_exists_after": false,
+      "authorization_rows_unchanged": true
+    }
+  },
+  "blockers": [
+    "authorized legacy repair_order schema dump and status dictionary not supplied",
+    "desensitized production-like repair-order snapshot not supplied",
+    "park/party/user/unit key maps not supplied",
+    "legacy attachment object inventory and checksums not supplied",
+    "production freeze, backup, cutover and rollback are not authorized"
+  ]
+}

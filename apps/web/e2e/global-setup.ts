@@ -6,6 +6,7 @@ import { type FullConfig } from "@playwright/test";
 import { spawn, type ChildProcessWithoutNullStreams, execSync } from "node:child_process";
 import fs from "node:fs";
 import http from "node:http";
+import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -121,6 +122,26 @@ function freePort(port: number) {
   }
 }
 
+function portIsFree(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.unref();
+    server.once("error", () => resolve(false));
+    server.listen({ host: "127.0.0.1", port, exclusive: true }, () => {
+      server.close(() => resolve(true));
+    });
+  });
+}
+
+async function waitPortFree(port: number, timeoutMs = 15000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await portIsFree(port)) return;
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  throw new Error(`local E2E port ${port} is still occupied after cleanup`);
+}
+
 export default async function globalSetup(_config: FullConfig) {
   console.log("[e2e-setup] starting full stack…");
   fs.mkdirSync(LOG_DIR, { recursive: true });
@@ -195,6 +216,7 @@ export default async function globalSetup(_config: FullConfig) {
 
   freePort(API_PORT);
   freePort(WEB_PORT);
+  await Promise.all([waitPortFree(API_PORT), waitPortFree(WEB_PORT)]);
 
   // 4) API production-like
   const api = spawnLogged(

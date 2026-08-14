@@ -90,6 +90,8 @@ class TenantContext:
                 "lead.intent.",
                 "lead.channel.",
                 "party:credential_",
+                "work_order:",
+                "tenant_service:",
             )
         ) or permission_code in {
             "party:risk_read",

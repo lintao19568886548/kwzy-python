@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-14T17:52:13.609162+00:00",
+  "target": "http://127.0.0.1:8032/api/v1",
+  "runtime": {
+    "requests": 1000,
+    "concurrency": 25,
+    "warmup": 40,
+    "endpoints": [
+      "GET /work-orders?page=1&page_size=100",
+      "GET /work-order-assignment-rules"
+    ]
+  },
+  "thresholds": {
+    "max_p95_ms": 500.0,
+    "max_error_rate_percent": 0.0,
+    "min_requests_per_second": 20.0
+  },
+  "aggregate": {
+    "requests": 1000,
+    "failures": 0,
+    "error_rate_percent": 0.0,
+    "elapsed_seconds": 4.56,
+    "requests_per_second": 219.299,
+    "mean_ms": 112.726,
+    "p50_ms": 104.552,
+    "p95_ms": 209.085,
+    "p99_ms": 242.209,
+    "max_ms": 257.226,
+    "by_endpoint": {
+      "GET /work-order-assignment-rules": {
+        "requests": 500,
+        "failures": 0,
+        "p50_ms": 101.198,
+        "p95_ms": 209.315,
+        "p99_ms": 236.501,
+        "max_ms": 245.937
+      },
+      "GET /work-orders?page=1&page_size=100": {
+        "requests": 500,
+        "failures": 0,
+        "p50_ms": 107.471,
+        "p95_ms": 207.84,
+        "p99_ms": 242.888,
+        "max_ms": 257.226
+      }
+    },
+    "failure_examples": []
+  },
+  "gate": {
+    "passed": true,
+    "failures": []
+  }
+}

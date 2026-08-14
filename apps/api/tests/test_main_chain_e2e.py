@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+from uuid import uuid4
+
 from sqlalchemy.orm import Session
 
 from app.core.security import create_access_token, hash_password
@@ -23,6 +25,10 @@ def _bearer(*, permissions: list[str] | None = None) -> dict:
         },
     )
     return {"Authorization": f"Bearer {token}"}
+
+
+def _idempotent(headers: dict[str, str], prefix: str) -> dict[str, str]:
+    return {**headers, "Idempotency-Key": f"{prefix}-{uuid4()}"}
 
 
 def test_main_chain_happy_path(client, governed_activate, approved_intent) -> None:
@@ -160,14 +166,54 @@ def test_main_chain_happy_path(client, governed_activate, approved_intent) -> No
     assert closed_case.json()["data"]["status"] == "CLOSED"
     assert closed_case.json()["data"]["resolution_code"] == "RECEIVABLE_SETTLED"
 
+    operator = client.post(
+        "/api/v1/system/users",
+        headers=h,
+        json={
+            "username": f"main_chain_operator_{uuid4().hex[:8]}",
+            "password": "Main-Chain-Operator-123!",
+            "real_name": "主链维修人员",
+            "role_ids": [],
+            "park_ids": [],
+            "all_parks": True,
+        },
+    )
+    assert operator.status_code == 200, operator.text
     wo = client.post(
         "/api/v1/work-orders",
-        headers=h,
+        headers=_idempotent(h, "main-chain-work-order"),
         json={"park_id": park["id"], "title": "E2E巡检", "priority": "MEDIUM"},
     )
     assert wo.status_code == 200, wo.text
-    wid = wo.json()["data"]["id"]
-    assert client.post(f"/api/v1/work-orders/{wid}/complete", headers=h).status_code == 200
+    work_order = wo.json()["data"]
+    wid = work_order["id"]
+    dispatched = client.post(
+        f"/api/v1/work-orders/{wid}/dispatch",
+        headers=h,
+        json={
+            "expected_version": work_order["lock_version"],
+            "assignee_user_id": operator.json()["data"]["id"],
+            "reason": "主链测试人工派单",
+        },
+    )
+    assert dispatched.status_code == 200, dispatched.text
+    started = client.post(
+        f"/api/v1/work-orders/{wid}/start",
+        headers=h,
+        json={"expected_version": dispatched.json()["data"]["lock_version"]},
+    )
+    assert started.status_code == 200, started.text
+    completed = client.post(
+        f"/api/v1/work-orders/{wid}/complete",
+        headers=h,
+        json={
+            "expected_version": started.json()["data"]["lock_version"],
+            "resolution_summary": "主链巡检处理完毕",
+            "no_evidence_reason": "合成主链未生成附件",
+        },
+    )
+    assert completed.status_code == 200, completed.text
+    assert completed.json()["data"]["status"] == "WAITING_ACCEPTANCE"
 
     # 工作台聚合
     summary = client.get("/api/v1/workbench/summary", headers=h)
@@ -250,7 +296,7 @@ def test_cross_tenant_isolation_on_party(client, db_session: Session) -> None:
     }
     r2 = client.post(
         "/api/v1/work-orders",
-        headers=h3,
+        headers=_idempotent(h3, "main-chain-scope-denied"),
         json={"park_id": park["id"], "title": "跨园拒绝"},
     )
     assert r2.status_code == 403
