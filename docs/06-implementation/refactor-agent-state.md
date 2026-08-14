@@ -8,8 +8,8 @@
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
 | 已验证 HEAD | 审批/审计实现提交 `13243b4488a79ee6eccfc505812b5315263d7c83` 已完成 26/26 clean-SHA 总门禁 |
-| 远程同步 | `feat/full-rebuild-completion` 与 `origin/feat/full-rebuild-completion` 均含 `13243b4488a79ee6eccfc505812b5315263d7c83`；归档证据提交待推送 |
-| 工作树 | 仅 clean-SHA 机器报告、已同步归档的 OpenSpec 与闭环文档待提交；用户既有修改未覆盖 |
+| 远程同步 | `feat/full-rebuild-completion` 与 `origin/feat/full-rebuild-completion` 已含实现 `13243b4` 和归档证据 `008d6ac`；本轮未 force、未触达 main |
+| 工作树 | 本状态收口提交后应为干净；用户既有修改未覆盖 |
 | Alembic | 唯一 head `o1d79e4f6a53`；fresh upgrade 与 `head→-1→head` 通过，降级任务投影残留缺陷已修复并由真实 HTTP 复演关闭 |
 | 当前阶段 | 独立验收为 3 implemented / 1 blocked / 16 missing；组合能力 1 已升级，完整项目仍 `CONDITIONAL/BLOCKED` |
 | 当前 OpenSpec | 组织治理与审批/审计均已同步主规格并归档；Identity 两个真实旧数据任务继续外部门禁 |
@@ -102,7 +102,7 @@
 
 ## 下一恢复点
 
-1. 提交并正常推送审批/审计 clean-SHA 证据与 OpenSpec 归档。
+1. 审批/审计 clean-SHA 证据与 OpenSpec 归档已提交并正常推送，纵切关闭。
 2. 建设事件驱动待办、规则/定时任务和多角色可配置工作台，继续关闭组合能力 2。
 3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 
