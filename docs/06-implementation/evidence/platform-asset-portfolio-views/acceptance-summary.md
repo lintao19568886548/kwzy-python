@@ -1,7 +1,7 @@
 # 资产业态模板与组合租控纵切验收证据
 
 > 验收日期：2026-08-14（Asia/Shanghai）
-> 分支：`feat/full-rebuild-completion`；工作树验收基于 `1b4d6aa5ed93d05e20591e45854eb3985e908827`，实现提交与 clean-SHA 复验待执行。
+> 分支：`feat/full-rebuild-completion`；精确实现提交 `44ae618aa4b0a83bbb89eff2b040475bbfcb0479` 已正常推送并完成 clean-SHA 复验。
 > 判定：能力矩阵第 3 项“资产模板、租控矩阵、拆分合并和历史”已在本地真实栈闭环；全项目仍为 `CONDITIONAL/BLOCKED`。
 
 ## 已验收产品范围
@@ -15,7 +15,21 @@
 - 桌面、平板、手机的加载、空态、403、409、断网、恢复重试、键盘焦点和无横向溢出；
 - 明示 `NOT_CONNECTED_LOCAL_SCHEMATIC`，未把 SVG 示意图宣称为外部 GIS、CAD/BIM 或数字孪生。
 
-## 工作树完整闸门
+## clean-SHA 完整闸门
+
+权威机器报告为 `acceptance-clean-44ae618.json`：精确 HEAD `44ae618aa4b0a83bbb89eff2b040475bbfcb0479`，30/30 步 exit 0；SHA-256 `40DF282B687A044AEF7AC93763818F9BDF1E646782CCB42BC36E72E28D850541`。
+
+| 类别 | clean-SHA 结果 |
+| --- | --- |
+| Alembic / PostgreSQL 16 | fresh base→q3→唯一 `r4a02c7d9e86`；`current == heads`；`downgrade r4→q3 → upgrade r4` 后再次相等 |
+| 后端 | `286 passed, 1 warning`，pytest 自报 118.31 秒；全仓 Ruff 错误级规则 PASS |
+| 真实 HTTP / ETL | 资产独立 HTTP 与 synthetic dry/interruption/apply/reapply/reconcile/rollback 均 PASS；证据为 `asset-portfolio-http-clean-44ae618.json`、`asset-portfolio-etl-clean-44ae618.json` |
+| 性能 | 1,000 请求、并发 25、0 错误、p95 268.361 ms、135.946 RPS；报告 SHA-256 `1FE7FC1FE1901F3E0A27DD4E4626F4DB681C28F9E78C054A565F2F78BA3A3FA8` |
+| 备份恢复 | `pg_dump -Fc` 1,133,418 bytes；删除/创建临时恢复库、`pg_restore`、84 表复核和恢复库清理均 PASS |
+| 前端 / 浏览器 | ESLint、typecheck、Vitest 3 files / 6 tests、production build、Playwright 52/52 全通过 |
+| 契约 / 安全 | OpenAPI 10 + YAML strict、OpenSpec 67/67、781 文件 secrets scan、diff check 与资源清理均 PASS |
+
+## 提交前工作树完整闸门
 
 权威机器报告为 `acceptance-worktree-20260814.json`：30/30 步 exit 0，18:29:18–18:39:38 +08:00，总耗时 619,403 ms；SHA-256 `6E2322C9C63F3FDAC4EE0A29B0EF1B3D17A3BF474C1EB121DADDE4DB3BD72C75`。
 

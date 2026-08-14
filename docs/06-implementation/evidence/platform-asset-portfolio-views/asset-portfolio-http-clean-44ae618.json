@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "result": "PASS",
+  "finished_at": "2026-08-14T10:50:08.646598+00:00",
+  "duration_ms": 1043.07,
+  "target": "http://127.0.0.1:8010/api/v1",
+  "real_http": true,
+  "external_map_provider": "NOT_CONNECTED_LOCAL_SCHEMATIC",
+  "template_id": 30,
+  "template_version_id": 24,
+  "park_id": 32,
+  "space_id": 23,
+  "unit_id": 31,
+  "stages": [
+    {
+      "name": "login",
+      "passed": true,
+      "ms": 191.67
+    },
+    {
+      "name": "bootstrap_builtin_templates",
+      "passed": true,
+      "ms": 23.08
+    },
+    {
+      "name": "builtin_bootstrap_idempotent",
+      "passed": true,
+      "ms": 19.55
+    },
+    {
+      "name": "create_custom_template_draft",
+      "passed": true,
+      "ms": 29.78
+    },
+    {
+      "name": "update_template_draft",
+      "passed": true,
+      "ms": 22.52
+    },
+    {
+      "name": "template_stale_write_rejected",
+      "passed": true,
+      "ms": 8.78
+    },
+    {
+      "name": "publish_immutable_template_version",
+      "passed": true,
+      "ms": 35.28
+    },
+    {
+      "name": "unsafe_template_grammar_rejected",
+      "passed": true,
+      "ms": 10.98
+    },
+    {
+      "name": "create_park",
+      "passed": true,
+      "ms": 29.73
+    },
+    {
+      "name": "create_real_geometry_space",
+      "passed": true,
+      "ms": 25.85
+    },
+    {
+      "name": "create_template_bound_unit",
+      "passed": true,
+      "ms": 29.49
+    },
+    {
+      "name": "map_projection_from_stored_geometry",
+      "passed": true,
+      "ms": 12.75
+    },
+    {
+      "name": "vacancy_projection",
+      "passed": true,
+      "ms": 10.29
+    },
+    {
+      "name": "portfolio_analysis_reconciliation",
+      "passed": true,
+      "ms": 20.35
+    },
+    {
+      "name": "geometry_optimistic_update",
+      "passed": true,
+      "ms": 27.23
+    },
+    {
+      "name": "geometry_stale_write_rejected",
+      "passed": true,
+      "ms": 11.18
+    },
+    {
+      "name": "create_structural_version_with_template_history",
+      "passed": true,
+      "ms": 27.12
+    },
+    {
+      "name": "verify_unit_version_history",
+      "passed": true,
+      "ms": 11.93
+    },
+    {
+      "name": "login_read_only_asset_user",
+      "passed": true,
+      "ms": 190.58
+    },
+    {
+      "name": "forged_template_write_permission_rejected",
+      "passed": true,
+      "ms": 14.43
+    },
+    {
+      "name": "login_second_tenant",
+      "passed": true,
+      "ms": 194.73
+    },
+    {
+      "name": "cross_tenant_template_idor_hidden",
+      "passed": true,
+      "ms": 37.48
+    }
+  ]
+}

@@ -2,16 +2,16 @@
 
 > 日期：2026-08-14（Asia/Shanghai）
 > 结论：**BLOCKED（已实现范围条件通过，全产品未完成）**
-> 最新工作树验收基线：`1b4d6aa5ed93d05e20591e45854eb3985e908827` + 资产模板/组合租控未提交变更；clean-SHA 复验待实现提交后执行
-> 最新机器报告：`evidence/platform-asset-portfolio-views/acceptance-worktree-20260814.json`
-> 报告 SHA-256：`6E2322C9C63F3FDAC4EE0A29B0EF1B3D17A3BF474C1EB121DADDE4DB3BD72C75`
+> 最新 clean-SHA 验收基线：`44ae618aa4b0a83bbb89eff2b040475bbfcb0479`（已正常推送至 `origin/feat/full-rebuild-completion`）
+> 最新机器报告：`evidence/platform-asset-portfolio-views/acceptance-clean-44ae618.json`
+> 报告 SHA-256：`40DF282B687A044AEF7AC93763818F9BDF1E646782CCB42BC36E72E28D850541`
 > 本报告滚动记录自治重建；下文早期 repair 数字如与“最新闭环增量”冲突，以最新机器报告与能力矩阵为准。
 
 ## 0. 最新闭环增量
 
-资产模板/组合租控工作树完整脚本 30/30 步 exit 0，总耗时 619,403 ms：PG16 fresh base→q3→唯一 head `r4a02c7d9e86`、严格 current=heads、r4 down 到 q3 后再 up、全仓 Ruff 错误级规则、286 后端测试、7 租户 worker、全套合成 ETL、三条真实 HTTP 旅程、1,000 请求性能、备份删除/恢复、前端门禁、52 条 Playwright、10 条 OpenAPI strict、67 项 OpenSpec strict、780 文件 secrets scan 和资源清理均通过。未 force、未触达 main、未连接生产；实现提交和 clean-SHA 复验仍是本纵切剩余步骤。
+资产模板/组合租控精确实现提交 `44ae618` 的完整脚本 30/30 步 exit 0：PG16 fresh base→q3→唯一 head `r4a02c7d9e86`、严格 current=heads、r4 down 到 q3 后再 up、全仓 Ruff 错误级规则、286 后端测试、7 租户 worker、全套合成 ETL、三条真实 HTTP 旅程、1,000 请求性能、备份删除/恢复、前端门禁、52 条 Playwright、10 条 OpenAPI strict、67 项 OpenSpec strict、781 文件 secrets scan 和资源清理均通过。实现提交已正常推送；未 force、未触达 main、未连接生产。
 
-本纵切新增七类版本化业态模板、受限动态字段、精确 Unit 模板版本历史、复合租户外键、合法 Point/简单 Polygon/CRS，以及矩阵/真实几何示意地图/列表/空置/到期/分析。三张新截图人工复核无假底图、错误口径或移动端横向溢出；资产 22 阶段真实 HTTP 旅程覆盖 403/404/409、跨租户 IDOR 和原始记录对账。性能为 p95 260.28 ms、137.877 RPS、0 错误；商业 GIS/CAD/BIM 明确 `NOT_CONNECTED`。
+本纵切新增七类版本化业态模板、受限动态字段、精确 Unit 模板版本历史、复合租户外键、合法 Point/简单 Polygon/CRS，以及矩阵/真实几何示意地图/列表/空置/到期/分析。三张新截图人工复核无假底图、错误口径或移动端横向溢出；资产 22 阶段真实 HTTP 旅程覆盖 403/404/409、跨租户 IDOR 和原始记录对账。clean-SHA 性能为 p95 268.361 ms、135.946 RPS、0 错误；商业 GIS/CAD/BIM 明确 `NOT_CONNECTED`。
 
 同条件首轮执行在性能步骤以 p95 2,928.855 ms 失败；该失败报告已作为 `acceptance-worktree-performance-transient-failure-20260814.json` 保留，未降低 500 ms 门槛。只有随后从空库完整复跑全部 30 步通过，才形成当前工作树 PASS 证据。
 
@@ -81,7 +81,7 @@ pwsh -NoProfile -File infra/local-staging/run_full_acceptance.ps1
 
 ## 4. 测试和耗时
 
-最新资产工作树报告为 30/30 步、286 pytest、52 Playwright、10 OpenAPI、67 OpenSpec、780 文件扫描；下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
+最新资产 clean-SHA 报告为 30/30 步、286 pytest、52 Playwright、10 OpenAPI、67 OpenSpec、781 文件扫描；下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
 
 精确实现 SHA `a9267d4` 的完整脚本从 11:33:05 到 11:38:53，总耗时 348,122 ms，24/24 步 exit 0。
 

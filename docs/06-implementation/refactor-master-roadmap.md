@@ -1,7 +1,7 @@
 # 瞰维智管 V2 全量重建主路线图
 
 > 更新时间：2026-08-14（Asia/Shanghai）
-> 当前独立验收基线：资产模板/组合租控工作树 30/30 总门禁通过，clean-SHA 复验待提交；上一 clean-SHA 基线为工作台 `fedc98efb7a33f39240216fbb861b57f6142649b`
+> 当前独立验收基线：资产模板/组合租控精确实现提交 `44ae618aa4b0a83bbb89eff2b040475bbfcb0479` 的 30/30 clean-SHA 总门禁通过
 > 当前完成分支：`feat/full-rebuild-completion`，从 repair 推送记录 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建；三条本地 safety ref 已保留。
 > 总体状态：**BLOCKED — 已实现纵切通过，不等于三端、旧系统和全业务完成。**
 
@@ -32,7 +32,7 @@
 1. `complete-platform-organization-governance`：已提交、clean-SHA 复验、同步并归档。
 2. `complete-platform-approval-audit-center`：实现提交 `13243b4` 与归档证据 `008d6ac` 已推送；PG16、264 后端、46 浏览器、独立 HTTP、性能、备份恢复和合成 ETL 的 26/26 clean-SHA 总门禁通过；9 个 delta 已同步主规格并归档，纵切关闭。
 3. `2026-08-14-complete-platform-workbench-automation`：实现提交 `fedc98e` 与证据/主规格同步 `7741351` 已正常推送；28/28 clean-SHA 总门禁、277 后端、50 浏览器、真实 HTTP、p95 250.49 ms、备份恢复和合成 ETL 已通过；归档后 strict 66/66，纵切关闭。
-4. `complete-asset-portfolio-views`：工作树 30/30 门禁、286 后端、52 浏览器、22 阶段真实 HTTP、七类模板/几何/多视图与合成 ETL 已通过；新增 r4 复合租户外键，拒绝跨租户/跨业态模板、空白名称和无效多边形；提交后执行 clean-SHA 复验、同步和归档。
+4. `2026-08-14-complete-asset-portfolio-views`：实现提交 `44ae618` 已正常推送，30/30 clean-SHA 门禁、286 后端、52 浏览器、22 阶段真实 HTTP、七类模板/几何/多视图与合成 ETL 已通过；新增 r4 复合租户外键，拒绝跨租户/跨业态模板、空白名称和无效多边形；8 份 delta 已同步主规格并归档。
 5. 下一业务纵切从招商自动分配/意向审批、企业画像、账收匹配催缴、租户服务、设备巡检 IoT、档案签章、HR、供应链、园企服务、驾驶舱、AI/集成中按证据顺序继续关闭。
 6. 建设员工移动端与租户微信小程序并完成真实 API/数据库/浏览器（或小程序运行器）旅程，不能用 WebView 壳或本地 JSON替代。
 7. 数据负责人/DBA 提供经授权旧 schema dump 与脱敏快照；在隔离 PG16 重跑全量/增量/中断/回滚/对账。
