@@ -41,6 +41,7 @@ from app.modules.platform_integrations.interface.api import router as integratio
 from app.modules.records_seal.interface.api import router as records_seal_router
 from app.modules.workbench.interface.api import router as workbench_router
 from app.modules.workflow.interface.api import router as workflow_router
+from app.modules.workforce.interface.api import router as workforce_router
 
 
 @asynccontextmanager
@@ -107,6 +108,7 @@ def create_app() -> FastAPI:
     app.include_router(facility_ops_router, prefix=prefix)
     app.include_router(facility_management_router, prefix=prefix)
     app.include_router(records_seal_router, prefix=prefix)
+    app.include_router(workforce_router, prefix=prefix)
     app.include_router(integrations_router, prefix=prefix)
     app.include_router(workflow_router, prefix=prefix)
     app.include_router(attachments_router, prefix=prefix)

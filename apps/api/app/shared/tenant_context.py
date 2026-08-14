@@ -98,6 +98,7 @@ class TenantContext:
                 "record:",
                 "seal:",
                 "signature:",
+                "workforce:",
             )
         ) or permission_code in {
             "party:risk_read",

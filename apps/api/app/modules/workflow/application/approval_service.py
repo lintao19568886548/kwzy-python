@@ -98,7 +98,7 @@ class ApprovalService:
         title = str(data.get("title") or "").strip()
         if not biz_type or not biz_id or not title:
             raise AppError("biz_type/biz_id/title 必填", code="VALIDATION_ERROR", status_code=400)
-        definition_code = str(data.get("definition_code") or "").strip()
+        definition_code = str(data.get("definition_code") or "").strip().upper()
         if not definition_code:
             return self._create_legacy(data, biz_type=biz_type, biz_id=biz_id, title=title)
         idempotency_key = str(data.get("idempotency_key") or "").strip()

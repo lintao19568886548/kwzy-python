@@ -1,0 +1,97 @@
+{
+  "source": "synthetic-legacy-hr-attendance-v1",
+  "contains_real_customer_data": false,
+  "legacy_performance_aggregate_present": false,
+  "legacy_qualification_aggregate_present": false,
+  "parks": [
+    { "source_id": "park-old-a", "target_ref": "park-a" }
+  ],
+  "employees": [
+    {
+      "source_id": "emp-1001",
+      "park_ref": "park-old-a",
+      "employee_no": "LEGACY_1001",
+      "display_name": "合成员工甲",
+      "department_name": "物业运营",
+      "position_name": "巡检员",
+      "mobile": "13800001001",
+      "identity_number": "SYNTHETIC-ID-1001",
+      "status": "ACTIVE",
+      "start_date": "2025-01-02"
+    },
+    {
+      "source_id": "emp-1002",
+      "park_ref": "park-old-a",
+      "employee_no": "LEGACY_1002",
+      "display_name": "合成员工乙",
+      "department_name": "客户服务",
+      "position_name": "客服专员",
+      "mobile": "13800001002",
+      "identity_number": "SYNTHETIC-ID-1002",
+      "status": "ACTIVE",
+      "start_date": "2025-02-03"
+    },
+    {
+      "source_id": "emp-unmapped",
+      "park_ref": "park-missing",
+      "employee_no": "LEGACY_BAD",
+      "display_name": "合成未映射员工",
+      "department_name": "未知",
+      "position_name": "未知",
+      "mobile": "13800009999",
+      "identity_number": "SYNTHETIC-ID-BAD",
+      "status": "ACTIVE",
+      "start_date": "2025-02-03"
+    }
+  ],
+  "attendance": [
+    {
+      "source_id": "punch-1",
+      "employee_ref": "emp-1001",
+      "punch_type": "IN",
+      "punched_at": "2026-08-14T09:00:00+08:00",
+      "latitude": 31.2304,
+      "longitude": 121.4737,
+      "legacy_location_name": "旧园区东门"
+    },
+    {
+      "source_id": "punch-2",
+      "employee_ref": "emp-1001",
+      "punch_type": "OUT",
+      "punched_at": "2026-08-14T18:00:00+08:00",
+      "latitude": 31.2305,
+      "longitude": 121.4738,
+      "legacy_location_name": "旧园区东门"
+    },
+    {
+      "source_id": "punch-3",
+      "employee_ref": "emp-1002",
+      "punch_type": "IN",
+      "punched_at": "2026-08-14T09:08:00+08:00",
+      "latitude": 31.2306,
+      "longitude": 121.4739,
+      "legacy_location_name": "旧园区东门"
+    },
+    {
+      "source_id": "punch-orphan",
+      "employee_ref": "emp-missing",
+      "punch_type": "IN",
+      "punched_at": "2026-08-14T09:10:00+08:00",
+      "latitude": 31.0,
+      "longitude": 121.0,
+      "legacy_location_name": "未知"
+    }
+  ],
+  "leaves": [
+    {
+      "source_id": "leave-1",
+      "employee_ref": "emp-1002",
+      "leave_type": "PERSONAL",
+      "start_at": "2026-08-15T09:00:00+08:00",
+      "end_at": "2026-08-15T18:00:00+08:00",
+      "legacy_status": "APPROVED"
+    }
+  ],
+  "performance_records": [],
+  "qualification_records": []
+}

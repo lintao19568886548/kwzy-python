@@ -15,6 +15,7 @@ os.environ["ALLOW_ANON_DEV"] = "true"
 # Test fixture credential only — not a production password
 os.environ["LOCAL_ADMIN_PASSWORD"] = "admin123"
 os.environ["JWT_SECRET"] = "test-jwt-secret-not-for-production"
+os.environ["PII_FINGERPRINT_SECRET"] = "test-pii-fingerprint-secret-not-production-32chars"
 
 import pytest
 from fastapi.testclient import TestClient

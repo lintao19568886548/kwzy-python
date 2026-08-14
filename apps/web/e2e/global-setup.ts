@@ -193,6 +193,7 @@ export default async function globalSetup(_config: FullConfig) {
     APP_ENV: "test",
     LOCAL_ADMIN_PASSWORD: "admin123",
     JWT_SECRET: "e2e-jwt-secret-not-for-production-32chars",
+    PII_FINGERPRINT_SECRET: "e2e-pii-fingerprint-secret-not-production-32chars",
     ALLOW_ANON_DEV: "false",
   };
 
@@ -229,6 +230,7 @@ export default async function globalSetup(_config: FullConfig) {
       DEBUG: "false",
       ALLOW_ANON_DEV: "false",
       JWT_SECRET: "e2e-jwt-secret-not-for-production-32chars",
+      PII_FINGERPRINT_SECRET: "e2e-pii-fingerprint-secret-not-production-32chars",
       LOCAL_ADMIN_PASSWORD: "admin123",
       CORS_ORIGINS: `http://127.0.0.1:${WEB_PORT},http://localhost:${WEB_PORT}`,
       SMS_PROVIDER: "fake",

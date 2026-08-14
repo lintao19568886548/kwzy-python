@@ -32,6 +32,7 @@ class Settings(BaseSettings):
 
     jwt_secret: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
+    pii_fingerprint_secret: str = ""
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 14
     refresh_cookie_name: str = "kwzy_refresh"
@@ -94,6 +95,10 @@ class Settings(BaseSettings):
                 raise ValueError(f"{self.app_env} requires an explicit JWT_SECRET")
             if len(self.jwt_secret.encode("utf-8")) < 32:
                 raise ValueError(f"{self.app_env} requires JWT_SECRET of at least 32 bytes")
+            if len(self.pii_fingerprint_secret.encode("utf-8")) < 32:
+                raise ValueError(
+                    f"{self.app_env} requires PII_FINGERPRINT_SECRET of at least 32 bytes"
+                )
             if self.jwt_algorithm not in {"HS256", "HS384", "HS512"}:
                 raise ValueError(f"{self.app_env} requires an approved HMAC JWT_ALGORITHM")
             origins = [origin.strip() for origin in self.cors_origins.split(",")]

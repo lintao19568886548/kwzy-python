@@ -23,6 +23,7 @@ tags:
   - name: TenantService
   - name: FacilityManagement
   - name: RecordsSignatureSeal
+  - name: Workforce
   - name: WorkItems
   - name: OrganizationGovernance
   - name: Approvals
@@ -7007,6 +7008,357 @@ paths:
         content: { application/json: { schema: { $ref: '#/components/schemas/RecordsExpectedReason' } } }
       responses: { '200': { description: OK } }
 
+  /workforce/overview:
+    get:
+      tags: [Workforce]
+      summary: 人力运营范围内总览
+      operationId: workforceOverview
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+
+  /workforce/employees:
+    get:
+      tags: [Workforce]
+      summary: 分页查询权限范围内员工脱敏档案
+      operationId: listWorkforceEmployees
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Workforce]
+      summary: 建立员工档案；手机号和证件号只保存掩码与指纹
+      operationId: createWorkforceEmployee
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceEmployeeCreate' } } } }
+      responses: { '200': { description: Created } }
+
+  /workforce/employees/{employee_id}:
+    parameters:
+      - { name: employee_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+    get:
+      tags: [Workforce]
+      summary: 查询员工受控档案
+      operationId: getWorkforceEmployee
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    patch:
+      tags: [Workforce]
+      summary: 乐观锁更新员工档案
+      operationId: updateWorkforceEmployee
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceEmployeeUpdate' } } } }
+      responses: { '200': { description: Updated } }
+
+  /workforce/employees/{employee_id}/status:
+    post:
+      tags: [Workforce]
+      summary: 乐观锁变更员工在职状态
+      operationId: changeWorkforceEmployeeStatus
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: employee_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceEmployeeStatus' } } } }
+      responses: { '200': { description: Updated } }
+
+  /workforce/shifts:
+    get:
+      tags: [Workforce]
+      summary: 查询班次及不可变版本
+      operationId: listWorkforceShifts
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Workforce]
+      summary: 创建班次并发布首版本
+      operationId: createWorkforceShift
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceShiftCreate' } } } }
+      responses: { '200': { description: Created } }
+
+  /workforce/shifts/{template_id}/versions:
+    post:
+      tags: [Workforce]
+      summary: 发布不可变班次版本
+      operationId: createWorkforceShiftVersion
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: template_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceShiftVersionCreate' } } } }
+      responses: { '200': { description: Published } }
+
+  /workforce/assignments:
+    get:
+      tags: [Workforce]
+      summary: 按日期区间查询排班
+      operationId: listWorkforceAssignments
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Workforce]
+      summary: 创建排班并验证在职、请假和重复冲突
+      operationId: createWorkforceAssignment
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceAssignmentCreate' } } } }
+      responses: { '200': { description: Created } }
+
+  /workforce/assignments/{assignment_id}/cancel:
+    post:
+      tags: [Workforce]
+      summary: 取消排班并保留原因
+      operationId: cancelWorkforceAssignment
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: assignment_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceExpectedReason' } } } }
+      responses: { '200': { description: Cancelled } }
+
+  /workforce/attendance/policies:
+    get:
+      tags: [Workforce]
+      summary: 查询考勤策略
+      operationId: listWorkforceAttendancePolicies
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Workforce]
+      summary: 创建考勤策略
+      operationId: createWorkforceAttendancePolicy
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforcePolicyCreate' } } } }
+      responses: { '200': { description: Created } }
+
+  /workforce/attendance/locations:
+    get:
+      tags: [Workforce]
+      summary: 查询考勤地点；只返回加密配置引用，不返回精确坐标
+      operationId: listWorkforceAttendanceLocations
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Workforce]
+      summary: 创建考勤地点加密配置引用
+      operationId: createWorkforceAttendanceLocation
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceLocationCreate' } } } }
+      responses: { '200': { description: Created } }
+
+  /workforce/attendance/punches:
+    post:
+      tags: [Workforce]
+      summary: 幂等记录打卡；精确经纬度仅用于边界校验且不持久化
+      operationId: createWorkforceAttendancePunch
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 128 } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforcePunchCreate' } } } }
+      responses: { '200': { description: Recorded } }
+
+  /workforce/attendance/summaries:
+    get:
+      tags: [Workforce]
+      summary: 查询工资准备态考勤汇总
+      operationId: listWorkforceAttendanceSummaries
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+
+  /workforce/attendance/summaries/generate:
+    post:
+      tags: [Workforce]
+      summary: 重新计算单日考勤并生成异常待办
+      operationId: generateWorkforceAttendanceSummary
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceSummaryGenerate' } } } }
+      responses: { '200': { description: Generated } }
+
+  /workforce/attendance/summaries/{summary_id}/adjust:
+    post:
+      tags: [Workforce]
+      summary: 乐观锁人工调整考勤汇总
+      operationId: adjustWorkforceAttendanceSummary
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: summary_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceSummaryAdjust' } } } }
+      responses: { '200': { description: Adjusted } }
+
+  /workforce/leaves:
+    get:
+      tags: [Workforce]
+      summary: 查询请假记录及原生审批状态
+      operationId: listWorkforceLeaves
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Workforce]
+      summary: 幂等创建请假并提交原生审批
+      operationId: createWorkforceLeave
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 128 } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceLeaveCreate' } } } }
+      responses: { '200': { description: Submitted } }
+
+  /workforce/leaves/{leave_id}/refresh-approval:
+    post:
+      tags: [Workforce]
+      summary: 从原生审批实例刷新请假状态
+      operationId: refreshWorkforceLeaveApproval
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: leave_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses: { '200': { description: Refreshed } }
+
+  /workforce/leaves/{leave_id}/cancel:
+    post:
+      tags: [Workforce]
+      summary: 取消未终结请假
+      operationId: cancelWorkforceLeave
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: leave_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceExpectedReason' } } } }
+      responses: { '200': { description: Cancelled } }
+
+  /workforce/performance/cycles:
+    get:
+      tags: [Workforce]
+      summary: 查询绩效周期
+      operationId: listWorkforcePerformanceCycles
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Workforce]
+      summary: 创建绩效周期
+      operationId: createWorkforcePerformanceCycle
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforcePerformanceCycleCreate' } } } }
+      responses: { '200': { description: Created } }
+
+  /workforce/performance/cycles/{cycle_id}/status:
+    post:
+      tags: [Workforce]
+      summary: 激活或关闭绩效周期
+      operationId: changeWorkforcePerformanceCycleStatus
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: cycle_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceCycleStatus' } } } }
+      responses: { '200': { description: Updated } }
+
+  /workforce/performance/cycles/{cycle_id}/goals:
+    parameters:
+      - { name: cycle_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+    get:
+      tags: [Workforce]
+      summary: 查询周期目标
+      operationId: listWorkforcePerformanceGoals
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Workforce]
+      summary: 创建目标并限制员工权重总和
+      operationId: createWorkforcePerformanceGoal
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceGoalCreate' } } } }
+      responses: { '200': { description: Created } }
+
+  /workforce/performance/reviews:
+    get:
+      tags: [Workforce]
+      summary: 查询绩效评价
+      operationId: listWorkforcePerformanceReviews
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Workforce]
+      summary: 创建评价并禁止自评
+      operationId: createWorkforcePerformanceReview
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceReviewCreate' } } } }
+      responses: { '200': { description: Created } }
+
+  /workforce/performance/reviews/{review_id}/publish:
+    post:
+      tags: [Workforce]
+      summary: 发布绩效评价
+      operationId: publishWorkforcePerformanceReview
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: review_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceExpectedReason' } } } }
+      responses: { '200': { description: Published } }
+
+  /workforce/performance/reviews/{review_id}/acknowledge:
+    post:
+      tags: [Workforce]
+      summary: 员工确认绩效评价
+      operationId: acknowledgeWorkforcePerformanceReview
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: review_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceReviewAcknowledge' } } } }
+      responses: { '200': { description: Acknowledged } }
+
+  /workforce/qualification-types:
+    get:
+      tags: [Workforce]
+      summary: 查询资质类型
+      operationId: listWorkforceQualificationTypes
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Workforce]
+      summary: 创建资质类型
+      operationId: createWorkforceQualificationType
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceQualificationTypeCreate' } } } }
+      responses: { '200': { description: Created } }
+
+  /workforce/qualifications:
+    get:
+      tags: [Workforce]
+      summary: 查询员工资质与证据引用
+      operationId: listWorkforceQualifications
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [Workforce]
+      summary: 绑定资质证据；证书号只保存掩码与指纹
+      operationId: createWorkforceQualification
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceQualificationCreate' } } } }
+      responses: { '200': { description: Created } }
+
+  /workforce/qualifications/{qualification_id}/verify:
+    post:
+      tags: [Workforce]
+      summary: 复核员工资质
+      operationId: verifyWorkforceQualification
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: qualification_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceExpectedReason' } } } }
+      responses: { '200': { description: Verified } }
+
+  /workforce/qualifications/{qualification_id}/revoke:
+    post:
+      tags: [Workforce]
+      summary: 吊销员工资质
+      operationId: revokeWorkforceQualification
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: qualification_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceExpectedReason' } } } }
+      responses: { '200': { description: Revoked } }
+
+  /workforce/qualifications/sweep:
+    post:
+      tags: [Workforce]
+      summary: 幂等扫描到期资质并生成待办
+      operationId: sweepWorkforceQualifications
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceQualificationSweep' } } } }
+      responses: { '200': { description: Swept } }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -10372,3 +10724,218 @@ components:
           minItems: 1
           maxItems: 50
           items: { $ref: '#/components/schemas/SignatureParticipantInput' }
+    WorkforceExpectedReason:
+      type: object
+      additionalProperties: false
+      required: [expected_version, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    WorkforceEmployeeCreate:
+      type: object
+      additionalProperties: false
+      required: [park_id, employee_no, display_name, start_date]
+      properties:
+        park_id: { type: integer, minimum: 1 }
+        employee_no: { type: string, minLength: 1, maxLength: 32, pattern: '^[A-Za-z][A-Za-z0-9_-]*$' }
+        display_name: { type: string, minLength: 1, maxLength: 128 }
+        department_name: { type: [string, 'null'], maxLength: 128 }
+        position_name: { type: [string, 'null'], maxLength: 128 }
+        user_id: { type: [integer, 'null'], minimum: 1 }
+        mobile: { type: [string, 'null'], minLength: 4, maxLength: 32, writeOnly: true }
+        identity_number: { type: [string, 'null'], minLength: 4, maxLength: 64, writeOnly: true }
+        start_date: { type: string, format: date }
+        end_date: { type: [string, 'null'], format: date }
+    WorkforceEmployeeUpdate:
+      type: object
+      additionalProperties: false
+      required: [expected_version, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+        display_name: { type: [string, 'null'], minLength: 1, maxLength: 128 }
+        department_name: { type: [string, 'null'], maxLength: 128 }
+        position_name: { type: [string, 'null'], maxLength: 128 }
+        user_id: { type: [integer, 'null'], minimum: 1 }
+        mobile: { type: [string, 'null'], minLength: 4, maxLength: 32, writeOnly: true }
+        identity_number: { type: [string, 'null'], minLength: 4, maxLength: 64, writeOnly: true }
+        end_date: { type: [string, 'null'], format: date }
+    WorkforceEmployeeStatus:
+      type: object
+      additionalProperties: false
+      required: [expected_version, status, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        status: { type: string, enum: [ACTIVE, SUSPENDED, LEFT] }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+        end_date: { type: [string, 'null'], format: date }
+    WorkforceShiftCreate:
+      type: object
+      additionalProperties: false
+      required: [park_id, code, name, start_time, end_time]
+      properties:
+        park_id: { type: integer, minimum: 1 }
+        code: { type: string, minLength: 1, maxLength: 32, pattern: '^[A-Za-z][A-Za-z0-9_-]*$' }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        start_time: { type: string, format: time }
+        end_time: { type: string, format: time }
+        cross_day: { type: boolean, default: false }
+        break_minutes: { type: integer, minimum: 0, maximum: 480, default: 0 }
+        late_grace_minutes: { type: integer, minimum: 0, maximum: 240, default: 0 }
+        early_grace_minutes: { type: integer, minimum: 0, maximum: 240, default: 0 }
+    WorkforceShiftVersionCreate:
+      type: object
+      additionalProperties: false
+      required: [expected_version, reason, start_time, end_time]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+        name: { type: [string, 'null'], minLength: 1, maxLength: 128 }
+        start_time: { type: string, format: time }
+        end_time: { type: string, format: time }
+        cross_day: { type: boolean, default: false }
+        break_minutes: { type: integer, minimum: 0, maximum: 480, default: 0 }
+        late_grace_minutes: { type: integer, minimum: 0, maximum: 240, default: 0 }
+        early_grace_minutes: { type: integer, minimum: 0, maximum: 240, default: 0 }
+    WorkforceAssignmentCreate:
+      type: object
+      additionalProperties: false
+      required: [employee_id, shift_version_id, work_date]
+      properties:
+        employee_id: { type: integer, minimum: 1 }
+        shift_version_id: { type: integer, minimum: 1 }
+        work_date: { type: string, format: date }
+        reason: { type: [string, 'null'], maxLength: 500 }
+    WorkforcePolicyCreate:
+      type: object
+      additionalProperties: false
+      required: [park_id, code, name]
+      properties:
+        park_id: { type: integer, minimum: 1 }
+        code: { type: string, minLength: 1, maxLength: 32, pattern: '^[A-Za-z][A-Za-z0-9_-]*$' }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        geofence_radius_m: { type: integer, minimum: 10, maximum: 5000, default: 300 }
+        allow_manual: { type: boolean, default: true }
+    WorkforceLocationCreate:
+      type: object
+      additionalProperties: false
+      required: [park_id, code, name, config_ref, radius_m]
+      properties:
+        park_id: { type: integer, minimum: 1 }
+        code: { type: string, minLength: 1, maxLength: 32, pattern: '^[A-Za-z][A-Za-z0-9_-]*$' }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        config_ref: { type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z][A-Za-z0-9_.:/-]*$' }
+        radius_m: { type: integer, minimum: 10, maximum: 5000 }
+    WorkforcePunchCreate:
+      type: object
+      additionalProperties: false
+      required: [employee_id, punch_type, punched_at, source]
+      properties:
+        employee_id: { type: integer, minimum: 1 }
+        punch_type: { type: string, enum: [IN, OUT] }
+        punched_at: { type: string, format: date-time }
+        source: { type: string, enum: [MANUAL, DEVICE, MOBILE] }
+        location_id: { type: [integer, 'null'], minimum: 1 }
+        distance_m: { type: [integer, 'null'], minimum: 0, maximum: 100000 }
+        device_id: { type: [string, 'null'], maxLength: 128, writeOnly: true }
+        latitude: { type: [number, 'null'], minimum: -90, maximum: 90, writeOnly: true, description: 仅用于请求边界验证，禁止持久化 }
+        longitude: { type: [number, 'null'], minimum: -180, maximum: 180, writeOnly: true, description: 仅用于请求边界验证，禁止持久化 }
+    WorkforceSummaryGenerate:
+      type: object
+      additionalProperties: false
+      required: [employee_id, work_date]
+      properties:
+        employee_id: { type: integer, minimum: 1 }
+        work_date: { type: string, format: date }
+    WorkforceSummaryAdjust:
+      type: object
+      additionalProperties: false
+      required: [expected_version, status, worked_minutes, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        status: { type: string, enum: [NORMAL, LATE, EARLY, ABSENT, LEAVE, ANOMALY, ADJUSTED] }
+        worked_minutes: { type: integer, minimum: 0, maximum: 2880 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    WorkforceLeaveCreate:
+      type: object
+      additionalProperties: false
+      required: [employee_id, leave_type, start_at, end_at, reason, definition_code]
+      properties:
+        employee_id: { type: integer, minimum: 1 }
+        leave_type: { type: string, enum: [ANNUAL, SICK, PERSONAL, MATERNITY, PATERNITY, OTHER] }
+        start_at: { type: string, format: date-time }
+        end_at: { type: string, format: date-time }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+        definition_code: { type: string, minLength: 1, maxLength: 64 }
+    WorkforcePerformanceCycleCreate:
+      type: object
+      additionalProperties: false
+      required: [park_id, code, name, start_date, end_date]
+      properties:
+        park_id: { type: integer, minimum: 1 }
+        code: { type: string, minLength: 1, maxLength: 32, pattern: '^[A-Za-z][A-Za-z0-9_-]*$' }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date }
+    WorkforceCycleStatus:
+      type: object
+      additionalProperties: false
+      required: [expected_version, status, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        status: { type: string, enum: [ACTIVE, CLOSED] }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    WorkforceGoalCreate:
+      type: object
+      additionalProperties: false
+      required: [employee_id, code, title, weight]
+      properties:
+        employee_id: { type: integer, minimum: 1 }
+        code: { type: string, minLength: 1, maxLength: 32, pattern: '^[A-Za-z][A-Za-z0-9_-]*$' }
+        title: { type: string, minLength: 1, maxLength: 255 }
+        description: { type: [string, 'null'], maxLength: 5000 }
+        weight: { type: integer, minimum: 1, maximum: 100 }
+        target_value: { type: [string, 'null'], maxLength: 128 }
+    WorkforceReviewCreate:
+      type: object
+      additionalProperties: false
+      required: [cycle_id, employee_id, rating, comment]
+      properties:
+        cycle_id: { type: integer, minimum: 1 }
+        employee_id: { type: integer, minimum: 1 }
+        rating: { type: integer, minimum: 0, maximum: 100 }
+        comment: { type: string, minLength: 1, maxLength: 2000 }
+    WorkforceReviewAcknowledge:
+      type: object
+      additionalProperties: false
+      required: [expected_version, acknowledgement]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        acknowledgement: { type: string, minLength: 1, maxLength: 1000 }
+    WorkforceQualificationTypeCreate:
+      type: object
+      additionalProperties: false
+      required: [code, name]
+      properties:
+        code: { type: string, minLength: 1, maxLength: 32, pattern: '^[A-Za-z][A-Za-z0-9_-]*$' }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        validity_months: { type: [integer, 'null'], minimum: 1, maximum: 1200 }
+        reminder_days: { type: integer, minimum: 0, maximum: 3650, default: 30 }
+    WorkforceQualificationCreate:
+      type: object
+      additionalProperties: false
+      required: [employee_id, qualification_type_id, attachment_id, credential_number, issuer, effective_on]
+      properties:
+        employee_id: { type: integer, minimum: 1 }
+        qualification_type_id: { type: integer, minimum: 1 }
+        attachment_id: { type: integer, minimum: 1 }
+        credential_number: { type: string, minLength: 4, maxLength: 128, writeOnly: true }
+        issuer: { type: string, minLength: 1, maxLength: 255 }
+        effective_on: { type: string, format: date }
+        expires_on: { type: [string, 'null'], format: date }
+    WorkforceQualificationSweep:
+      type: object
+      additionalProperties: false
+      required: [due_on]
+      properties:
+        due_on: { type: string, format: date }

@@ -1,0 +1,118 @@
+{
+  "generated_at": "2026-08-14T23:08:46.209934+00:00",
+  "result": "PASS",
+  "schema": "etl_workforce_fixture",
+  "synthetic_only": true,
+  "contains_real_customer_data": false,
+  "live_legacy_verified": false,
+  "legacy_performance_aggregate_present": false,
+  "legacy_qualification_aggregate_present": false,
+  "readiness": "CONDITIONAL_SYNTHETIC_READY_FOR_AUTHORIZED_STAGING_DATA",
+  "real_legacy_readiness": "BLOCKED_PENDING_AUTHORIZED_SCHEMA_SNAPSHOT_DICTIONARIES_AND_KEYMAPS",
+  "fixture_sha256": "3974ac1a89416c5285064089a5622591b87049eb3287712f54e6a525ab83db3b",
+  "stages": {
+    "dry_run": {
+      "passed": true,
+      "source_counts": {
+        "parks": 1,
+        "employees": 3,
+        "attendance": 4,
+        "leaves": 1,
+        "performance_records": 0,
+        "qualification_records": 0
+      },
+      "mapped_counts": {
+        "employees": 2,
+        "shift_versions": 1,
+        "assignments": 2,
+        "punches": 3,
+        "summaries": 2,
+        "leaves": 1,
+        "performance_records": 0,
+        "qualifications": 0,
+        "quarantine": 3
+      }
+    },
+    "interruption_recovery": {
+      "passed": true,
+      "partial_rows_after_rollback": 0
+    },
+    "first_apply": {
+      "passed": true,
+      "inserted": {
+        "employees": 2,
+        "shift_versions": 1,
+        "assignments": 2,
+        "punches": 3,
+        "summaries": 2,
+        "leaves": 1,
+        "performance_records": 0,
+        "qualifications": 0,
+        "quarantine": 3
+      }
+    },
+    "idempotent_reapply": {
+      "passed": true,
+      "inserted": {
+        "employees": 0,
+        "shift_versions": 0,
+        "assignments": 0,
+        "punches": 0,
+        "summaries": 0,
+        "leaves": 0,
+        "performance_records": 0,
+        "qualifications": 0,
+        "quarantine": 0
+      }
+    },
+    "reconciliation": {
+      "passed": true,
+      "expected_counts": {
+        "employees": 2,
+        "shift_versions": 1,
+        "assignments": 2,
+        "punches": 3,
+        "summaries": 2,
+        "leaves": 1,
+        "performance_records": 0,
+        "qualifications": 0,
+        "quarantine": 3
+      },
+      "target_counts": {
+        "employees": 2,
+        "shift_versions": 1,
+        "assignments": 2,
+        "punches": 3,
+        "summaries": 2,
+        "leaves": 1,
+        "performance_records": 0,
+        "qualifications": 0,
+        "quarantine": 3
+      },
+      "raw_pii_or_exact_coordinate_columns": 0,
+      "orphan_punches": 0,
+      "quarantine_reasons": {
+        "PARK_KEY_UNMAPPED": 1,
+        "EMPLOYEE_KEY_UNMAPPED": 1,
+        "LEAVE_APPROVAL_EVIDENCE_MISSING": 1
+      },
+      "fabricated_performance_records": 0,
+      "fabricated_qualifications": 0,
+      "payroll_results_generated": 0
+    },
+    "rollback": {
+      "passed": true,
+      "schema_exists_after": false,
+      "authorization_rows_unchanged": true
+    }
+  },
+  "blockers": [
+    "authorized legacy HR schema dump and row-count watermarks not supplied",
+    "desensitized employee/attendance/leave snapshot and park/user key maps not supplied",
+    "native approval evidence for legacy approved leave not supplied",
+    "no authoritative legacy performance or qualification aggregate supplied",
+    "production cutover and irreversible data-change authorization not granted"
+  ],
+  "production_contacted": false,
+  "production_authorized": false
+}

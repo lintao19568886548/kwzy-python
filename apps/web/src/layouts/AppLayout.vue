@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
@@ -48,6 +48,19 @@ const allNav: NavItem[] = [
       "seal:apply",
       "signature:read",
       "signature:write",
+    ],
+  },
+  {
+    to: "/workforce",
+    label: "人力运营",
+    testid: "nav-workforce",
+    permissionAny: [
+      "workforce:read",
+      "workforce:manage",
+      "workforce:schedule",
+      "workforce:attendance_admin",
+      "workforce:performance_manage",
+      "workforce:qualification_manage",
     ],
   },
   { to: "/parks", label: "园区", testid: "nav-parks", permission: "park:read" },
@@ -101,7 +114,15 @@ async function revealActiveNavItem() {
   activeLink?.scrollIntoView({ behavior: "auto", block: "nearest", inline: "center" });
 }
 
-onMounted(revealActiveNavItem);
+function handleViewportChange() {
+  void revealActiveNavItem();
+}
+
+onMounted(() => {
+  void revealActiveNavItem();
+  window.addEventListener("resize", handleViewportChange);
+});
+onBeforeUnmount(() => window.removeEventListener("resize", handleViewportChange));
 watch(() => route.fullPath, revealActiveNavItem);
 
 async function logout() {

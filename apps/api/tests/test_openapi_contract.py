@@ -185,6 +185,89 @@ def test_step1_runtime_paths_covered_by_openapi() -> None:
         assert found, f"runtime route {rp} not reflected in OpenAPI ({resource})"
 
 
+def test_workforce_openapi_matches_every_runtime_method_and_strict_command() -> None:
+    """Every workforce route and sensitive command stays contract-controlled."""
+
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    paths = document["paths"]
+    runtime_paths = create_app().openapi()["paths"]
+    expected_methods = {
+        "/workforce/overview": {"get"},
+        "/workforce/employees": {"get", "post"},
+        "/workforce/employees/{employee_id}": {"get", "patch"},
+        "/workforce/employees/{employee_id}/status": {"post"},
+        "/workforce/shifts": {"get", "post"},
+        "/workforce/shifts/{template_id}/versions": {"post"},
+        "/workforce/assignments": {"get", "post"},
+        "/workforce/assignments/{assignment_id}/cancel": {"post"},
+        "/workforce/attendance/policies": {"get", "post"},
+        "/workforce/attendance/locations": {"get", "post"},
+        "/workforce/attendance/punches": {"post"},
+        "/workforce/attendance/summaries": {"get"},
+        "/workforce/attendance/summaries/generate": {"post"},
+        "/workforce/attendance/summaries/{summary_id}/adjust": {"post"},
+        "/workforce/leaves": {"get", "post"},
+        "/workforce/leaves/{leave_id}/refresh-approval": {"post"},
+        "/workforce/leaves/{leave_id}/cancel": {"post"},
+        "/workforce/performance/cycles": {"get", "post"},
+        "/workforce/performance/cycles/{cycle_id}/status": {"post"},
+        "/workforce/performance/cycles/{cycle_id}/goals": {"get", "post"},
+        "/workforce/performance/reviews": {"get", "post"},
+        "/workforce/performance/reviews/{review_id}/publish": {"post"},
+        "/workforce/performance/reviews/{review_id}/acknowledge": {"post"},
+        "/workforce/qualification-types": {"get", "post"},
+        "/workforce/qualifications": {"get", "post"},
+        "/workforce/qualifications/{qualification_id}/verify": {"post"},
+        "/workforce/qualifications/{qualification_id}/revoke": {"post"},
+        "/workforce/qualifications/sweep": {"post"},
+    }
+    for path, methods in expected_methods.items():
+        assert path in paths, path
+        assert methods == {
+            method.lower()
+            for method in paths[path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, path
+        runtime_path = "/api/v1" + path
+        assert runtime_path in runtime_paths, runtime_path
+        assert methods == {
+            method.lower()
+            for method in runtime_paths[runtime_path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, runtime_path
+
+    schemas = document["components"]["schemas"]
+    strict_commands = {
+        "WorkforceExpectedReason",
+        "WorkforceEmployeeCreate",
+        "WorkforceEmployeeUpdate",
+        "WorkforceEmployeeStatus",
+        "WorkforceShiftCreate",
+        "WorkforceShiftVersionCreate",
+        "WorkforceAssignmentCreate",
+        "WorkforcePolicyCreate",
+        "WorkforceLocationCreate",
+        "WorkforcePunchCreate",
+        "WorkforceSummaryGenerate",
+        "WorkforceSummaryAdjust",
+        "WorkforceLeaveCreate",
+        "WorkforcePerformanceCycleCreate",
+        "WorkforceCycleStatus",
+        "WorkforceGoalCreate",
+        "WorkforceReviewCreate",
+        "WorkforceReviewAcknowledge",
+        "WorkforceQualificationTypeCreate",
+        "WorkforceQualificationCreate",
+        "WorkforceQualificationSweep",
+    }
+    assert all(schemas[name]["additionalProperties"] is False for name in strict_commands)
+    assert schemas["WorkforceEmployeeCreate"]["properties"]["identity_number"]["writeOnly"]
+    assert schemas["WorkforceQualificationCreate"]["properties"]["credential_number"]["writeOnly"]
+    assert schemas["WorkforcePunchCreate"]["properties"]["latitude"]["writeOnly"]
+
+
 def test_receivables_openapi_matches_every_runtime_method_and_strict_command() -> None:
     """Every receivables write path is contract-controlled and rejects hidden fields."""
 
