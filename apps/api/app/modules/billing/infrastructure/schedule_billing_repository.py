@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import select, tuple_
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database.models.lease import LeaseContract, LeasePerformanceSchedule
@@ -55,18 +55,46 @@ class ScheduleBillingRepository:
             stmt = stmt.with_for_update(of=LeasePerformanceSchedule)
         return list(self.session.execute(stmt).all())
 
-    def billed_overlap(self, row: LeasePerformanceSchedule) -> LeasePerformanceSchedule | None:
-        return self.session.scalars(
-            select(LeasePerformanceSchedule).where(
-                LeasePerformanceSchedule.tenant_id == self.ctx.tenant_id,
-                LeasePerformanceSchedule.contract_id == row.contract_id,
-                LeasePerformanceSchedule.charge_code == row.charge_code,
-                LeasePerformanceSchedule.period_start == row.period_start,
-                LeasePerformanceSchedule.period_end == row.period_end,
-                LeasePerformanceSchedule.bill_id.is_not(None),
-                LeasePerformanceSchedule.id != row.id,
+    def billed_overlaps(
+        self, rows: list[LeasePerformanceSchedule]
+    ) -> dict[tuple[int, str, date, date], LeasePerformanceSchedule]:
+        """Load historical billed-period conflicts in one query for preview/apply."""
+
+        keys = {
+            (
+                int(row.contract_id),
+                str(row.charge_code),
+                row.period_start,
+                row.period_end,
             )
-        ).first()
+            for row in rows
+        }
+        if not keys:
+            return {}
+        stmt = (
+            select(LeasePerformanceSchedule)
+            .where(
+                LeasePerformanceSchedule.tenant_id == self.ctx.tenant_id,
+                LeasePerformanceSchedule.bill_id.is_not(None),
+                tuple_(
+                    LeasePerformanceSchedule.contract_id,
+                    LeasePerformanceSchedule.charge_code,
+                    LeasePerformanceSchedule.period_start,
+                    LeasePerformanceSchedule.period_end,
+                ).in_(keys),
+            )
+            .order_by(LeasePerformanceSchedule.id)
+        )
+        overlaps: dict[tuple[int, str, date, date], LeasePerformanceSchedule] = {}
+        for row in self.session.scalars(stmt):
+            key = (
+                int(row.contract_id),
+                str(row.charge_code),
+                row.period_start,
+                row.period_end,
+            )
+            overlaps.setdefault(key, row)
+        return overlaps
 
     def mark_billed(self, row: LeasePerformanceSchedule, *, bill_id: int, billed_at) -> None:
         row.bill_id = int(bill_id)

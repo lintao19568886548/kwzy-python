@@ -124,6 +124,18 @@ test.describe("receivables and collection lifecycle", () => {
     await page.goto("/receipts");
     await page.screenshot({ path: path.join(evidenceDir, "pc-tablet-receipt-inbox.png"), fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
+    const mobileRow = page.locator(`[data-testid=receipt-row-${receipt!.id}]`);
+    await expect(mobileRow).toContainText("¥ 150.00");
+    const tableMetrics = await page.getByTestId("receipt-table").evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }));
+    expect(tableMetrics.scrollWidth).toBeLessThanOrEqual(tableMetrics.clientWidth + 1);
+    const bodyMetrics = await page.locator("body").evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }));
+    expect(bodyMetrics.scrollWidth).toBeLessThanOrEqual(bodyMetrics.clientWidth + 1);
     await page.screenshot({ path: path.join(evidenceDir, "pc-mobile-receipt-inbox.png"), fullPage: true });
   });
 

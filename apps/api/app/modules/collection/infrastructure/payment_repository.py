@@ -124,6 +124,26 @@ class PaymentAllocationRepository:
             )
         )
 
+    def active_sums(self, payment_ids: list[int]) -> dict[int, object]:
+        """Return active allocation totals for a payment page without N+1 queries."""
+
+        ids = sorted({int(payment_id) for payment_id in payment_ids})
+        if not ids:
+            return {}
+        rows = self.session.execute(
+            select(
+                PaymentAllocation.payment_id,
+                func.coalesce(func.sum(PaymentAllocation.amount), 0),
+            )
+            .where(
+                PaymentAllocation.tenant_id == self.ctx.tenant_id,
+                PaymentAllocation.payment_id.in_(ids),
+                PaymentAllocation.reversed_at.is_(None),
+            )
+            .group_by(PaymentAllocation.payment_id)
+        ).all()
+        return {int(payment_id): total for payment_id, total in rows}
+
     def add(self, model: PaymentAllocation) -> PaymentAllocation:
         model.tenant_id = self.ctx.tenant_id
         self.session.add(model)

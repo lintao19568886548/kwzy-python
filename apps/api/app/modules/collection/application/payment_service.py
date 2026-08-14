@@ -103,9 +103,18 @@ class PaymentService:
                 raise AppError("paid_at 无效", code="VALIDATION_ERROR", status_code=422) from exc
         raise AppError("paid_at 无效", code="VALIDATION_ERROR", status_code=422)
 
-    def _to_dict(self, model, *, with_alloc: bool = False) -> dict[str, Any]:
-        active_allocations = self.allocs.list_for_payment(int(model.id), active_only=True)
-        allocated = money(sum(Decimal(str(a.amount)) for a in active_allocations))
+    def _to_dict(
+        self,
+        model,
+        *,
+        with_alloc: bool = False,
+        allocated_amount: Decimal | None = None,
+    ) -> dict[str, Any]:
+        if allocated_amount is None:
+            active_allocations = self.allocs.list_for_payment(int(model.id), active_only=True)
+            allocated = money(sum(Decimal(str(a.amount)) for a in active_allocations))
+        else:
+            allocated = money(allocated_amount)
         available = unapplied_amount(model.amount, allocated, payment_status=model.status)
         data = {
             "id": model.id,
@@ -151,11 +160,18 @@ class PaymentService:
             park_id=park_id,
         )
         total = self.payments.count(party_id=party_id, park_id=park_id)
+        active_sums = self.allocs.active_sums([int(payment.id) for payment in items])
         return {
             "total": total,
             "page": page,
             "page_size": page_size,
-            "items": [self._to_dict(p) for p in items],
+            "items": [
+                self._to_dict(
+                    payment,
+                    allocated_amount=Decimal(str(active_sums.get(int(payment.id), 0))),
+                )
+                for payment in items
+            ],
         }
 
     def get_payment(self, payment_id: int) -> dict[str, Any]:

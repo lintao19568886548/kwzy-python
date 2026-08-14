@@ -66,10 +66,17 @@ class ScheduleBillingService:
     def _plan(self, *, as_of: date, park_id: int | None, for_update: bool) -> dict[str, Any]:
         groups: dict[tuple, list[tuple[Any, Any]]] = defaultdict(list)
         conflicts: list[dict[str, Any]] = []
-        for schedule, contract in self.schedules.eligible(
-            as_of=as_of, park_id=park_id, for_update=for_update
-        ):
-            overlap = self.schedules.billed_overlap(schedule)
+        eligible = self.schedules.eligible(as_of=as_of, park_id=park_id, for_update=for_update)
+        overlaps = self.schedules.billed_overlaps([schedule for schedule, _ in eligible])
+        for schedule, contract in eligible:
+            overlap = overlaps.get(
+                (
+                    int(schedule.contract_id),
+                    str(schedule.charge_code),
+                    schedule.period_start,
+                    schedule.period_end,
+                )
+            )
             if overlap is not None:
                 conflicts.append(
                     {

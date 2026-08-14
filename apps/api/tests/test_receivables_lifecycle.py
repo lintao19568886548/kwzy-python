@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import func, select
+from sqlalchemy import event, func, select
 from sqlalchemy.orm import Session
 
 from app.core.security import create_access_token
@@ -154,14 +154,26 @@ def test_schedule_billing_is_current_version_deterministic_and_idempotent(
     db_session.add_all([current, obsolete])
     db_session.commit()
 
-    preview = client.get(
-        "/api/v1/billing/runs/preview",
-        headers=headers,
-        params={"as_of": "2026-03-31", "park_id": park["id"]},
-    )
+    schedule_selects: list[str] = []
+
+    def capture_schedule_selects(_conn, _cursor, statement, _parameters, _context, _many):
+        normalized = statement.lower()
+        if normalized.lstrip().startswith("select") and "lease_performance_schedules" in normalized:
+            schedule_selects.append(normalized)
+
+    event.listen(db_session.get_bind(), "before_cursor_execute", capture_schedule_selects)
+    try:
+        preview = client.get(
+            "/api/v1/billing/runs/preview",
+            headers=headers,
+            params={"as_of": "2026-03-31", "park_id": park["id"]},
+        )
+    finally:
+        event.remove(db_session.get_bind(), "before_cursor_execute", capture_schedule_selects)
     assert preview.status_code == 200, preview.text
     assert preview.json()["data"]["schedule_count"] == 1
     assert preview.json()["data"]["total_amount"] == "1060.00"
+    assert len(schedule_selects) == 2
 
     run_headers = {**headers, "Idempotency-Key": "schedule-run-202603"}
     first = client.post(
@@ -684,3 +696,59 @@ def test_receipts_fail_closed_for_tenant_park_scope_permissions_and_query_pollut
         "message": "查询参数不得重复",
         "data": {"parameter": "page"},
     }
+
+
+def test_payment_page_batches_active_allocation_totals(client, db_session: Session) -> None:
+    headers = _headers()
+    park, party = _seed_party_park(client, suffix="批量余额")
+    bill = _bill(client, park_id=park["id"], party_id=party["id"], amount="1000")
+    payments: list[Payment] = []
+    for index in range(3):
+        payment = Payment(
+            tenant_id=1,
+            park_id=park["id"],
+            party_id=party["id"],
+            payment_no=f"PAY-BATCH-{index}",
+            amount=Decimal("100.00"),
+            method="BANK_TRANSFER",
+            paid_at=datetime(2026, 3, 5, 10, index),
+            status="CONFIRMED",
+            operator_id=1,
+        )
+        db_session.add(payment)
+        payments.append(payment)
+    db_session.flush()
+    for payment in payments:
+        db_session.add(
+            PaymentAllocation(
+                tenant_id=1,
+                payment_id=payment.id,
+                bill_id=bill["id"],
+                amount=Decimal("25.00"),
+                created_at=datetime(2026, 3, 5, 11, 0),
+            )
+        )
+    db_session.commit()
+
+    allocation_selects: list[str] = []
+
+    def capture_allocation_selects(_conn, _cursor, statement, _parameters, _context, _many):
+        normalized = statement.lower()
+        if normalized.lstrip().startswith("select") and "payment_allocations" in normalized:
+            allocation_selects.append(normalized)
+
+    event.listen(db_session.get_bind(), "before_cursor_execute", capture_allocation_selects)
+    try:
+        response = client.get(
+            "/api/v1/payments",
+            headers=headers,
+            params={"page": 1, "page_size": 100, "park_id": park["id"]},
+        )
+    finally:
+        event.remove(db_session.get_bind(), "before_cursor_execute", capture_allocation_selects)
+    assert response.status_code == 200, response.text
+    items = response.json()["data"]["items"]
+    assert len(items) == 3
+    assert {item["allocated_amount"] for item in items} == {"25.00"}
+    assert {item["unapplied_amount"] for item in items} == {"75.00"}
+    assert len(allocation_selects) == 1

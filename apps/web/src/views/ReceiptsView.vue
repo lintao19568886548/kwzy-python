@@ -260,11 +260,11 @@ onMounted(load);
           <thead><tr><th>到账号</th><th>时间</th><th>付款方</th><th>金额</th><th>渠道</th><th>状态</th><th></th></tr></thead>
           <tbody>
             <tr v-for="row in items" :key="String(row.id)" :data-testid="`receipt-row-${row.id}`">
-              <td>{{ row.transaction_no }}</td><td>{{ row.received_at }}</td>
-              <td>{{ row.payer_name || '待识别' }}<small>{{ row.payer_account_masked }}</small></td>
-              <td class="money">¥ {{ row.amount }}</td><td>{{ row.channel }}</td>
-              <td><span class="badge" :class="`status-${String(row.status).toLowerCase()}`">{{ row.status }}</span></td>
-              <td><button class="btn btn-ghost" type="button" data-testid="receipt-review-btn" @click="openDetail(Number(row.id))">复核</button></td>
+              <td data-label="到账号">{{ row.transaction_no }}</td><td data-label="时间">{{ row.received_at }}</td>
+              <td data-label="付款方">{{ row.payer_name || '待识别' }}<small>{{ row.payer_account_masked }}</small></td>
+              <td class="money" data-label="金额">¥ {{ row.amount }}</td><td data-label="渠道">{{ row.channel }}</td>
+              <td data-label="状态"><span class="badge" :class="`status-${String(row.status).toLowerCase()}`">{{ row.status }}</span></td>
+              <td class="review-cell"><button class="btn btn-ghost" type="button" data-testid="receipt-review-btn" @click="openDetail(Number(row.id))">复核</button></td>
             </tr>
             <tr v-if="!items.length"><td colspan="7" class="empty">没有符合条件的到账流水</td></tr>
           </tbody>
@@ -328,5 +328,42 @@ small { display: block; color: var(--muted); }.empty, .state { padding: 1.4rem; 
 .fact-grid span { padding: .75rem; border-radius: 10px; background: #f4f7fa; }.fact-grid b { display: block; overflow-wrap: anywhere; }
 label { display: grid; gap: .35rem; margin: .8rem 0; }.textarea { min-height: 80px; resize: vertical; }.drawer-actions, .danger-zone { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: .8rem; }
 .risk-btn { background: #c2410c; }.candidate-table { min-width: 540px; }
-@media (max-width: 640px) { .hero { align-items: flex-start; }.fact-grid { grid-template-columns: 1fr; }.drawer { border-radius: 0; }.toolbar { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 640px) {
+  .hero { align-items: flex-start; }
+  .fact-grid { grid-template-columns: 1fr; }
+  .drawer { border-radius: 0; }
+  .toolbar { align-items: flex-start; flex-direction: column; }
+  .table-wrap { overflow-x: visible; }
+  .table[data-testid="receipt-table"] { display: block; min-width: 0; }
+  .table[data-testid="receipt-table"] thead { display: none; }
+  .table[data-testid="receipt-table"] tbody { display: grid; gap: .7rem; }
+  .table[data-testid="receipt-table"] tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: .55rem .8rem;
+    padding: .8rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+  }
+  .table[data-testid="receipt-table"] td {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    overflow-wrap: anywhere;
+  }
+  .table[data-testid="receipt-table"] td::before {
+    display: block;
+    margin-bottom: .18rem;
+    color: var(--muted);
+    content: attr(data-label);
+    font-size: .7rem;
+    font-weight: 700;
+  }
+  .table[data-testid="receipt-table"] .review-cell,
+  .table[data-testid="receipt-table"] .empty { grid-column: 1 / -1; }
+  .table[data-testid="receipt-table"] .review-cell::before,
+  .table[data-testid="receipt-table"] .empty::before { display: none; }
+  .table[data-testid="receipt-table"] .review-cell .btn { width: 100%; }
+}
 </style>
