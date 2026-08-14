@@ -2,11 +2,20 @@
 
 > 日期：2026-08-14（Asia/Shanghai）
 > 结论：**BLOCKED（已实现范围条件通过，全产品未完成）**
-> 实现证据提交：`a9267d4c30096a7c80d66588ab06bc6838b32b0d`
-> 机器报告：`evidence/independent-final-audit/acceptance-a9267d4.json`
-> 报告 SHA-256：`E1D41D005DF3E8DB50C368FE58BC441A1D92AA658001EC2B3958CE58CFD2EF87`
+> 最新已验证实现提交：`fedc98efb7a33f39240216fbb861b57f6142649b`
+> 最新机器报告：`evidence/platform-workbench-automation/acceptance-clean-fedc98e.json`
+> 报告 SHA-256：`9AADD1D1D3AC2B8251DDB6384E8DD9E983CA9F66D967EE420D276A9C301EDB0D`
+> 本报告滚动记录自治重建；下文早期 repair 数字如与“最新闭环增量”冲突，以最新机器报告与能力矩阵为准。
 
-## 1. Git、环境与运行基线
+## 0. 最新闭环增量
+
+`feat/full-rebuild-completion` 已正常推送 `fedc98e`，未 force、未触达 main、未连接生产。该 clean-SHA 的完整脚本 28/28 步 exit 0，总耗时 485,199 ms：PG16 fresh base→唯一 head `p2e80a5b7c64`、down one/up、277 后端测试、5 租户 worker、全套合成 ETL、两条真实 HTTP 旅程、1,000 请求性能、备份删除/恢复、前端门禁、50 条 Playwright、9 条 OpenAPI strict、61 项 OpenSpec strict、741 文件 secrets scan 和资源清理均通过。
+
+工作台纵切新增事务事件/消费者、受限版本化自动化规则、站内通知、持久调度与独立 worker、来源待办治理、用户/角色首页配置、实时 PC 工作台与自动化控制面。浏览器人工检查覆盖 1440×900 与 390×844，均无横向溢出和 console warning/error；自动化控制数据来自 PostgreSQL/真实 API。性能在不放宽门槛的前提下从暴露的 p95 946.484 ms 修至 clean-SHA p95 250.49 ms、146.018 RPS、0 错误。
+
+最新能力矩阵为 4 项 `IMPLEMENTED_AND_VERIFIED`、1 项 `BLOCKED`、15 项 `MISSING`。因此本报告仍是 `BLOCKED`，只是把组合能力“统一工作台和自动待办”从缺失关闭，绝不外推为移动端、小程序、全业务、真实旧数据迁移或生产完成。
+
+## 1. 初始 repair 基线（历史证据）
 
 | 项 | 独立核验结果 |
 | --- | --- |
@@ -153,11 +162,11 @@ PC 真实浏览器验证使用 PostgreSQL、FastAPI、生产 Vite 构建和真�
 
 可验证角色切片包括系统管理员、受限用户、资产查看者、招商查看者、合同查看/提交/审批角色，以及基础财务/工单操作。决策管理层、区域/园区经理、完整招商/财务/物业岗位只能算窄功能证据；企业租户管理员与企业员工没有对应端，不能验收。
 
-高级浅色后台和当前合同/租控响应式切片有证据；深色经营驾驶舱、全局快捷命令、右侧 AI 助手、首页组件配置、KPI 原单下钻、多园区比较、完整地图/分析切换及两端离线/重试均未完成。员工移动端和租户小程序没有启动方式或 E2E。
+高级浅色后台、合同/租控响应式切片、全局搜索/快捷命令入口、右侧 AI 助手入口以及用户→角色→服务器默认的首页组件配置已有真实证据；首页工作项提供受限原单深链。深色经营驾驶舱、完整指标口径下钻、多园区比较、地图/分析切换及两端离线/重试仍未完成。员工移动端和租户小程序没有启动方式或 E2E。
 
 ## 9. 旧系统与外部集成
 
-旧 Java 证据仓静态规模为 54 Controllers、约 484 HTTP mappings、316 Vue 文件、30 SQL DDL 表。当前 Python 仓库缺少两端及 17 个组合能力，因此旧系统替代为 `BLOCKED`。
+旧 Java 证据仓静态规模为 54 Controllers、约 484 HTTP mappings、316 Vue 文件、30 SQL DDL 表。当前 Python 仓库缺少两端且仍有 15 个组合能力为 `MISSING`，因此旧系统替代为 `BLOCKED`。
 
 | 集成组 | 代码状态 | 真实状态 |
 | --- | --- | --- |
@@ -175,7 +184,7 @@ PC 真实浏览器验证使用 PostgreSQL、FastAPI、生产 Vite 构建和真�
 | 级别 | 未关闭数 | 项目 |
 | --- | --- | --- |
 | P0 | 0 | 当前证据未发现 P0 |
-| P1 | 6 | 员工移动端；租户小程序；17 项能力矩阵缺失的产品闭环；真实旧数据迁移；外部适配器完整性/真实联调；远程预发监控容量灾备 |
+| P1 | 6 | 员工移动端；租户小程序；15 项能力矩阵缺失的产品闭环；真实旧数据迁移；外部适配器完整性/真实联调；远程预发监控容量灾备 |
 | P2 | 0 | 本轮可在当前权限内修复的 P2 已关闭；上游 TestClient 弃用提示记为 INFO |
 
 没有任何 `APPROVED_DEFERRED` 或 `APPROVED_RETIRED`。建议责任人不是虚构姓名：
@@ -188,13 +197,13 @@ PC 真实浏览器验证使用 PostgreSQL、FastAPI、生产 Vite 构建和真�
 
 ## 11. 最终判定
 
-能力矩阵汇总为 2 项 `IMPLEMENTED_AND_VERIFIED`、1 项 `BLOCKED`、17 项 `MISSING`。完整细节见 `full-rebuild-traceability-matrix.md`。因为 P1 不为 0、两端缺失、真实迁移和旧系统替代未完成，repair 分支不得合并 main。
+能力矩阵汇总为 4 项 `IMPLEMENTED_AND_VERIFIED`、1 项 `BLOCKED`、15 项 `MISSING`。完整细节见 `full-rebuild-traceability-matrix.md`。因为 P1 不为 0、两端缺失、真实迁移和旧系统替代未完成，完成分支不得合并 main。
 
 ```text
 KWZY_INDEPENDENT_ACCEPTANCE=CONDITIONAL_IMPLEMENTED_SCOPE_ONLY
 KWZY_BUSINESS_CLOSURE=BLOCKED
-KWZY_BACKEND_REBUILD=CONDITIONAL_CORE_AND_CONTRACT_SLICE_ONLY
-KWZY_PC_UI_REBUILD=CONDITIONAL_CORE_AND_CONTRACT_SLICE_ONLY
+KWZY_BACKEND_REBUILD=CONDITIONAL_IMPLEMENTED_SLICES_ONLY
+KWZY_PC_UI_REBUILD=CONDITIONAL_IMPLEMENTED_SLICES_ONLY
 KWZY_EMPLOYEE_MOBILE=MISSING
 KWZY_TENANT_MINIPROGRAM=MISSING
 KWZY_LEGACY_REPLACEMENT=BLOCKED

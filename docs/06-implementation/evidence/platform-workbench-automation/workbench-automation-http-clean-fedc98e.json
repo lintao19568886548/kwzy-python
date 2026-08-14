@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "result": "PASS",
+  "finished_at": "2026-08-14T08:54:41.275695+00:00",
+  "duration_ms": 7402.42,
+  "target": "http://127.0.0.1:8010/api/v1",
+  "real_http": true,
+  "event_id": 21,
+  "work_item_id": 55,
+  "notification_id": 1,
+  "schedule_run_id": 4,
+  "dead_consumer_id": 22,
+  "replay_generation": 2,
+  "stages": [
+    {
+      "name": "login",
+      "passed": true,
+      "ms": 194.96
+    },
+    {
+      "name": "identity",
+      "passed": true,
+      "ms": 5.48
+    },
+    {
+      "name": "create_rule_draft",
+      "passed": true,
+      "ms": 23.01
+    },
+    {
+      "name": "update_rule_draft",
+      "passed": true,
+      "ms": 32.78
+    },
+    {
+      "name": "publish_rule",
+      "passed": true,
+      "ms": 20.94
+    },
+    {
+      "name": "emit_event",
+      "passed": true,
+      "ms": 34.41
+    },
+    {
+      "name": "event_idempotent_retry",
+      "passed": true,
+      "ms": 10.97
+    },
+    {
+      "name": "dispatch_event",
+      "passed": true,
+      "ms": 38.9
+    },
+    {
+      "name": "query_source_owned_todo",
+      "passed": true,
+      "ms": 27.88
+    },
+    {
+      "name": "query_notification",
+      "passed": true,
+      "ms": 10.94
+    },
+    {
+      "name": "read_notification",
+      "passed": true,
+      "ms": 26.01
+    },
+    {
+      "name": "create_disabled_schedule",
+      "passed": true,
+      "ms": 29.72
+    },
+    {
+      "name": "enable_schedule",
+      "passed": true,
+      "ms": 14.59
+    },
+    {
+      "name": "manual_schedule_run",
+      "passed": true,
+      "ms": 40.84
+    },
+    {
+      "name": "schedule_run_idempotent_retry",
+      "passed": true,
+      "ms": 11.11
+    },
+    {
+      "name": "disable_schedule",
+      "passed": true,
+      "ms": 25.89
+    },
+    {
+      "name": "list_role_layouts",
+      "passed": true,
+      "ms": 10.75
+    },
+    {
+      "name": "get_role_layout",
+      "passed": true,
+      "ms": 52.34
+    },
+    {
+      "name": "save_role_layout",
+      "passed": true,
+      "ms": 33.61
+    },
+    {
+      "name": "effective_role_layout",
+      "passed": true,
+      "ms": 25.27
+    },
+    {
+      "name": "save_personal_layout",
+      "passed": true,
+      "ms": 53.74
+    },
+    {
+      "name": "personal_layout_conflict",
+      "passed": true,
+      "ms": 9.54
+    },
+    {
+      "name": "reset_to_role_layout",
+      "passed": true,
+      "ms": 26.68
+    },
+    {
+      "name": "create_dead_letter_rule",
+      "passed": true,
+      "ms": 28.86
+    },
+    {
+      "name": "publish_dead_letter_rule",
+      "passed": true,
+      "ms": 20.1
+    },
+    {
+      "name": "emit_dead_letter_event",
+      "passed": true,
+      "ms": 12.96
+    },
+    {
+      "name": "dead_letter_dispatch_1",
+      "passed": true,
+      "ms": 33.6
+    },
+    {
+      "name": "dead_letter_dispatch_2",
+      "passed": true,
+      "ms": 22.64
+    },
+    {
+      "name": "dead_letter_dispatch_3",
+      "passed": true,
+      "ms": 23.26
+    },
+    {
+      "name": "inspect_dead_letter",
+      "passed": true,
+      "ms": 11.85
+    },
+    {
+      "name": "controlled_dead_letter_replay",
+      "passed": true,
+      "ms": 21.07
+    }
+  ]
+}

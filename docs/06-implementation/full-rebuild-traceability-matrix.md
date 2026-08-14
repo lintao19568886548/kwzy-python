@@ -1,13 +1,13 @@
 # 瞰维智管 V2 独立验收能力矩阵
 
 > 审计日期：2026-08-14（Asia/Shanghai）
-> 最近完整工作树证据：统一工作台/自动化 28/28 总门禁通过；clean-SHA 提交与复验待本纵切提交后补录。审批/审计 clean-SHA `13243b4488a79ee6eccfc505812b5315263d7c83` 仍保留。
+> 最近完整 clean-SHA 证据：统一工作台/自动化提交 `fedc98efb7a33f39240216fbb861b57f6142649b`，28/28 总门禁通过；审批/审计 clean-SHA `13243b4488a79ee6eccfc505812b5315263d7c83` 仍保留。
 > 判定规则：只使用 `IMPLEMENTED_AND_VERIFIED`、`APPROVED_RETIRED`、`APPROVED_DEFERRED`、`BLOCKED`、`MISSING`。子能力通过但组合需求未闭环时，组合项必须判为 `MISSING`；没有人工批准，不使用 retired/deferred。
 
 ## 当前整改纵切
 
 - 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
-- OpenSpec：组织治理与审批/审计已归档；当前 `complete-platform-workbench-automation` 覆盖事件、规则、通知、调度、工作项治理、角色/个人布局、PC 和迁移证据。
+- OpenSpec：组织治理与审批/审计已归档；`complete-platform-workbench-automation` 覆盖事件、规则、通知、调度、工作项治理、角色/个人布局、PC 和迁移证据，已完成实现与 clean-SHA 验收，等待本轮规格同步和归档提交。
 - 已关闭证据：组织/审批/审计；事务事件、有限重试/死信/replay、受限规则、通知、持久调度、来源工作项、多角色布局和 PC 控制面；PG16、HTTP、浏览器、性能和合成 ETL 均有独立证据。
 - 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 

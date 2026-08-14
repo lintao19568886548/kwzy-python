@@ -7,12 +7,12 @@
 | 更新时间 | 2026-08-14（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | 最近已提交 clean-SHA 为审批/审计 `13243b4488a79ee6eccfc505812b5315263d7c83`；工作台/自动化工作树已完成 28/28 总门禁，等待提交后 clean-SHA 复验 |
-| 远程同步 | `feat/full-rebuild-completion` 与 `origin/feat/full-rebuild-completion` 已含审批/审计实现、归档和收口提交；工作台纵切尚未提交；本轮未 force、未触达 main |
-| 工作树 | 工作台/自动化实现、测试、OpenAPI、截图和工作树证据待提交；用户既有修改未覆盖 |
+| 已验证 HEAD | 工作台/自动化 clean-SHA `fedc98efb7a33f39240216fbb861b57f6142649b` 已完成 28/28 总门禁 |
+| 远程同步 | `feat/full-rebuild-completion` 与 `origin/feat/full-rebuild-completion` 已含工作台实现提交 `fedc98e`；本轮未 force、未触达 main；规格同步/归档证据待提交 |
+| 工作树 | clean-SHA 复验仅刷新浏览器截图并新增待版本化机器证据/文档；用户既有修改未覆盖 |
 | Alembic | 唯一 head `p2e80a5b7c64`；PG16 fresh upgrade 与 `head→-1→head` 通过，历史迁移未修改 |
 | 当前阶段 | 独立验收为 4 implemented / 1 blocked / 15 missing；组合能力 1、2、6、7 已关闭，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | 组织治理与审批/审计已同步并归档；`complete-platform-workbench-automation` 除提交/clean-SHA/同步归档外均闭环；Identity 真实旧数据任务继续外部门禁 |
+| 当前 OpenSpec | 组织治理与审批/审计已同步并归档；`complete-platform-workbench-automation` 实现/推送/clean-SHA 已闭环，正在同步主规格并归档；Identity 真实旧数据任务继续外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -79,9 +79,9 @@
 - [x] 将已落地基础合同 5 份 delta 同步主规格并归档 `2026-08-13-implement-lease-contract`，消除合同 V2 增量基线缺口。
 - [x] 完成 `implement-contract-lifecycle-v2` proposal/design、10 份 delta specs 和 102 项任务；change strict 与全量 OpenSpec 49/49 PASS。
 
-## 最新机器证据（工作台/自动化工作树）
+## 最新机器证据（工作台/自动化 clean SHA）
 
-工作树报告 `infra/local-staging/out/acceptance_20260814_163824.json`：28/28 步 exit 0，472,584 ms；PG16 唯一 head `p2e80a5b7c64`，277 pytest，5 租户 worker 零失败，全部合成 ETL 通过，工作台真实 HTTP 通过，性能 1,000 请求/并发 25/p95 242.193 ms/145.478 RPS/0 错误，备份恢复 1,115,006 bytes/82 表，前端 lint/typecheck/6 Vitest/build、50 Playwright、OpenAPI 9/9+strict、OpenSpec 61/61、733 文件 secrets scan 和清理均通过。该报告运行时 HEAD 仍为 `83067a1` 且工作树有纵切修改，因此只作为提交前证据；必须在实现提交后重跑 clean-SHA 闸门。
+版本化报告 `docs/06-implementation/evidence/platform-workbench-automation/acceptance-clean-fedc98e.json`：报告内 HEAD 精确为 `fedc98efb7a33f39240216fbb861b57f6142649b`，28/28 步 exit 0，485,199 ms；PG16 唯一 head `p2e80a5b7c64`，277 pytest，5 租户 worker 零失败，全部合成 ETL 通过，工作台真实 HTTP 通过，性能 1,000 请求/并发 25/p95 250.49 ms/146.018 RPS/0 错误，备份恢复 1,115,283 bytes/82 表，前端 lint/typecheck/6 Vitest/build、50 Playwright、OpenAPI 9/9+strict、OpenSpec 61/61、741 文件 secrets scan 和清理均通过。
 
 ## 历史机器证据（组织治理与审批/审计 clean SHA）
 

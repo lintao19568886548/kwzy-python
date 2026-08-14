@@ -1,7 +1,7 @@
 # 瞰维智管 V2 独立终验整改登记表
 
 > 更新：2026-08-14（Asia/Shanghai）
-> 实现提交：`a9267d4c30096a7c80d66588ab06bc6838b32b0d`
+> 最新已验证实现提交：`fedc98efb7a33f39240216fbb861b57f6142649b`
 > 原则：关键词命中必须人工分类；`CLOSED` 仅表示对应缺陷已修复并回归，不外推为全产品完成。
 
 ## 已关闭问题
@@ -22,7 +22,7 @@
 | OPS-001 | P1 | 无生产容器、readiness/pool/CI/Runbook | 非 root/只读/cap-drop 容器、PG pool/readiness、CI、Runbook、栈启动和重启恢复 | CLOSED_LOCAL_GATE |
 | MIG-LOCAL-001 | P1 | 合同迁移缺幂等/中断/对账/回滚 | 合成 PG16 dry/apply/interruption/idempotent/reconcile/rollback + 备份恢复 | CLOSED_SYNTHETIC_SCOPE |
 | WB-001 | P1 | 统一工作台仅固定摘要，缺事件/规则/通知/调度/多角色布局和可恢复投递 | 完成事务事件、受限版本化规则、收件人隔离通知、持久调度/worker、来源待办、用户/角色布局、PC 控制面；277 pytest、真实 HTTP、50 E2E 和 PG 并发通过 | CLOSED |
-| PERF-002 | P1 | 首轮工作台性能 p95 946.484 ms，事件列表 N+1、布局重复/串行查询且本地性能栈开启 SQL DEBUG | 合并消费者、摘要、待办、通知、健康和布局查询；按生产契约 DEBUG=false；同一 1000/25 门槛 p95 242.193 ms、145.478 RPS、0 错误 | CLOSED_LOCAL_GATE |
+| PERF-002 | P1 | 首轮工作台性能 p95 946.484 ms，事件列表 N+1、布局重复/串行查询且本地性能栈开启 SQL DEBUG | 合并消费者、摘要、待办、通知、健康和布局查询；按生产契约 DEBUG=false；clean-SHA 同一 1000/25 门槛 p95 250.49 ms、146.018 RPS、0 错误 | CLOSED_LOCAL_GATE |
 | OPS-003 | P1 | 全量脚本可被后续命令覆盖性能进程退出码并误记 PASS | 每步重置退出码并在 Docker/Alembic/性能/HTTP/备份恢复/OpenAPI 后立即 `Assert-NativeSuccess`；p95 729.289 ms 的中间轮次已真实中止为 FAIL，最终 28/28 PASS | CLOSED |
 
 ## 未关闭 P1
