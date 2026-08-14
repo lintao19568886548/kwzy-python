@@ -129,8 +129,9 @@ test.describe("facility operations", () => {
       shanghai.getUTCMinutes()
     ).padStart(2, "0")}`;
     await page.getByRole("button", { name: "新建周检计划" }).click();
+    const scheduleCode = `E2E-SCHEDULE-${suffix}`.toUpperCase();
     await page.getByLabel("计划园区 ID").fill(String(park.id));
-    await page.getByLabel("计划编码").fill(`E2E-SCHEDULE-${suffix}`.toUpperCase());
+    await page.getByLabel("计划编码").fill(scheduleCode);
     await page.getByLabel("计划名称").fill("消防泵周检计划 E2E");
     await page.getByLabel("计划设备 ID").fill(String(device.id));
     await page.getByLabel("模板版本 ID").fill(String(version.id));
@@ -140,7 +141,7 @@ test.describe("facility operations", () => {
     await page.getByLabel("完成窗口（分钟）").fill("10080");
     await page.getByRole("button", { name: "保存周检计划" }).click();
     await expect(page.getByText("周巡检计划已创建")).toBeVisible();
-    const scheduleCard = page.getByRole("article").filter({ hasText: "消防泵周检计划 E2E" });
+    const scheduleCard = page.getByRole("article").filter({ hasText: scheduleCode });
     await scheduleCard.getByRole("button", { name: "暂停计划" }).click();
     await expect(page.getByText("巡检计划已暂停")).toBeVisible();
     await scheduleCard.getByRole("button", { name: "恢复计划" }).click();
