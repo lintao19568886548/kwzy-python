@@ -1,7 +1,7 @@
 # 瞰维智管 V2 全量重建主路线图
 
 > 更新时间：2026-08-15（Asia/Shanghai）
-> 当前独立验收基线：租户服务/工单闭环工作树的后端/前端/浏览器/性能/迁移门禁通过；精确 clean-SHA 将在正常提交后补记，应收 `1a11cfe08b8d2b800c7121d7462995ebb75eb75d` 证据继续有效
+> 当前独立验收基线：租户服务/工单闭环精确提交 `ffa72e2531396997cfe24ef1b1e42526cd4735fe` 的 33/33 后端/前端/浏览器/性能/迁移门禁通过并正常推送；应收 `1a11cfe08b8d2b800c7121d7462995ebb75eb75d` 证据继续有效
 > 当前完成分支：`feat/full-rebuild-completion`，从 repair 推送记录 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建；三条本地 safety ref 已保留。
 > 总体状态：**BLOCKED — 已实现纵切通过，不等于三端、旧系统和全业务完成。**
 
@@ -36,7 +36,7 @@
 5. `complete-investment-crm-journey`：实现提交 `4f870af` 已正常推送，30/30 clean-SHA 门禁、298 后端、54 浏览器、真实 HTTP、p95 239.342 ms、备份恢复和 17 类合成迁移已通过；任务 5.5 的 `revoked` 与 delta spec 状态定义冲突，保持 active 且不伪归档，真实旧数据与供应商仍在独立条目阻塞。
 6. `2026-08-14-complete-party-enterprise-profile`：实现提交 `e7d7263` 与 N+1 修复提交 `3680582` 已正常推送；31/31 clean-SHA、315 后端、57 浏览器、21 阶段真实 HTTP、p95 225.85 ms、PG 并发和合成迁移通过；9 份 delta 已同步主规格并归档，43/43 任务、归档后 strict 77/77。
 7. `2026-08-14-complete-receivables-collection-lifecycle`：实现 `500efa5` 与 N+1/手机无截断修复 `1a11cfe` 已正常推送；唯一 head `w9f57b2c4d31`，clean-SHA 335 后端、真实 PG16/HTTP、2 条应收浏览器、p95 352.701 ms、合成 ETL、备份恢复和依赖审计通过；45/45 任务、8 份主规格同步、归档后 OpenSpec strict 85/85 和归档暂存树 915 文件 secrets scan 通过，纵切关闭。
-8. `complete-tenant-service-work-order-lifecycle`：工作树唯一 head `y1b79d4e6f53`，342 后端、59 浏览器、25 个 runtime/YAML 方法、1000/25 p95 298.182 ms/132.403 RPS/0 错误、114 表备份恢复、合成工单 ETL 与 940 文件密钥扫描通过；待正常提交、clean-SHA 复验、主规格同步和归档后关闭发布流程。
+8. `2026-08-15-complete-tenant-service-work-order-lifecycle`：实现 `ffa72e2` 已正常推送；唯一 head `y1b79d4e6f53`，精确提交 342 后端、59 浏览器、25 个 runtime/YAML 方法、1000/25 p95 302.333 ms/132.87 RPS/0 错误、1,383,498 bytes/114 表备份恢复、合成工单 ETL 与 942 文件密钥扫描通过；39/39 任务、8 份主规格同步和归档后 strict 93/93，纵切关闭。
 9. 下一业务纵切从能力矩阵第 10 项设备台账、周巡检、告警与 IoT 接入开始，再按证据顺序关闭档案签章、HR、供应链、园企服务、驾驶舱、AI/集成。
 10. 建设员工移动端与租户微信小程序并完成真实 API/数据库/浏览器（或小程序运行器）旅程，不能用 WebView 壳或本地 JSON 替代。
 11. 数据负责人/DBA 提供经授权旧 schema dump 与脱敏快照；在隔离 PG16 重跑全量/增量/中断/回滚/对账。

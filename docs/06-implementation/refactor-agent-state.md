@@ -7,12 +7,12 @@
 | 更新时间 | 2026-08-15（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | 租户服务/工单工作树全验收：342 后端、59 浏览器、前端四门禁、OpenAPI/OpenSpec、1000/25 性能、备份恢复和合成迁移通过；精确提交待正常 commit 后复验 |
-| 远程同步 | 当前远端最近归档提交 `6424a7660ed2a9bfb1e111ccff8a45263d0822a0`；本轮尚未提交/推送，未 force、未触达 main |
-| 工作树 | 本轮工单实现/测试/证据待提交；11 张既有审批、组织和资产视觉证据是用户修改，继续保持未暂存、不得删除或还原 |
+| 已验证 HEAD | `ffa72e2531396997cfe24ef1b1e42526cd4735fe`：租户服务/工单 33/33 精确提交全验收，342 后端、59 浏览器、前端四门禁、OpenAPI/OpenSpec、1000/25 性能、备份恢复和合成迁移通过 |
+| 远程同步 | 实现 `ffa72e2531396997cfe24ef1b1e42526cd4735fe` 已正常推送到 `origin/feat/full-rebuild-completion`；未 force、未触达 main |
+| 工作树 | 仅待提交 clean-SHA 机器证据、8 份主规格和归档；11 张既有审批、组织和资产视觉证据是用户修改，继续保持未暂存、不得删除或还原 |
 | Alembic | 唯一 head `y1b79d4e6f53`；PG16 fresh head、`current == heads`、`head→-1→head`、`alembic check`、114 表备份删除恢复通过，既有历史迁移未修改 |
 | 当前阶段 | 独立验收为 9 implemented / 1 blocked / 10 missing；组合能力 1–9 已关闭本地产品范围，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | `complete-tenant-service-work-order-lifecycle` 36/39，功能/迁移/工作树总门禁已完成，余 clean-SHA、提交推送、规格同步归档；应收已归档，CRM `revoked` 语义冲突仍保持 active |
+| 当前 OpenSpec | 租户服务/工单 39/39，8 份主规格已同步并归档为 `2026-08-15-complete-tenant-service-work-order-lifecycle`，归档后 strict 93/93；CRM `revoked` 语义冲突仍保持 active |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -23,7 +23,7 @@
 - [x] 修复跨 Party 幂等键预查、同键异报价/验收命令、伪造 JWT 权限、重复 query、未知字段和子资源 IDOR；新增 PG 并发验收后发现并修复 ACCEPTED/REWORK 双提交锁顺序缺陷。
 - [x] 重建 PC 工单/租户服务工作区，覆盖员工与租户角色、桌面报价抽屉、390px 验收评价、离线保留/重试和无横向溢出；三张截图人工复核通过。
 - [x] 合成 `repair_order` ETL 完成 dry/interruption/apply/reapply/reconcile/rollback，3 工单/6 事件/1 隔离精确对账，原始 PII、伪造报价/评价/外送均为 0；真实旧库保持外部阻塞。
-- [x] 工作树全门禁通过：PG16 fresh/down-up/唯一 head，342 pytest，59 Playwright，前端 lint/typecheck/6 Vitest/build，13 OpenAPI+YAML strict，86 OpenSpec，1000/25 p95 298.182 ms/132.403 RPS/0 错误，114 表备份恢复，940 文件 secrets scan。
+- [x] 精确 `ffa72e2` 全门禁 33/33：PG16 fresh/down-up/唯一 head，342 pytest，59 Playwright，前端 lint/typecheck/6 Vitest/build，13 OpenAPI+YAML strict，86 OpenSpec，1000/25 p95 302.333 ms/132.87 RPS/0 错误，1,383,498 bytes/114 表备份恢复，942 文件 secrets scan。
 
 - [x] 独立取证旧账单/流水/核销/催缴与当前基础实现，发布财务字段映射、外部渠道真相和真实旧数据阻塞边界。
 - [x] 完成履约计划出账、到账单箱、确定性匹配候选、财务确认/异常、经理争议、多账单/预收后续核销、追加式冲正、L1-L4 催缴和调整双人审批。
@@ -117,9 +117,9 @@
 - [x] 将已落地基础合同 5 份 delta 同步主规格并归档 `2026-08-13-implement-lease-contract`，消除合同 V2 增量基线缺口。
 - [x] 完成 `implement-contract-lifecycle-v2` proposal/design、10 份 delta specs 和 102 项任务；change strict 与全量 OpenSpec 49/49 PASS。
 
-## 最新机器证据（租户服务/工单工作树）
+## 最新机器证据（租户服务/工单精确 SHA）
 
-证据目录 `docs/06-implementation/evidence/tenant-service-work-order-lifecycle/`：PG16 唯一 head `y1b79d4e6f53`、342 pytest、59 Playwright、25 个工单 runtime/YAML 方法、前端四门禁、HTTP 1000/25 p95 298.182 ms/132.403 RPS/0 错误、合成工单 ETL、114 表备份恢复、86 OpenSpec 和 940 文件 secrets scan 通过。精确 clean-SHA 报告将在正常提交并完整复验后补入。
+版本化报告 `docs/06-implementation/evidence/tenant-service-work-order-lifecycle/acceptance-clean-ffa72e2.json` 精确对应 `ffa72e2531396997cfe24ef1b1e42526cd4735fe`：33/33 步、554,324 ms、0 failed；PG16 唯一 head `y1b79d4e6f53`、342 pytest、59 Playwright、25 个工单 runtime/YAML 方法、前端四门禁、HTTP 1000/25 p95 302.333 ms/132.87 RPS/0 错误、合成工单 ETL、1,383,498 bytes/114 表备份恢复、86 OpenSpec 和 942 文件 secrets scan 通过；8 份主规格同步并归档后 strict 93/93。
 
 ## 历史机器证据（应收闭环 clean SHA）
 
@@ -171,7 +171,7 @@
 
 ## 下一恢复点
 
-1. 正常提交租户服务/工单实现，执行精确 clean-SHA 全验收；更新机器证据、同步主规格并归档 `complete-tenant-service-work-order-lifecycle`，正常推送。
+1. 提交工单 clean-SHA 机器证据、主规格与归档并正常推送。
 2. 从能力矩阵第 10 项设备台账、周巡检、告警与 IoT 接入进入下一纵切，关闭剩余 10 个 `MISSING`。
 3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 

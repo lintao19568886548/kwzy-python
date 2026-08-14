@@ -2,7 +2,7 @@
 
 > 日期：2026-08-15（Asia/Shanghai，滚动更新）
 > 结论：**BLOCKED（已实现范围条件通过，全产品未完成）**
-> 最新工作树闭环：租户服务、工单、派单/SLA、报价、履约、验收与评价；33/33 全量门禁通过，clean-SHA 将在正常提交后补记
+> 最新精确提交闭环：租户服务、工单、派单/SLA、报价、履约、验收与评价；`ffa72e2531396997cfe24ef1b1e42526cd4735fe` 的 33/33 全量门禁通过并正常推送
 > 上一 clean-SHA：应收、到账、匹配、核销、欠费与催缴 `1a11cfe08b8d2b800c7121d7462995ebb75eb75d`（已正常推送）
 > 上一 clean-SHA 验收基线：Party 企业画像 `36805823ad2e88311b9744e9e720b282b7cc74c8`（已正常推送至 `origin/feat/full-rebuild-completion`）
 > 本报告滚动记录自治重建；下文早期 repair 数字如与“最新闭环增量”冲突，以最新机器报告与能力矩阵为准。
@@ -13,7 +13,7 @@
 
 本轮新增前向迁移 `x0a68c3d5e42` 及后续硬化 `y1b79d4e6f53`，没有修改已应用历史。PostgreSQL 16 fresh base→head、唯一 `current == heads`、down -1→up、metadata、复合租户/园区外键、评价唯一性、并发派单和并发验收均通过。新增并发验收测试首次暴露 ACCEPTED/REWORK 可因锁前预读双提交；修复为先锁聚合后判幂等与版本，验证恰好一个成功、另一个 409。
 
-工作树全量脚本 33/33 步 exit 0、579,312 ms：342 pytest（160.83 s）、8 租户 worker 零失败、全部合成 ETL、1000 请求/并发 25 性能 p95 298.182 ms、132.403 RPS、0 错误、114 表备份删除恢复、前端 ESLint/vue-tsc/6 Vitest/141 modules production build、59 Playwright、13 OpenAPI 契约及 YAML strict、OpenSpec strict 86/86、940 文件 secrets scan 和资源清理全部通过。工单 runtime/YAML 25 个方法精确一致。
+精确提交 `ffa72e2` 全量脚本 33/33 步 exit 0、554,324 ms：342 pytest（161.50 s）、10 租户 worker 零失败、全部合成 ETL、1000 请求/并发 25 性能 p95 302.333 ms、132.87 RPS、0 错误、1,383,498 bytes/114 表备份删除恢复、前端 ESLint/vue-tsc/6 Vitest/141 modules production build、59 Playwright、13 OpenAPI 契约及 YAML strict、OpenSpec strict 86/86、942 文件 secrets scan 和资源清理全部通过。工单 runtime/YAML 25 个方法精确一致；机器报告为 `evidence/tenant-service-work-order-lifecycle/acceptance-clean-ffa72e2.json`。工单 39/39 任务及 8 份主规格同步完成，归档后 OpenSpec strict 93/93。
 
 安全复核关闭了受理幂等键在 Party 校验前返回旧结果、报价/验收同键异命令未拒绝、伪造 JWT 权限、重复 query、未知字段和子资源 IDOR；Playwright 端口释放竞争和旧主链“一步完成工单”也已整改并回归。三张人工截图覆盖桌面报价详情、390px 租户验收评价和离线保留/重试，无横向溢出或固定抽屉拼接伪影。
 
@@ -65,7 +65,7 @@ Party 的 9 份 delta 已智能合并到主规格并归档为 `2026-08-14-comple
 | 应用入口 | API：`uvicorn app.main:app`；PC：`npm run dev` / `npm run build`；生产示例见 `infra/production` |
 | 三端事实 | PC 位于 `apps/web`；员工移动端、租户小程序无应用目录和启动方式 |
 
-环境样例为 `apps/api/.env.example`、`infra/postgres-test/.env.example`、`infra/production/production.env.example`。当前工作树敏感文件名检查与 940 文件内容扫描通过；未发现被跟踪的真实密钥、Token、密码、数据库文件或 PII。样例值均为明确的非生产占位。
+环境样例为 `apps/api/.env.example`、`infra/postgres-test/.env.example`、`infra/production/production.env.example`。精确提交复验的敏感文件名检查与 942 文件内容扫描通过；未发现被跟踪的真实密钥、Token、密码、数据库文件或 PII。样例值均为明确的非生产占位。
 
 ## 2. 整改提交内容
 
@@ -112,7 +112,7 @@ pwsh -NoProfile -File infra/local-staging/run_full_acceptance.ps1
 
 ## 4. 测试和耗时
 
-当前工单工作树全量验收为 33/33 步、342 pytest、59 条 Playwright、3 文件/6 Vitest、141 modules production build、13 条 OpenAPI 契约及 YAML strict、OpenSpec strict 86/86、940 文件 secrets scan 0 hits，耗时 579,312 ms。工单专项真实 PostgreSQL 并发 2/2、真实浏览器旅程 1/1；当前结果仍需在实现提交后用 clean SHA 再跑一次。上一应收 clean-SHA 为 335 pytest、2 条专项 Playwright；下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
+当前工单精确 SHA `ffa72e2` 全量验收为 33/33 步、342 pytest、59 条 Playwright、3 文件/6 Vitest、141 modules production build、13 条 OpenAPI 契约及 YAML strict、OpenSpec strict 86/86、942 文件 secrets scan 0 hits，耗时 554,324 ms。工单专项真实 PostgreSQL 并发 2/2、真实浏览器旅程 1/1；39/39 任务、8 份主规格同步和归档后 strict 93/93 通过。上一应收 clean-SHA 为 335 pytest、2 条专项 Playwright；下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
 
 精确实现 SHA `a9267d4` 的完整脚本从 11:33:05 到 11:38:53，总耗时 348,122 ms，24/24 步 exit 0。
 
@@ -146,7 +146,7 @@ pwsh -NoProfile -File infra/local-staging/run_full_acceptance.ps1
 
 合同合成数据结果：2 Parties、3 Contracts、3 Versions、4 Units、3 Charges、3 Schedules、2 Documents、2 Reminders、1 Quarantine；占用面积 221.50、押金 27,000、费用 8,800；重复与孤儿均为 0，报告不持久化原始 PII。
 
-当前工单工作树全量验收使用 `pg_dump -Fc` 生成 1,383,922 bytes dump；删除并重建临时恢复库后 `pg_restore`，恢复 114 张表并再次删除恢复库。上一应收 clean-SHA 的精细财务签名为 `alembic=w9f57b2c4d31,bills=20,receipts=5,payments=5,cases=5,adjustments=0`。临时 dump 按安全策略未提交 Git。
+当前工单精确 `ffa72e2` 全量验收使用 `pg_dump -Fc` 生成 1,383,498 bytes dump；删除并重建临时恢复库后 `pg_restore`，恢复 114 张表并再次删除恢复库。上一应收 clean-SHA 的精细财务签名为 `alembic=w9f57b2c4d31,bills=20,receipts=5,payments=5,cases=5,adjustments=0`。临时 dump 按安全策略未提交 Git。
 
 真实旧库仍不可验：未取得经授权 schema dump/脱敏快照，无法证明真实字段/枚举/PII 映射、全量金额面积、CDC、停写、切换和回切。故结论只能是：
 
@@ -158,10 +158,10 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 
 最新全量脚本真实 loopback HTTP 使用登录后的 8 个工作台、事件、合同、Party 和资产接口，1000 请求、并发 25、预热 40：
 
-- 0 failures，错误率 0.0%，132.403 req/s。
-- p50 176.729 ms，p95 298.182 ms，p99 405.539 ms，max 448.276 ms。
+- 0 failures，错误率 0.0%，132.87 req/s。
+- p50 176.103 ms，p95 302.333 ms，p99 360.651 ms，max 389.424 ms。
 - 门槛 p95 ≤ 500 ms、错误率 ≤ 1%、吞吐 ≥ 20 req/s，结果 PASS。
-- 工单专项使用两个工单查询接口，1000 请求/并发 25，0 错误、219.299 req/s、p95 209.085 ms；报告保存在 `evidence/tenant-service-work-order-lifecycle/http-performance-1000x25.json`。全量工作树报告将在 clean-SHA 复跑后固化。
+- 工单专项使用两个工单查询接口，1000 请求/并发 25，0 错误、219.299 req/s、p95 209.085 ms；报告保存在 `evidence/tenant-service-work-order-lifecycle/http-performance-1000x25.json`。全量精确提交报告保存在 `evidence/tenant-service-work-order-lifecycle/acceptance-clean-ffa72e2.json`。
 
 生产契约提供显式 PG QueuePool 上限/超时/回收、`/health/ready`、非 root 镜像、只读文件系统、tmpfs、drop all capabilities 和 no-new-privileges。API 镜像用户为 `kwzy`，Web 为 UID `101`。
 
@@ -185,7 +185,7 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 | API/OpenAPI 漂移 | 已修复，13/13 契约、工单 25 个 runtime/YAML 方法对和 YAML strict 通过 |
 | Application→ORM / Router 查 DB | 应收审查发现的 Application 直接构造 ORM已下沉 repository factory；架构回归测试和人工检索未发现当前应收或工单纵切违规 |
 | 默认管理员/开发免鉴权/弱 JWT | 生产/预发 fail-closed；本地测试账号只用于隔离验收 |
-| 密钥/Token/DB/PII | 当前工作树 tracked + untracked non-ignored 940 文件扫描通过、0 hits；既有 clean-SHA 证据继续有效；企业证件只保留指纹与掩码，应收账号只保留掩码，工单合成 ETL 原始 PII 为 0，环境样例为非生产占位 |
+| 密钥/Token/DB/PII | 精确提交复验 tracked + untracked non-ignored 942 文件扫描通过、0 hits；既有 clean-SHA 证据继续有效；企业证件只保留指纹与掩码，应收账号只保留掩码，工单合成 ETL 原始 PII 为 0，环境样例为非生产占位 |
 | 历史迁移/多 head | 未修改历史迁移；新增修复迁移；唯一 head |
 | 外部集成虚假完成 | 文档和运行时均区分 fake/local、fail-closed 与 live verified |
 

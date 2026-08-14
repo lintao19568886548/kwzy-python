@@ -1,14 +1,14 @@
 # 瞰维智管 V2 独立验收能力矩阵
 
 > 审计日期：2026-08-15（Asia/Shanghai）
-> 最近已完成纵切：租户服务、工单、自动派单/SLA、报价、履约成本、返工验收与评价；clean-SHA 提交号将在本轮正常提交后补记。应收精确提交 `1a11cfe08b8d2b800c7121d7462995ebb75eb75d` 的证据继续保留。
+> 最近已完成纵切：租户服务、工单、自动派单/SLA、报价、履约成本、返工验收与评价；精确提交 `ffa72e2531396997cfe24ef1b1e42526cd4735fe` 的 33/33 门禁已通过并正常推送。应收精确提交 `1a11cfe08b8d2b800c7121d7462995ebb75eb75d` 的证据继续保留。
 > 判定规则：只使用 `IMPLEMENTED_AND_VERIFIED`、`APPROVED_RETIRED`、`APPROVED_DEFERRED`、`BLOCKED`、`MISSING`。子能力通过但组合需求未闭环时，组合项必须判为 `MISSING`；没有人工批准，不使用 retired/deferred。
 
 ## 当前整改纵切
 
 - 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
-- OpenSpec：`complete-party-enterprise-profile` 已完成 clean-SHA 验收、同步 9 份 delta 并归档为 `2026-08-14-complete-party-enterprise-profile`；`complete-investment-crm-journey` 已完成实现及 clean-SHA 验收，但任务 5.5 的 `revoked` 与审批 delta 状态定义冲突，保持 active、未同步归档。
-- 已关闭证据：Party 绑定的租户服务主体、员工代受理/租户自助受理、不可变派单规则版本及显式退役、自动/人工派单、SLA、版本化报价、追加式成本/冲正、完工证据、返工/验收/评价和 PC 响应式工作区。PG16、342 条后端、59 条全量浏览器、25 个 runtime/YAML 方法对、性能、备份恢复和合成 ETL 的工作树总门禁均通过。
+- OpenSpec：租户服务/工单 39/39 任务、8 份主规格同步完成并归档为 `2026-08-15-complete-tenant-service-work-order-lifecycle`，归档后 strict 93/93；`complete-party-enterprise-profile` 已归档；`complete-investment-crm-journey` 因任务 5.5 的 `revoked` 与审批 delta 状态定义冲突保持 active、未同步归档。
+- 已关闭证据：Party 绑定的租户服务主体、员工代受理/租户自助受理、不可变派单规则版本及显式退役、自动/人工派单、SLA、版本化报价、追加式成本/冲正、完工证据、返工/验收/评价和 PC 响应式工作区。精确 `ffa72e2` 的 PG16、342 条后端、59 条全量浏览器、25 个 runtime/YAML 方法对、性能、备份恢复和合成 ETL 总门禁均通过。
 - 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 
 ## 产品能力

@@ -1,7 +1,7 @@
 # 瞰维智管 V2 当前能力状态
 
 > 更新时间：2026-08-15（Asia/Shanghai）
-> 最新已完成纵切：租户服务、工单、派单/SLA、报价、履约、验收与评价；工作树全门禁已通过，clean-SHA 将在正常提交后补记
+> 最新已完成纵切：租户服务、工单、派单/SLA、报价、履约、验收与评价；精确提交 `ffa72e2531396997cfe24ef1b1e42526cd4735fe` 全门禁已通过并正常推送
 > 完整报告：`independent-final-acceptance-report-20260814.md`
 > 能力权威表：`full-rebuild-traceability-matrix.md`
 
@@ -16,7 +16,7 @@
 
 应收精确 SHA 已通过 335 pytest、真实 PG16、2 条专项 Playwright、1000/25 性能（p95 352.701 ms、107.841 RPS、0 错误）、合成 ETL、备份恢复和依赖审计；45/45 OpenSpec 任务已归档，归档后 strict 85/85、归档暂存树 915 文件 secrets scan 0 hits。综合机器证据为 `evidence/receivables-collection-lifecycle/acceptance-clean-1a11cfe.json`。既有精确 SHA 机器报告继续保留；所有证据只证明已实现范围。
 
-租户服务/工单工作树全验收已通过 342 pytest、真实 PG16、59 条全量 Playwright、前端 lint/typecheck/6 Vitest/production build、OpenAPI 13/13+YAML strict、OpenSpec 86/86、1000/25 性能（p95 298.182 ms、132.403 RPS、0 错误）、114 表备份恢复、工单合成 ETL 和 940 文件 secrets scan。真实旧 `repair_order` 与供应商接入仍按证据保持阻塞/未连接。
+租户服务/工单精确提交 `ffa72e2` 全验收已通过 33/33 步、342 pytest、真实 PG16、59 条全量 Playwright、前端 lint/typecheck/6 Vitest/production build、OpenAPI 13/13+YAML strict、OpenSpec 86/86、1000/25 性能（p95 302.333 ms、132.87 RPS、0 错误）、1,383,498 bytes/114 表备份恢复、工单合成 ETL 和 942 文件 secrets scan。机器报告为 `evidence/tenant-service-work-order-lifecycle/acceptance-clean-ffa72e2.json`；39/39 OpenSpec 任务、8 份主规格同步和归档后 strict 93/93 通过。真实旧 `repair_order` 与供应商接入仍按证据保持阻塞/未连接。
 
 ## 不能外推为完成的范围
 

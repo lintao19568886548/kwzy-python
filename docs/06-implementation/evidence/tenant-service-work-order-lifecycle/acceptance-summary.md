@@ -2,7 +2,7 @@
 
 > 日期：2026-08-15（Asia/Shanghai）
 > 分支：`feat/full-rebuild-completion`
-> 证据性质：提交前工作树全验收；精确 clean-SHA 报告将在正常提交后补记。
+> 证据性质：精确提交 `ffa72e2531396997cfe24ef1b1e42526cd4735fe` 全验收；机器报告 `acceptance-clean-ffa72e2.json`。
 > 产品结论：本地 API + PC 租户服务/工单纵切 `IMPLEMENTED_AND_VERIFIED`；全项目仍 `BLOCKED`。
 
 ## 已验证闭环
@@ -16,21 +16,21 @@
 - 完工摘要与安全证据、返工保留历史、租户验收、一次性 1–5 评价、WorkItem/事件同步。
 - PC 员工和租户角色工作区，桌面/390px 响应式、加载/空态/403/409/离线/重试和无横向溢出。
 
-## 工作树总门禁
+## 精确提交总门禁
 
 | 门禁 | 结果 |
 | --- | --- |
-| 全量脚本 | 33/33 步 exit 0，579,312 ms |
-| PostgreSQL / Alembic | PostgreSQL 16；fresh base→`y1b79d4e6f53`；唯一 `current == heads`；down -1→up；114 表备份删除恢复 |
-| 后端 | 342 passed / 0 failed，160.83 s；错误级 Ruff 通过 |
+| 全量脚本 | 33/33 步 exit 0，554,324 ms；HEAD `ffa72e2531396997cfe24ef1b1e42526cd4735fe` |
+| PostgreSQL / Alembic | PostgreSQL 16；fresh base→`y1b79d4e6f53`；唯一 `current == heads`；down -1→up；1,383,498 bytes / 114 表备份删除恢复 |
+| 后端 | 342 passed / 0 failed，161.50 s；错误级 Ruff 通过 |
 | 工单 PG 专项 | 2/2：复合租户/园区约束、评价唯一、并发派单、并发验收恰好一方成功 |
 | 前端 | ESLint 0 warning；vue-tsc 通过；3 文件/6 Vitest；141 modules production build |
 | 浏览器 | 59 Playwright / 0 failed / 0 skipped；真实 PG16 + FastAPI + production Vite；工单主旅程 1/1 |
 | OpenAPI | 13/13 契约测试及 YAML OpenAPI 3.1 strict；工单 runtime/YAML 25 个方法精确一致 |
-| OpenSpec | 工作树 strict 86/86；change strict 通过 |
-| 性能 | 登录后 1000 请求、并发 25、预热 40；p95 298.182 ms、132.403 RPS、0% 错误 |
+| OpenSpec | 精确实现提交 strict 86/86；39/39 任务；8 份主规格同步并归档后 strict 93/93 |
+| 性能 | 登录后 1000 请求、并发 25、预热 40；p95 302.333 ms、132.87 RPS、0% 错误 |
 | 合成迁移 | 3 工单、6 事件、1 隔离；dry/interruption/apply/reapply/reconcile/rollback 全部通过 |
-| 密钥扫描 | tracked + untracked non-ignored 940 文件，0 hits |
+| 密钥扫描 | tracked + untracked non-ignored 942 文件，0 hits |
 
 ## 整改中发现并关闭
 

@@ -1,7 +1,7 @@
 # 瞰维智管 V2 独立终验整改登记表
 
 > 更新：2026-08-15（Asia/Shanghai）
-> 最新工作树验收：租户服务/工单闭环 342 后端、59 浏览器、性能、备份恢复、OpenAPI/OpenSpec 与 940 文件密钥扫描通过；clean-SHA 将在正常提交后补记。
+> 最新精确提交验收：租户服务/工单 `ffa72e2531396997cfe24ef1b1e42526cd4735fe` 的 33/33 门禁、342 后端、59 浏览器、性能、备份恢复、OpenAPI/OpenSpec 与 942 文件密钥扫描通过；已正常推送。
 > 原则：关键词命中必须人工分类；`CLOSED` 仅表示对应缺陷已修复并回归，不外推为全产品完成。
 
 ## 已关闭问题
@@ -33,7 +33,7 @@
 | SEC-005 | P1 | 到账导入持有 ALL 园区范围时未验证传入园区属于当前租户；重复查询参数可造成参数污染；财务表缺数据库级复合租户外键 | 服务层验证租户园区归属；全局重复 query 参数 400 门禁；新增 w9 的 16 个复合租户外键和 IDOR/直写/参数污染回归 | CLOSED |
 | ARCH-001 | P1 | 应收 Application service 直接构造 SQLAlchemy ORM，违反分层依赖边界 | ORM 构造下沉 repository factory，Application 仅传领域数据；架构扫描与全量 335 pytest 通过 | CLOSED |
 | PERF-004 | P1 | 应收查询和批量预览缺真实 HTTP 性能基线；clean-SHA 前累积库复验先后暴露 DEBUG 日志放大和两个 N+1，p95 6756.641/1896.077 ms | 强制按生产契约 `DEBUG=false`；批量查询计划冲突和 Payment 分配余额并加入 SQL 查询数回归；精确 `1a11cfe` 8 端点、1000/25、0 错误，p95 352.701 ms、107.841 RPS，500 ms/20 RPS 门槛未降低 | CLOSED_LOCAL_GATE |
-| WO-001 | P1 | 现有工单仅内部简版状态机，缺租户主体、规则派单、SLA、报价、成本、返工验收和评价 | 新增完整聚合、25 个受控 API 方法、PC 租户/员工工作区、PG16 并发与真实浏览器旅程；342 pytest、59 Playwright、合成 ETL、性能和恢复门禁通过 | CLOSED_LOCAL_PRODUCT_SCOPE |
+| WO-001 | P1 | 现有工单仅内部简版状态机，缺租户主体、规则派单、SLA、报价、成本、返工验收和评价 | 新增完整聚合、25 个受控 API 方法、PC 租户/员工工作区、PG16 并发与真实浏览器旅程；精确 `ffa72e2` 的 342 pytest、59 Playwright、合成 ETL、性能和恢复门禁通过 | CLOSED_LOCAL_PRODUCT_SCOPE |
 | SEC-006 | P1 | 工单同键重放可在校验 Party/载荷前返回旧结果，伪造 JWT 权限、参数污染和复合租户引用需要独立门禁 | 先校验 Party/园区/命令语义再重放；同键异报价/验收决定返回 409；权限来自数据库；未知字段、重复参数和跨租户/园区/联系人/子资源均有 API/PG 回归 | CLOSED |
 | CONC-001 | P1 | 首次新增并发验收测试证明 ACCEPTED 与 REWORK 可因预读对象缓存而双提交 | 在读取幂等记录前以 `SELECT FOR UPDATE` 锁定工单并基于锁后版本判定；PG16 并发测试证明恰好一个提交、另一个 `WORK_ORDER_VERSION_CONFLICT` | CLOSED |
 | OPS-004 | P1 | Playwright 全栈启动在杀死旧端口后立即拉起，可能连接残留 4173 进程并产生伪结果 | 启动前轮询确认 API/Web 端口真正释放，再启动 PG/FastAPI/生产 Vite；聚焦与 59 条全量 E2E 均通过 | CLOSED |
