@@ -9,10 +9,10 @@
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
 | 已验证 HEAD | Party 企业画像精确提交 `36805823ad2e88311b9744e9e720b282b7cc74c8` 完成 31/31 clean-SHA 总门禁 |
 | 远程同步 | `feat/full-rebuild-completion` 与远端同步到性能修复 `3680582`；本轮未 force、未触达 main |
-| 工作树 | 仅 Party clean 报告、主规格、总控文档和归档待提交；11 张既有审批、组织和资产视觉证据为用户修改，必须继续保持未暂存、不得删除或还原 |
+| 工作树 | 仅 Party 归档与最终状态待提交；11 张既有审批、组织和资产视觉证据为用户修改，必须继续保持未暂存、不得删除或还原 |
 | Alembic | 唯一 head `t6c24e9f1a08`；PG16 fresh head 与 `head→-1→head` 通过，既有历史迁移未修改 |
 | 当前阶段 | 独立验收为 7 implemented / 1 blocked / 12 missing；组合能力 1–7 已关闭，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | Party 9 份 delta 已同步并通过 78/78 strict，等待归档；`complete-investment-crm-journey` 因任务 5.5 的审批 `revoked` 语义未定义而保持 active |
+| 当前 OpenSpec | Party 9 份 delta 已同步并归档为 `2026-08-14-complete-party-enterprise-profile`，43/43 任务、归档后 strict 77/77；`complete-investment-crm-journey` 因任务 5.5 的审批 `revoked` 语义未定义而保持 active |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -143,7 +143,7 @@
 
 ## 下一恢复点
 
-1. 完成 Party 主规格归档与证据提交后，从能力矩阵第 8 项开始下一纵切。
+1. 从能力矩阵第 8 项账单/收款/匹配/核销/欠费/催缴开始下一纵切。
 2. 从能力矩阵第 8 项账单/收款/匹配/核销/欠费/催缴继续，关闭剩余 12 个 `MISSING`，不把基础分配/冲正冒充组合闭环。
 3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 

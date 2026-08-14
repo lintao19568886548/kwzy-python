@@ -69,4 +69,4 @@
 
 - [x] 10.1 Run focused tests, Ruff error gate, typecheck/lint/build, strict OpenAPI/OpenSpec and stub/layer/secrets scans
 - [x] 10.2 Run full PG16 fresh/down-up, ETL, performance, backup/restore and full browser acceptance
-- [ ] 10.3 Run clean-SHA acceptance, update matrix/roadmap/state, normally commit/push, sync main specs and archive without force
+- [x] 10.3 Run clean-SHA acceptance, update matrix/roadmap/state, normally commit/push, sync main specs and archive without force

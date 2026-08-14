@@ -27,6 +27,8 @@
 
 clean-SHA 总脚本使用 PostgreSQL 16 空库执行 base→`t6c24e9f1a08`、唯一 current=head、t6→s5→t6；315 个后端测试、57 个 Playwright、11 个 OpenAPI 契约、71 项当时 OpenSpec、856 文件敏感信息扫描以及备份删除/恢复 100 张表均通过。
 
+9 份 delta 随后同步到主规格并归档；归档副本 43/43 任务完成，归档后独立 OpenSpec strict 为 77/77。
+
 ## 浏览器与视觉证据
 
 - `pc-desktop-enterprise-conflict.png`：桌面管理员完成企业画像、关联企业、来源标签、风险处置和受控证件上传；并保留 409 冲突草稿。

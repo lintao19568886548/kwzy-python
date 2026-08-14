@@ -17,6 +17,8 @@ Party 企业画像精确提交 `3680582` 的完整脚本 31/31 步 exit 0、521,
 
 Party synthetic ETL 对 2 个画像、1 条关系、1 个证件、1 个标签、1 个风险和 2 条隔离记录完成 dry/interruption/apply/reapply/reconcile/rollback；没有写入原始组织标识列，个人身份材料与孤儿关系均进入隔离。真实旧 schema/脱敏快照、外部工商合同/凭据和生产切换授权继续阻塞。
 
+Party 的 9 份 delta 已智能合并到主规格并归档为 `2026-08-14-complete-party-enterprise-profile`；归档副本为 43/43 任务，归档后 OpenSpec strict 77/77。CRM 的 `revoked` 语义冲突仍保留 active，没有借 Party 归档一并掩盖。
+
 最新能力矩阵为 7 项 `IMPLEMENTED_AND_VERIFIED`、1 项 `BLOCKED`、12 项 `MISSING`。因此本报告仍是 `BLOCKED`，只是把组合能力“客户、租户、联系人和企业画像”从缺失关闭，绝不外推为移动端、小程序、全业务、真实旧数据迁移、外部工商 live 或生产完成。
 
 ## 1. 初始 repair 基线（历史证据）
