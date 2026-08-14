@@ -162,7 +162,7 @@ test.describe("facility operations", () => {
     await page.getByPlaceholder("异常说明").fill("消防泵无法启动，已拍摄现场证据");
     await page.getByRole("button", { name: "提交全部检查结果" }).click();
     await expect(page.getByText("巡检结果已提交")).toBeVisible();
-    await expect(page.getByText(/工单 #/)).toBeVisible();
+    await expect(page.getByRole("link", { name: /打开关联工单 #/ })).toBeVisible();
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.screenshot({
       path: path.join(evidenceDir, "pc-desktop-inspection-exception-work-order.png"),
