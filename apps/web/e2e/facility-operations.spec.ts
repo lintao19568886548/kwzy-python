@@ -192,14 +192,15 @@ test.describe("facility operations", () => {
     await expect(page.getByText("IoT 设备绑定已生效")).toBeVisible();
 
     await page.getByRole("button", { name: "注入沙箱事件" }).click();
+    const alarmTitle = `消防泵启动故障 E2E ${suffix}`;
     await page.getByLabel("提供方 ID").fill(String(provider.id));
     await page.getByLabel("外部设备键").fill(externalKey);
-    await page.getByLabel("告警标题").fill("消防泵启动故障 E2E");
+    await page.getByLabel("告警标题").fill(alarmTitle);
     await page.getByLabel("严重度").selectOption("CRITICAL");
     await page.getByLabel("错误码").fill("E2E-101");
     await page.getByRole("button", { name: "发送沙箱事件" }).click();
     await expect(page.getByText("沙箱告警事件已接收")).toBeVisible();
-    await page.getByRole("button", { name: /消防泵启动故障 E2E/ }).click();
+    await page.getByRole("button", { name: new RegExp(alarmTitle) }).click();
     await expect(page.getByLabel("IoT 告警详情")).toContainText(/工单/);
     await page.screenshot({
       path: path.join(evidenceDir, "pc-desktop-iot-alarm-correlation.png"),
