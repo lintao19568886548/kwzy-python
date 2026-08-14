@@ -32,6 +32,8 @@ from app.modules.investment.domain.rules import (
     normalize_phone_key,
     normalize_status,
 )
+from app.modules.investment.application.assignment_service import AssignmentRuleService
+from app.modules.investment.application.intent_service import IntentService
 from app.modules.investment.infrastructure.crm_repository import (
     LeadActivityRepository,
     LeadAssigneeRepository,
@@ -78,6 +80,8 @@ class LeadService:
         self.work_items = WorkItemService(session, ctx)
         self.events = WorkbenchAutomationService(session, ctx)
         self.audit = AuditRecorder(session, ctx)
+        self.assignment_rules = AssignmentRuleService(session, ctx)
+        self.intents = IntentService(session, ctx)
 
     def _require(self, lead_id: int, *, for_update: bool = False, manage: bool = False):
         m = self.leads.get_by_id(lead_id, for_update=for_update, manage=manage)
@@ -150,7 +154,7 @@ class LeadService:
                     from_owner_user_id=from_owner,
                     to_owner_user_id=to_owner,
                     reason=(reason or "").strip() or None,
-                    actor_user_id=self.ctx.user_id,
+                    actor_user_id=self.ctx.user_id or None,
                     occurred_at=utc_now(),
                 )
             )
@@ -173,7 +177,7 @@ class LeadService:
                     tenant_id=self.ctx.tenant_id,
                     park_id=int(model.park_id),
                     lead_id=int(model.id),
-                    actor_user_id=self.ctx.user_id,
+                    actor_user_id=self.ctx.user_id or None,
                     activity_type=activity_type,
                     content=(content or "").strip() or None,
                     occurred_at=utc_now(),
@@ -354,6 +358,9 @@ class LeadService:
             "reason": row.reason,
             "actor_user_id": row.actor_user_id,
             "occurred_at": row.occurred_at.isoformat(),
+            "rule_version_id": row.rule_version_id,
+            "trigger": row.trigger,
+            "decision": row.decision_json or {},
         }
 
     @staticmethod
@@ -363,6 +370,8 @@ class LeadService:
             "lead_id": row.lead_id,
             "unit_id": row.unit_id,
             "lease_id": row.lease_id,
+            "intent_application_id": row.intent_application_id,
+            "intent_version_id": row.intent_version_id,
             "status": row.status,
             "expires_at": row.expires_at.isoformat(),
             "released_at": row.released_at.isoformat() if row.released_at else None,
@@ -469,15 +478,23 @@ class LeadService:
         except IntegrityError as exc:
             self.session.rollback()
             raise AppError("来源线索已存在", code="LEAD_SOURCE_DUPLICATE", status_code=409) from exc
-        self._add_assignment_event(
-            model,
-            event_type="ASSIGN" if owner_user_id else "PUBLIC_CREATE",
-            from_owner=None,
-            to_owner=owner_user_id,
-            reason="create",
-        )
-        if owner_user_id:
-            self._open_follow_todo(model)
+        assignment_result = None
+        should_auto_assign = bool(data.get("auto_assign", True)) and data.get("owner_user_id") is None
+        if should_auto_assign:
+            trigger = "CHANNEL_INTAKE" if source_type.startswith("CHANNEL:") else "MANUAL_CREATE"
+            assignment_result = self.assignment_rules.execute_for_lead(model, trigger=trigger)
+        if assignment_result is None:
+            self._add_assignment_event(
+                model,
+                event_type="ASSIGN" if owner_user_id else "PUBLIC_CREATE",
+                from_owner=None,
+                to_owner=owner_user_id,
+                reason="create",
+            )
+            if owner_user_id:
+                self._open_follow_todo(model)
+        owner_user_id = model.owner_user_id
+        next_follow = model.next_follow_up_at
         self.events.emit_event(
             event_type="LEAD_CREATED",
             source_type="LEAD",
@@ -931,11 +948,19 @@ class LeadService:
         return self._to_dict(model)
 
     def recycle_lead(self, lead_id: int, *, expected_version: int) -> dict[str, Any]:
-        model = self._require(lead_id, manage=True)
+        if not self._is_manager():
+            raise AppError("无线索回收权限", code="PERMISSION_DENIED", status_code=403)
+        model = self._require(lead_id, for_update=True, manage=True)
         if model.pool_status == "PUBLIC":
             return self._to_dict(model)
+        self._assert_expected_version(model, expected_version)
         if model.recycle_due_at is None or model.recycle_due_at > utc_now():
             raise AppError("线索尚未到回收时间", code="LEAD_RECYCLE_NOT_DUE", status_code=409)
+        assignment = self.assignment_rules.execute_for_lead(model, trigger="RECYCLE")
+        if assignment is not None:
+            self.leads.save(model)
+            self.session.commit()
+            return self._to_dict(model)
         return self.release_lead(
             lead_id,
             expected_version=expected_version,
@@ -1132,6 +1157,7 @@ class LeadService:
         *,
         unit_id: int,
         expected_version: int,
+        intent_id: int,
         duration_hours: int = 48,
     ) -> dict[str, Any]:
         model = self._require(lead_id, for_update=True)
@@ -1145,6 +1171,9 @@ class LeadService:
             raise AppError("单元不存在", code="UNIT_NOT_FOUND", status_code=404)
         if int(unit.park_id) != int(model.park_id):
             raise AppError("单元不属于线索园区", code="UNIT_PARK_MISMATCH", status_code=400)
+        intent, intent_version = self.intents.assert_approved_for_unit(
+            intent_id=int(intent_id), lead_id=int(model.id), unit_id=int(unit.id)
+        )
         now = utc_now()
         active = self.unit_locks.active_for_unit(int(unit.id), for_update=True)
         if active is not None and active.expires_at <= now:
@@ -1153,6 +1182,15 @@ class LeadService:
             active = None
         if active is not None:
             if int(active.lead_id) == int(model.id):
+                if (
+                    int(active.intent_application_id or 0) != int(intent.id)
+                    or int(active.intent_version_id or 0) != int(intent_version.id)
+                ):
+                    raise AppError(
+                        "现有锁与批准意向不一致",
+                        code="UNIT_LOCK_INTENT_MISMATCH",
+                        status_code=409,
+                    )
                 result = self._lock_dict(active)
                 self.session.commit()
                 return result
@@ -1167,6 +1205,8 @@ class LeadService:
                 unit_id=int(unit.id),
                 expires_at=now + timedelta(hours=hours),
                 created_by=self.ctx.user_id,
+                intent_application_id=int(intent.id),
+                intent_version_id=int(intent_version.id),
             )
         )
         try:
@@ -1181,7 +1221,13 @@ class LeadService:
                 resource_type="LEAD_UNIT_LOCK",
                 resource_id=lock.id,
                 park_id=model.park_id,
-                detail={"lead_id": model.id, "unit_id": unit.id, "hours": hours},
+                detail={
+                    "lead_id": model.id,
+                    "unit_id": unit.id,
+                    "hours": hours,
+                    "intent_application_id": int(intent.id),
+                    "intent_version_id": int(intent_version.id),
+                },
             )
             self.session.commit()
         except IntegrityError as exc:
@@ -1241,6 +1287,7 @@ class LeadService:
         lock_id: int,
         *,
         expected_version: int,
+        intent_id: int,
         duration_hours: int = 48,
     ) -> dict[str, Any]:
         model = self._require(lead_id, for_update=True)
@@ -1248,6 +1295,18 @@ class LeadService:
         lock = self.unit_locks.get_by_id(lock_id)
         if lock is None or int(lock.lead_id) != int(model.id):
             raise AppError("房源锁不存在", code="UNIT_LOCK_NOT_FOUND", status_code=404)
+        intent, intent_version = self.intents.assert_approved_for_unit(
+            intent_id=int(intent_id), lead_id=int(model.id), unit_id=int(lock.unit_id)
+        )
+        if (
+            int(lock.intent_application_id or 0) != int(intent.id)
+            or int(lock.intent_version_id or 0) != int(intent_version.id)
+        ):
+            raise AppError(
+                "房源锁与当前批准意向不一致",
+                code="UNIT_LOCK_INTENT_MISMATCH",
+                status_code=409,
+            )
         unit = self.units.get_current_for_update(int(lock.unit_id))
         lock = self.unit_locks.get_by_id(lock_id, for_update=True)
         if lock is None or int(lock.lead_id) != int(model.id):
@@ -1499,6 +1558,17 @@ class LeadService:
                             code="LEAD_UNIT_LOCK_REQUIRED",
                             status_code=409,
                         )
+                    if not active_lock.intent_application_id:
+                        raise AppError(
+                            "房源锁缺少批准意向",
+                            code="INTENT_LOCK_GATE_DENIED",
+                            status_code=409,
+                        )
+                    self.intents.assert_approved_for_unit(
+                        intent_id=int(active_lock.intent_application_id),
+                        lead_id=int(model.id),
+                        unit_id=int(uid),
+                    )
                 lease_dict = self.leases.create_contract(
                     {
                         "park_id": int(model.park_id),

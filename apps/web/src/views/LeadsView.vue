@@ -22,6 +22,9 @@ type Assignment = {
   to_owner_user_id: number | null;
   reason: string | null;
   occurred_at: string;
+  rule_version_id: number | null;
+  trigger: string | null;
+  decision: Record<string, unknown>;
 };
 type UnitLock = {
   id: number;
@@ -33,6 +36,74 @@ type UnitLock = {
   released_at: string | null;
   consumed_at: string | null;
   lock_version: number;
+  intent_application_id: number | null;
+  intent_version_id: number | null;
+};
+type Viewing = {
+  id: number;
+  lead_id: number;
+  owner_user_id: number;
+  status: string;
+  starts_at: string;
+  ends_at: string;
+  visitor_name: string | null;
+  visitor_count: number;
+  outcome: string | null;
+  cancellation_reason: string | null;
+  lock_version: number;
+  units: Array<{ unit_id: number; unit_version: number }>;
+};
+type IntentVersion = {
+  id: number;
+  version: number;
+  starts_on: string;
+  ends_on: string;
+  valid_until: string;
+  proposed_unit_price: string;
+  currency: string;
+  checksum: string;
+  units: Array<{ unit_id: number; unit_version: number; requested_area: string }>;
+};
+type LeadIntent = {
+  id: number;
+  lead_id: number;
+  status: string;
+  current_version: number;
+  approval_request_id: number | null;
+  approval_deep_link: string | null;
+  lock_version: number;
+  versions: IntentVersion[];
+};
+type AssignmentRule = {
+  id: number;
+  park_id: number;
+  code: string;
+  name: string;
+  trigger: string;
+  status: string;
+  current_version: number;
+  lock_version: number;
+};
+type ChannelEvent = {
+  id: number;
+  status: string;
+  external_event_id: string;
+  failure_code: string | null;
+  lead_id: number | null;
+  replay_count: number;
+};
+type LeadChannel = {
+  id: number;
+  park_id: number;
+  code: string;
+  name: string;
+  public_id: string;
+  enabled: boolean;
+  secret_env_key: string;
+  secret_configured: boolean;
+  verification_status: string;
+  lock_version: number;
+  events?: ChannelEvent[];
 };
 type Lead = {
   id: number;
@@ -99,7 +170,20 @@ type UnitMatch = {
   score: number;
   score_breakdown: Record<string, { score: number; max: number; reason: string }>;
 };
-type DialogKind = "create" | "activity" | "assign" | "merge" | "lose" | "convert" | null;
+type DialogKind =
+  | "create"
+  | "activity"
+  | "assign"
+  | "merge"
+  | "lose"
+  | "convert"
+  | "viewing"
+  | "viewing-complete"
+  | "intent"
+  | "intent-submit"
+  | "rule"
+  | "channel"
+  | null;
 
 const STAGES = ["NEW", "CONTACTING", "VISITING", "QUOTING", "NEGOTIATING", "WON", "LOST", "CANCELLED"];
 const OPEN_STAGES = new Set(["NEW", "CONTACTING", "VISITING", "QUOTING", "NEGOTIATING"]);
@@ -111,6 +195,11 @@ const board = ref<Board>({ total: 0, columns: [] });
 const summary = ref<Summary | null>(null);
 const selected = ref<LeadDetail | null>(null);
 const unitMatches = ref<UnitMatch[]>([]);
+const viewings = ref<Viewing[]>([]);
+const selectedIntent = ref<LeadIntent | null>(null);
+const selectedViewing = ref<Viewing | null>(null);
+const assignmentRules = ref<AssignmentRule[]>([]);
+const channels = ref<LeadChannel[]>([]);
 const duplicates = ref<DuplicateCandidate[]>([]);
 const dialog = ref<DialogKind>(null);
 const viewMode = ref<"board" | "list">("board");
@@ -164,12 +253,58 @@ const convertForm = reactive({
   unit_rent_price: "",
   deposit_amount: "",
 });
+const viewingForm = reactive({
+  unit_id: "",
+  starts_at: "",
+  ends_at: "",
+  visitor_name: "",
+  visitor_count: "1",
+  outcome: "",
+  next_follow_up_at: "",
+});
+const intentForm = reactive({
+  unit_id: "",
+  requested_area: "",
+  starts_on: "",
+  ends_on: "",
+  valid_until: "",
+  proposed_unit_price: "",
+  remark: "",
+});
+const intentSubmitForm = reactive({ definition_code: "LEAD_INTENT_DEFAULT", remark: "" });
+const ruleForm = reactive({
+  park_id: "",
+  code: "",
+  name: "",
+  trigger: "MANUAL_CREATE",
+  user_id: "",
+  capacity: "100",
+  recycle_after_hours: "72",
+});
+const channelForm = reactive({
+  park_id: "",
+  code: "",
+  name: "",
+  secret_env_key: "",
+  enabled: false,
+  allow_auto_assign: true,
+});
 
 const canManage = computed(() => auth.can("lead:manage") || auth.can("*"));
 const canWrite = computed(() => auth.can("lead:write") || auth.can("*"));
 const canClaim = computed(() => auth.can("lead:claim") || auth.can("*"));
 const canLock = computed(() => auth.can("lead:lock") || auth.can("*"));
 const canConvert = computed(() => auth.can("lead:convert") || auth.can("*"));
+const canViewViewings = computed(() => auth.can("lead.viewing.read") || auth.can("*"));
+const canWriteViewings = computed(() => auth.can("lead.viewing.write") || auth.can("*"));
+const canViewIntent = computed(() => auth.can("lead.intent.read") || auth.can("*"));
+const canWriteIntent = computed(() => auth.can("lead.intent.write") || auth.can("*"));
+const canSubmitIntent = computed(() => auth.can("lead.intent.submit") || auth.can("*"));
+const canManageRules = computed(() => auth.can("lead.assignment_rule.write") || auth.can("*"));
+const canManageChannels = computed(() => auth.can("lead.channel.write") || auth.can("*"));
+const approvedIntent = computed(() =>
+  selectedIntent.value?.status === "APPROVED" ? selectedIntent.value : null
+);
 const activeLocks = computed(() =>
   (selected.value?.unit_locks || []).filter((row) => row.status === "ACTIVE")
 );
@@ -207,10 +342,35 @@ async function loadSelectors() {
   parks.value = parkResponse.data.data.items;
   if (!filters.park_id && parks.value.length) filters.park_id = String(parks.value[0].id);
   if (!createForm.park_id && parks.value.length) createForm.park_id = String(parks.value[0].id);
+  if (!ruleForm.park_id && parks.value.length) ruleForm.park_id = String(parks.value[0].id);
+  if (!channelForm.park_id && parks.value.length) channelForm.park_id = String(parks.value[0].id);
   if (canManage.value) {
     const users = await http.get<Envelope<Assignee[]>>("/crm/assignees");
     assignees.value = users.data.data;
+    if (!ruleForm.user_id && assignees.value.length) {
+      ruleForm.user_id = String(assignees.value[0].id);
+    }
   }
+  await loadGovernance();
+}
+
+async function loadGovernance() {
+  const requests: Promise<unknown>[] = [];
+  if (auth.can("lead.assignment_rule.read") || auth.can("*")) {
+    requests.push(
+      http.get<Envelope<AssignmentRule[]>>("/crm/assignment-rules").then((response) => {
+        assignmentRules.value = response.data.data;
+      })
+    );
+  }
+  if (auth.can("lead.channel.read") || auth.can("*")) {
+    requests.push(
+      http.get<Envelope<LeadChannel[]>>("/crm/channels").then((response) => {
+        channels.value = response.data.data;
+      })
+    );
+  }
+  await Promise.all(requests);
 }
 
 async function loadWorkspace() {
@@ -251,6 +411,24 @@ async function openDetail(id: number) {
   try {
     const response = await http.get<Envelope<LeadDetail>>(`/leads/${id}`);
     selected.value = response.data.data;
+    const related: Promise<unknown>[] = [];
+    viewings.value = [];
+    selectedIntent.value = null;
+    if (canViewViewings.value) {
+      related.push(
+        http.get<Envelope<Viewing[]>>(`/leads/${id}/viewings`).then((item) => {
+          viewings.value = item.data.data;
+        })
+      );
+    }
+    if (canViewIntent.value) {
+      related.push(
+        http.get<Envelope<LeadIntent | null>>(`/leads/${id}/intent`).then((item) => {
+          selectedIntent.value = item.data.data;
+        })
+      );
+    }
+    await Promise.all(related);
   } catch (reason) {
     failure(reason, "线索详情加载失败");
   } finally {
@@ -443,12 +621,17 @@ async function loadUnitMatches() {
 
 async function lockUnit(unitId: number) {
   if (!selected.value) return;
+  if (!approvedIntent.value) {
+    error.value = "锁房前须创建意向并完成审批。";
+    return;
+  }
   const id = selected.value.id;
   await mutate(
     () =>
       http.post(`/leads/${id}/unit-locks`, {
         expected_version: selected.value?.lock_version,
         unit_id: unitId,
+        intent_id: approvedIntent.value?.id,
         duration_hours: 48,
       }),
     "房源已锁定 48 小时",
@@ -472,16 +655,229 @@ async function releaseLock(lock: UnitLock) {
 
 async function renewLock(lock: UnitLock) {
   if (!selected.value) return;
+  if (!lock.intent_application_id || selectedIntent.value?.status !== "APPROVED") {
+    error.value = "当前批准意向无效，不能续期房源锁。";
+    return;
+  }
   const id = selected.value.id;
   await mutate(
     () =>
       http.post(`/leads/${id}/unit-locks/${lock.id}/renew`, {
         expected_version: lock.lock_version,
         duration_hours: 48,
+        intent_id: lock.intent_application_id,
       }),
     "房源锁已续期 48 小时",
     id
   );
+}
+
+function openViewing() {
+  if (!selected.value) return;
+  const match = unitMatches.value[0];
+  viewingForm.unit_id = match ? String(match.unit_id) : "";
+  viewingForm.starts_at = "";
+  viewingForm.ends_at = "";
+  viewingForm.visitor_name = selected.value.contact_name || "";
+  viewingForm.visitor_count = "1";
+  dialog.value = "viewing";
+}
+
+async function createViewing() {
+  if (!selected.value) return;
+  const id = selected.value.id;
+  await mutate(
+    () =>
+      http.post(`/leads/${id}/viewings`, {
+        starts_at: viewingForm.starts_at,
+        ends_at: viewingForm.ends_at,
+        unit_ids: [Number(viewingForm.unit_id)],
+        visitor_name: viewingForm.visitor_name.trim() || undefined,
+        visitor_count: Number(viewingForm.visitor_count),
+      }),
+    "带看已排期",
+    id
+  );
+}
+
+async function transitionViewing(viewing: Viewing, status: string) {
+  if (!selected.value) return;
+  if (status === "COMPLETED") {
+    selectedViewing.value = viewing;
+    viewingForm.outcome = "";
+    viewingForm.next_follow_up_at = "";
+    dialog.value = "viewing-complete";
+    return;
+  }
+  await mutate(
+    () =>
+      http.post(`/crm/viewings/${viewing.id}/transition`, {
+        expected_version: viewing.lock_version,
+        status,
+        reason: status === "CANCELLED" || status === "NO_SHOW" ? "现场状态确认" : undefined,
+      }),
+    status === "CONFIRMED" ? "带看已确认" : "带看状态已更新",
+    selected.value.id
+  );
+}
+
+async function completeViewing() {
+  if (!selected.value || !selectedViewing.value) return;
+  const idempotencyKey = `viewing-${selectedViewing.value.id}-${Date.now()}`;
+  await mutate(
+    () =>
+      http.post(`/crm/viewings/${selectedViewing.value?.id}/transition`, {
+        expected_version: selectedViewing.value?.lock_version,
+        status: "COMPLETED",
+        outcome: viewingForm.outcome,
+        next_follow_up_at: viewingForm.next_follow_up_at || undefined,
+        idempotency_key: idempotencyKey,
+      }),
+    "带看结果已归档到活动时间线",
+    selected.value.id
+  );
+}
+
+function openIntent(unitId?: number) {
+  if (!selected.value) return;
+  const match = unitMatches.value.find((row) => row.unit_id === unitId) || unitMatches.value[0];
+  intentForm.unit_id = match ? String(match.unit_id) : "";
+  intentForm.requested_area = selected.value.intent_area || match?.rentable_area || "";
+  intentForm.proposed_unit_price = selected.value.budget_unit_price || match?.base_rent_price || "";
+  intentForm.starts_on = "";
+  intentForm.ends_on = "";
+  intentForm.valid_until = "";
+  intentForm.remark = "";
+  dialog.value = "intent";
+}
+
+async function createIntent() {
+  if (!selected.value) return;
+  const id = selected.value.id;
+  await mutate(
+    () =>
+      http.post(`/leads/${id}/intent`, {
+        starts_on: intentForm.starts_on,
+        ends_on: intentForm.ends_on,
+        valid_until: intentForm.valid_until,
+        proposed_unit_price: intentForm.proposed_unit_price,
+        currency: "CNY",
+        remark: intentForm.remark || undefined,
+        units: [
+          {
+            unit_id: Number(intentForm.unit_id),
+            requested_area: intentForm.requested_area,
+          },
+        ],
+      }),
+    "意向草稿已创建",
+    id
+  );
+}
+
+function openIntentSubmit() {
+  intentSubmitForm.definition_code = "LEAD_INTENT_DEFAULT";
+  intentSubmitForm.remark = "";
+  dialog.value = "intent-submit";
+}
+
+async function submitIntent() {
+  if (!selected.value || !selectedIntent.value) return;
+  const id = selected.value.id;
+  await mutate(
+    () =>
+      http.post(`/crm/intents/${selectedIntent.value?.id}/submit`, {
+        expected_version: selectedIntent.value?.lock_version,
+        definition_code: intentSubmitForm.definition_code,
+        idempotency_key: `intent-${selectedIntent.value?.id}-${Date.now()}`,
+        priority: "HIGH",
+        remark: intentSubmitForm.remark || undefined,
+      }),
+    "意向已提交审批",
+    id
+  );
+}
+
+function openRule() {
+  ruleForm.code = "";
+  ruleForm.name = "";
+  dialog.value = "rule";
+}
+
+async function createRule() {
+  await mutate(
+    () =>
+      http.post("/crm/assignment-rules", {
+        park_id: Number(ruleForm.park_id),
+        code: ruleForm.code.trim().toUpperCase(),
+        name: ruleForm.name.trim(),
+        trigger: ruleForm.trigger,
+        recycle_after_hours: Number(ruleForm.recycle_after_hours),
+        members: [
+          {
+            user_id: Number(ruleForm.user_id),
+            capacity: Number(ruleForm.capacity),
+            weight: 1,
+            member_order: 1,
+          },
+        ],
+      }),
+    "分配规则草稿已创建"
+  );
+  await loadGovernance();
+}
+
+async function publishRule(rule: AssignmentRule) {
+  await mutate(
+    () =>
+      http.post(`/crm/assignment-rules/${rule.id}/publish`, {
+        expected_lock_version: rule.lock_version,
+      }),
+    "分配规则已发布"
+  );
+  await loadGovernance();
+}
+
+function openChannel() {
+  channelForm.code = "";
+  channelForm.name = "";
+  channelForm.secret_env_key = "";
+  channelForm.enabled = false;
+  dialog.value = "channel";
+}
+
+async function createChannel() {
+  await mutate(
+    () =>
+      http.post("/crm/channels", {
+        park_id: Number(channelForm.park_id),
+        code: channelForm.code.trim().toUpperCase(),
+        name: channelForm.name.trim(),
+        secret_env_key: channelForm.secret_env_key.trim().toUpperCase(),
+        enabled: channelForm.enabled,
+        allow_auto_assign: channelForm.allow_auto_assign,
+      }),
+    "渠道配置已创建"
+  );
+  await loadGovernance();
+}
+
+async function replayChannelEvent(channel: LeadChannel, event: ChannelEvent) {
+  await mutate(
+    () => http.post(`/crm/channels/${channel.id}/events/${event.id}/replay`),
+    "隔离事件已安全重放"
+  );
+  const detail = await http.get<Envelope<LeadChannel>>(`/crm/channels/${channel.id}`);
+  channel.events = detail.data.data.events || [];
+}
+
+async function loadChannelEvents(channel: LeadChannel) {
+  try {
+    const detail = await http.get<Envelope<LeadChannel>>(`/crm/channels/${channel.id}`);
+    channel.events = detail.data.data.events || [];
+  } catch (reason) {
+    failure(reason, "渠道接收箱加载失败");
+  }
 }
 
 function openConvert() {
@@ -622,6 +1018,28 @@ onMounted(async () => {
       <article><span>平均首跟</span><strong>{{ summary.average_first_follow_seconds == null ? "—" : (summary.average_first_follow_seconds / 3600).toFixed(1) }}</strong><small>小时</small></article>
     </div>
 
+    <div v-if="assignmentRules.length || channels.length || canManageRules || canManageChannels" class="governance-grid">
+      <details v-if="auth.can('lead.assignment_rule.read') || auth.can('*')" class="card governance-card" data-testid="assignment-rule-panel">
+        <summary><span><strong>自动分配规则</strong><small>已发布版本决定创建、渠道和回收归属</small></span><b>{{ assignmentRules.length }}</b></summary>
+        <div class="governance-actions"><button v-if="canManageRules" class="btn btn-quiet" type="button" data-testid="assignment-rule-create" @click="openRule">新建规则</button><button class="text-btn" type="button" @click="loadGovernance">刷新</button></div>
+        <div v-for="rule in assignmentRules" :key="rule.id" class="governance-row">
+          <div><strong>{{ rule.name }}</strong><span>{{ rule.trigger }} · v{{ rule.current_version || '草稿' }}</span></div>
+          <span class="status-pill">{{ rule.status }}</span>
+          <button v-if="canManageRules && !rule.current_version" class="text-btn" type="button" @click="publishRule(rule)">发布</button>
+        </div>
+        <p v-if="!assignmentRules.length" class="mini-empty">暂无配置；无规则时沿用人工归属，不伪造自动分配。</p>
+      </details>
+      <details v-if="auth.can('lead.channel.read') || auth.can('*')" class="card governance-card" data-testid="lead-channel-panel">
+        <summary><span><strong>渠道接收与隔离箱</strong><small>HMAC 验证、幂等接收和加密重放</small></span><b>{{ channels.length }}</b></summary>
+        <div class="governance-actions"><button v-if="canManageChannels" class="btn btn-quiet" type="button" data-testid="lead-channel-create" @click="openChannel">配置渠道</button><button class="text-btn" type="button" @click="loadGovernance">刷新</button></div>
+        <div v-for="channel in channels" :key="channel.id" class="channel-block">
+          <div class="governance-row"><div><strong>{{ channel.name }}</strong><span>{{ channel.code }} · {{ channel.verification_status }}</span></div><span class="status-pill" :class="{ 'stage-lost': !channel.enabled }">{{ channel.enabled ? '已启用' : '默认关闭' }}</span><button class="text-btn" type="button" @click="loadChannelEvents(channel)">接收箱</button></div>
+          <div v-if="channel.events?.length" class="channel-events"><div v-for="event in channel.events" :key="event.id"><span>{{ event.external_event_id }}</span><b>{{ event.status }}</b><button v-if="event.status === 'QUARANTINED'" type="button" @click="replayChannelEvent(channel, event)">重放</button></div></div>
+        </div>
+        <p v-if="!channels.length" class="mini-empty">没有真实渠道连接；此处不会把本地合约验证标记为生产联调。</p>
+      </details>
+    </div>
+
     <form class="filters card" aria-label="招商筛选" @submit.prevent="loadWorkspace">
       <label>园区
         <select v-model="filters.park_id" class="input" data-testid="lead-park-filter">
@@ -729,6 +1147,27 @@ onMounted(async () => {
           <button v-if="canManage && OPEN_STAGES.has(selected.status)" class="btn btn-quiet" type="button" data-testid="lead-merge-open" @click="openMerge">合并重复</button>
         </div>
 
+        <section v-if="canViewViewings" class="detail-section" data-testid="lead-viewings">
+          <div class="section-head"><h3>带看计划</h3><button v-if="canWriteViewings && OPEN_STAGES.has(selected.status) && selected.pool_status !== 'PUBLIC'" class="text-btn" type="button" data-testid="viewing-create-open" @click="openViewing">安排带看</button></div>
+          <div v-for="viewing in viewings" :key="viewing.id" class="history-row viewing-row">
+            <strong>{{ viewing.status }} · {{ viewing.units.map((item) => `#${item.unit_id}`).join(' / ') }}</strong>
+            <span>{{ formatDate(viewing.starts_at) }} — {{ formatDate(viewing.ends_at) }}</span>
+            <small>{{ viewing.outcome || viewing.cancellation_reason || `访客 ${viewing.visitor_count} 人` }}</small>
+            <div v-if="canWriteViewings && ['SCHEDULED', 'CONFIRMED'].includes(viewing.status)" class="row-actions"><button v-if="viewing.status === 'SCHEDULED'" type="button" @click="transitionViewing(viewing, 'CONFIRMED')">确认</button><button v-if="viewing.status === 'CONFIRMED'" type="button" data-testid="viewing-complete-open" @click="transitionViewing(viewing, 'COMPLETED')">完成</button><button type="button" @click="transitionViewing(viewing, 'CANCELLED')">取消</button></div>
+          </div>
+          <p v-if="!viewings.length" class="mini-empty">尚无带看排期；先加载房源匹配，再安排现场带看。</p>
+        </section>
+
+        <section v-if="canViewIntent" class="detail-section" data-testid="lead-intent-panel">
+          <div class="section-head"><h3>意向与审批门禁</h3><button v-if="canWriteIntent && !selectedIntent" class="text-btn" type="button" data-testid="intent-create-open" @click="openIntent()">创建意向</button></div>
+          <div v-if="selectedIntent" class="intent-card" :class="`intent-${selectedIntent.status.toLowerCase()}`">
+            <div><span class="status-pill">{{ selectedIntent.status }}</span><strong>v{{ selectedIntent.current_version }}</strong><small v-if="selectedIntent.versions[0]">有效至 {{ formatDate(selectedIntent.versions[0].valid_until) }}</small></div>
+            <p v-if="selectedIntent.versions[0]">{{ selectedIntent.versions[0].units.map((item) => `单元 #${item.unit_id} / ${item.requested_area}㎡`).join('；') }} · ¥{{ selectedIntent.versions[0].proposed_unit_price }}</p>
+            <div class="row-actions"><button v-if="canSubmitIntent && selectedIntent.status === 'DRAFT'" type="button" data-testid="intent-submit-open" @click="openIntentSubmit">提交审批</button><a v-if="selectedIntent.approval_request_id" href="/approvals">审批 #{{ selectedIntent.approval_request_id }}</a></div>
+          </div>
+          <p v-else class="mini-empty">没有意向草稿；房源锁只有在意向审批通过且仍有效时开放。</p>
+        </section>
+
         <section v-if="canLock && OPEN_STAGES.has(selected.status) && selected.pool_status !== 'PUBLIC'" class="detail-section">
           <div class="section-head"><h3>房源机会</h3><button class="text-btn" type="button" data-testid="unit-match-load" @click="loadUnitMatches">解释性匹配</button></div>
           <div v-for="lock in selected.unit_locks" :key="lock.id" class="lock-row" :class="lock.status.toLowerCase()">
@@ -739,7 +1178,7 @@ onMounted(async () => {
             <header><div><strong>{{ match.name }}</strong><span>{{ match.code }} · {{ match.usage_type }}</span></div><b>{{ match.score }}<small>/100</small></b></header>
             <p>{{ match.rentable_area }} ㎡ · ¥{{ match.base_rent_price }}</p>
             <ul><li v-for="part in match.score_breakdown" :key="part.reason">{{ part.reason }}</li></ul>
-            <button class="btn btn-quiet" type="button" @click="lockUnit(match.unit_id)">锁定 48 小时</button>
+            <button class="btn btn-quiet" type="button" :disabled="!approvedIntent" :title="approvedIntent ? '使用已批准意向锁房' : '须先通过意向审批'" @click="lockUnit(match.unit_id)">{{ approvedIntent ? '锁定 48 小时' : '审批通过后锁房' }}</button>
           </div>
           <p v-if="!unitMatches.length && !selected.unit_locks.length" class="mini-empty">点击“解释性匹配”查看同园区可租房源。</p>
         </section>
@@ -749,14 +1188,14 @@ onMounted(async () => {
           <p v-else class="mini-empty">尚无跟进活动。</p>
         </section>
         <section class="detail-section"><h3>归属记录</h3>
-          <div v-for="event in selected.assignment_events" :key="event.id" class="history-row"><strong>{{ event.event_type }}</strong><span>{{ ownerName(event.from_owner_user_id) }} → {{ ownerName(event.to_owner_user_id) }}</span><small>{{ formatDate(event.occurred_at) }}</small></div>
+          <div v-for="event in selected.assignment_events" :key="event.id" class="history-row"><strong>{{ event.event_type }}<template v-if="event.trigger"> · {{ event.trigger }}</template></strong><span>{{ ownerName(event.from_owner_user_id) }} → {{ ownerName(event.to_owner_user_id) }}</span><small>{{ formatDate(event.occurred_at) }}<template v-if="event.rule_version_id"> · 规则版本 #{{ event.rule_version_id }}</template></small></div>
         </section>
       </template>
     </aside>
 
     <div v-if="dialog" class="modal-backdrop" role="presentation" @click.self="dialog = null">
       <section class="modal card" role="dialog" aria-modal="true" :aria-label="dialog">
-        <header><h2>{{ dialog === "create" ? "新建招商线索" : dialog === "activity" ? "记录跟进活动" : dialog === "assign" ? "分配负责人" : dialog === "merge" ? "合并重复线索" : dialog === "lose" ? "确认输单" : "转化客户" }}</h2><button class="close-btn" type="button" aria-label="关闭" @click="dialog = null">×</button></header>
+        <header><h2>{{ dialog === "create" ? "新建招商线索" : dialog === "activity" ? "记录跟进活动" : dialog === "assign" ? "分配负责人" : dialog === "merge" ? "合并重复线索" : dialog === "lose" ? "确认输单" : dialog === "viewing" ? "安排带看" : dialog === "viewing-complete" ? "完成带看" : dialog === "intent" ? "创建意向快照" : dialog === "intent-submit" ? "提交意向审批" : dialog === "rule" ? "新建自动分配规则" : dialog === "channel" ? "配置签名渠道" : "转化客户" }}</h2><button class="close-btn" type="button" aria-label="关闭" @click="dialog = null">×</button></header>
 
         <form v-if="dialog === 'create'" class="modal-form" data-testid="lead-create-form" @submit.prevent="createLead">
           <label>园区<select v-model="createForm.park_id" class="input" data-testid="lead-park-id" required><option v-for="park in parks" :key="park.id" :value="String(park.id)">{{ park.name }}</option></select></label>
@@ -786,6 +1225,12 @@ onMounted(async () => {
         <form v-else-if="dialog === 'assign'" class="modal-form" @submit.prevent="assignLead"><label class="wide">负责人<select v-model="assignForm.owner_user_id" class="input" required data-testid="lead-assignee"><option v-for="user in assignees" :key="user.id" :value="String(user.id)">{{ user.real_name || user.username }}</option></select></label><label class="wide">分配原因<textarea v-model="assignForm.reason" class="input" data-testid="lead-assign-reason"></textarea></label><button class="btn modal-submit" type="submit" data-testid="lead-assign-submit" :disabled="saving">确认分配</button></form>
         <form v-else-if="dialog === 'merge'" class="modal-form" @submit.prevent="mergeLead"><label class="wide">保留线索<select v-model="mergeForm.target_lead_id" class="input" required data-testid="lead-merge-target"><option v-for="row in mergeTargets" :key="row.id" :value="String(row.id)">#{{ row.id }} {{ row.name }} · {{ stageLabel(row.status) }}</option></select></label><label class="wide">合并原因<textarea v-model="mergeForm.reason" class="input" required data-testid="lead-merge-reason"></textarea></label><p v-if="!mergeTargets.length" class="form-note">当前筛选内没有同园区可合并线索。</p><button class="btn modal-submit" type="submit" data-testid="lead-merge-submit" :disabled="saving || !mergeTargets.length">确认合并</button></form>
         <form v-else-if="dialog === 'lose'" class="modal-form" @submit.prevent="loseLead"><label class="wide">输单原因<textarea v-model="loseForm.reason" class="input" required data-testid="lead-lose-reason"></textarea></label><button class="btn danger-btn modal-submit" type="submit" :disabled="saving">确认输单</button></form>
+        <form v-else-if="dialog === 'viewing'" class="modal-form" data-testid="viewing-create-form" @submit.prevent="createViewing"><label class="wide">带看单元<select v-model="viewingForm.unit_id" class="input" required><option value="" disabled>请选择已匹配单元</option><option v-for="match in unitMatches" :key="match.unit_id" :value="String(match.unit_id)">{{ match.name }} · #{{ match.unit_id }}</option></select></label><label>开始时间<input v-model="viewingForm.starts_at" class="input" type="datetime-local" required /></label><label>结束时间<input v-model="viewingForm.ends_at" class="input" type="datetime-local" required /></label><label>访客姓名<input v-model="viewingForm.visitor_name" class="input" /></label><label>访客人数<input v-model="viewingForm.visitor_count" class="input" type="number" min="1" max="100" required /></label><p v-if="!unitMatches.length" class="form-note wide">请先关闭弹窗并点击“解释性匹配”，再安排带看。</p><button class="btn modal-submit" type="submit" :disabled="saving || !unitMatches.length">确认排期</button></form>
+        <form v-else-if="dialog === 'viewing-complete'" class="modal-form" @submit.prevent="completeViewing"><label class="wide">带看结果<textarea v-model="viewingForm.outcome" class="input" required data-testid="viewing-outcome"></textarea></label><label class="wide">下一跟进<input v-model="viewingForm.next_follow_up_at" class="input" type="datetime-local" /></label><button class="btn modal-submit" type="submit" :disabled="saving">完成并归档</button></form>
+        <form v-else-if="dialog === 'intent'" class="modal-form" data-testid="intent-create-form" @submit.prevent="createIntent"><label class="wide">意向单元<select v-model="intentForm.unit_id" class="input" required><option value="" disabled>请选择已匹配单元</option><option v-for="match in unitMatches" :key="match.unit_id" :value="String(match.unit_id)">{{ match.name }} · #{{ match.unit_id }}</option></select></label><label>申请面积（㎡）<input v-model="intentForm.requested_area" class="input" type="number" min="0.01" step="0.01" required /></label><label>意向单价<input v-model="intentForm.proposed_unit_price" class="input" type="number" min="0" step="0.01" required /></label><label>租期开始<input v-model="intentForm.starts_on" class="input" type="date" required /></label><label>租期结束<input v-model="intentForm.ends_on" class="input" type="date" required /></label><label class="wide">意向有效至<input v-model="intentForm.valid_until" class="input" type="datetime-local" required /></label><label class="wide">说明<textarea v-model="intentForm.remark" class="input"></textarea></label><p v-if="!unitMatches.length" class="form-note wide">请先加载解释性房源匹配。</p><button class="btn modal-submit" type="submit" :disabled="saving || !unitMatches.length">冻结意向版本</button></form>
+        <form v-else-if="dialog === 'intent-submit'" class="modal-form" @submit.prevent="submitIntent"><label class="wide">审批定义编码<input v-model="intentSubmitForm.definition_code" class="input" required data-testid="intent-definition-code" /></label><label class="wide">提交说明<textarea v-model="intentSubmitForm.remark" class="input"></textarea></label><p class="form-note wide">提交后商业快照不可修改；审批结论以统一审批中心为准。</p><button class="btn modal-submit" type="submit" :disabled="saving">提交统一审批</button></form>
+        <form v-else-if="dialog === 'rule'" class="modal-form" data-testid="assignment-rule-form" @submit.prevent="createRule"><label>园区<select v-model="ruleForm.park_id" class="input" required><option v-for="park in parks" :key="park.id" :value="String(park.id)">{{ park.name }}</option></select></label><label>触发器<select v-model="ruleForm.trigger" class="input"><option>MANUAL_CREATE</option><option>CHANNEL_INTAKE</option><option>RECYCLE</option></select></label><label>规则编码<input v-model="ruleForm.code" class="input" required /></label><label>规则名称<input v-model="ruleForm.name" class="input" required /></label><label>成员<select v-model="ruleForm.user_id" class="input" required><option v-for="user in assignees" :key="user.id" :value="String(user.id)">{{ user.real_name || user.username }}</option></select></label><label>容量<input v-model="ruleForm.capacity" class="input" type="number" min="1" max="10000" required /></label><label>回收小时<input v-model="ruleForm.recycle_after_hours" class="input" type="number" min="1" max="8760" required /></label><p class="form-note">创建后为草稿，须在治理面板显式发布。</p><button class="btn modal-submit" type="submit" :disabled="saving">创建草稿</button></form>
+        <form v-else-if="dialog === 'channel'" class="modal-form" data-testid="lead-channel-form" @submit.prevent="createChannel"><label>园区<select v-model="channelForm.park_id" class="input" required><option v-for="park in parks" :key="park.id" :value="String(park.id)">{{ park.name }}</option></select></label><label>渠道编码<input v-model="channelForm.code" class="input" required /></label><label class="wide">渠道名称<input v-model="channelForm.name" class="input" required /></label><label class="wide">密钥环境变量名<input v-model="channelForm.secret_env_key" class="input" placeholder="KWZY_LEAD_CHANNEL_SECRET" required /></label><label class="checkbox"><input v-model="channelForm.enabled" type="checkbox" /> 立即启用（环境变量必须存在）</label><label class="checkbox"><input v-model="channelForm.allow_auto_assign" type="checkbox" /> 接收后自动分配</label><p class="form-note wide">系统不接收或展示明文密钥；未取得厂商凭据时保持关闭和 NOT_CONNECTED。</p><button class="btn modal-submit" type="submit" :disabled="saving">保存渠道配置</button></form>
         <form v-else class="modal-form" @submit.prevent="convertLead">
           <label class="wide checkbox"><input v-model="convertForm.with_lease" type="checkbox" :disabled="!activeLocks.length" /> 同时创建合同草稿（须使用本线索有效房源锁）</label>
           <template v-if="convertForm.with_lease"><label class="wide">锁定房源<select v-model="convertForm.unit_id" class="input" required><option v-for="lock in activeLocks" :key="lock.id" :value="String(lock.unit_id)">单元 #{{ lock.unit_id }} · {{ lockCountdown(lock) }}</option></select></label><label>开始日期<input v-model="convertForm.start_date" class="input" type="date" required /></label><label>结束日期<input v-model="convertForm.end_date" class="input" type="date" required /></label><label>占用面积<input v-model="convertForm.occupied_area" class="input" type="number" min="0.01" step="0.01" required /></label><label>租金单价<input v-model="convertForm.unit_rent_price" class="input" type="number" min="0" step="0.01" required /></label><label>押金<input v-model="convertForm.deposit_amount" class="input" type="number" min="0" step="0.01" /></label></template>
@@ -810,8 +1255,11 @@ onMounted(async () => {
 .detail-drawer { position: fixed; z-index: 35; top: 1rem; right: 1rem; bottom: 1rem; width: min(430px, calc(100vw - 2rem)); overflow-y: auto; padding: 1rem; box-shadow: 0 20px 55px rgba(15, 23, 42, .22); }.drawer-head h2 { margin: .15rem 0; }.drawer-head span { color: var(--muted); font-size: .78rem; }.close-btn { border: 0; background: transparent; color: var(--muted); font-size: 1.6rem; cursor: pointer; }.detail-badges { display: flex; gap: .5rem; align-items: center; margin: .75rem 0; color: var(--muted); font-size: .75rem; }.fact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin: 0; }.fact-grid div { padding: .65rem; border-radius: 9px; background: #f6f8f8; }.fact-grid dt { color: var(--muted); font-size: .68rem; }.fact-grid dd { margin: .1rem 0 0; font-weight: 800; }.detail-note { padding: .65rem; border-radius: 9px; background: #f7f9f8; color: var(--muted); font-size: .78rem; }.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin: .85rem 0; }.btn-dark { background: #173d35; }.btn-quiet { border: 1px solid var(--border); background: #fff; color: var(--primary); }.detail-section { padding-top: .9rem; margin-top: .9rem; border-top: 1px solid var(--border); }.detail-section h3 { margin: 0 0 .6rem; font-size: .86rem; }.lock-row, .history-row { display: grid; gap: .15rem; padding: .6rem; margin-bottom: .45rem; border-radius: 9px; background: #f7f9f8; font-size: .75rem; }.lock-row > div { display: flex; justify-content: space-between; gap: .5rem; }.lock-row span, .history-row span, .history-row small { color: var(--muted); }.lock-row.active { border-left: 3px solid #d18a13; background: #fff8e8; }.row-actions button { border: 0; background: transparent; color: var(--primary); cursor: pointer; }.match-card { padding: .7rem; margin-top: .55rem; border: 1px solid var(--border); border-radius: 10px; }.match-card header { display: flex; justify-content: space-between; }.match-card header div { display: grid; }.match-card header span, .match-card p, .match-card li { color: var(--muted); font-size: .7rem; }.match-card header b { color: var(--primary); font-size: 1.3rem; }.match-card header small { font-size: .6rem; }.match-card ul { padding-left: 1rem; }.match-card .btn { width: 100%; }.timeline { display: grid; gap: .55rem; padding: 0; list-style: none; }.timeline li { display: grid; grid-template-columns: 10px 1fr; gap: .5rem; }.timeline i { width: 8px; height: 8px; margin-top: .3rem; border-radius: 50%; background: var(--primary); }.timeline div { display: grid; }.timeline span { color: var(--muted); font-size: .7rem; }.mini-empty { padding: 1rem .4rem; color: var(--muted); font-size: .75rem; text-align: center; }
 .state { min-height: 260px; display: grid; place-content: center; justify-items: center; gap: .5rem; color: var(--muted); }.state.compact { min-height: 120px; }.spinner { width: 1.7rem; height: 1.7rem; border: 3px solid #dce8e4; border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; }
 .modal-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 1rem; background: rgba(15, 30, 35, .52); backdrop-filter: blur(3px); }.modal { width: min(680px, 100%); max-height: calc(100vh - 2rem); overflow-y: auto; padding: 1.05rem; }.modal > header { display: flex; justify-content: space-between; align-items: center; padding-bottom: .7rem; border-bottom: 1px solid var(--border); }.modal h2 { margin: 0; }.modal-form { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .8rem; }.modal-form .wide, .modal-submit, .form-note, .duplicate-panel { grid-column: 1 / -1; }.modal-form textarea { min-height: 78px; resize: vertical; }.checkbox { grid-template-columns: auto 1fr !important; align-items: center; justify-content: start; }.duplicate-panel { display: grid; gap: .55rem; padding: .7rem; border-radius: 10px; background: #fff8e8; }.duplicate-panel button { display: grid; padding: .55rem; border: 1px solid #ead6a9; border-radius: 8px; background: #fff; text-align: left; cursor: pointer; }.duplicate-panel small { color: var(--muted); }.form-note { margin: 0; padding: .7rem; border-radius: 8px; background: #eef6f3; color: #35534b; font-size: .8rem; }.danger-btn { background: var(--danger); }
+.governance-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }.governance-card { overflow: hidden; }.governance-card > summary { display: flex; align-items: center; gap: .8rem; padding: .85rem 1rem; cursor: pointer; list-style: none; }.governance-card > summary::-webkit-details-marker { display: none; }.governance-card > summary span { display: grid; gap: .15rem; }.governance-card > summary small { color: var(--muted); font-weight: 500; }.governance-card > summary b { margin-left: auto; color: var(--primary); }.governance-actions { display: flex; align-items: center; justify-content: flex-end; gap: .65rem; padding: .7rem 1rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: #f7f9f8; }.governance-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: .65rem; padding: .7rem 1rem; border-bottom: 1px solid var(--border); }.governance-row > div { display: grid; min-width: 0; }.governance-row > div span { overflow: hidden; color: var(--muted); font-size: .7rem; text-overflow: ellipsis; white-space: nowrap; }.channel-block:last-of-type .governance-row { border-bottom: 0; }.channel-events { display: grid; gap: .35rem; padding: .6rem 1rem; background: #f7f9f8; }.channel-events > div { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: .5rem; font-size: .72rem; }.channel-events span { overflow: hidden; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; }.channel-events button { border: 0; background: transparent; color: var(--primary); cursor: pointer; }
+.viewing-row { border-left: 3px solid #77a99a; }.row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; }.row-actions button, .row-actions a { border: 0; background: transparent; color: var(--primary); font-size: .74rem; text-decoration: none; cursor: pointer; }.intent-card { display: grid; gap: .55rem; padding: .7rem; border: 1px solid var(--border); border-left: 3px solid #8798a3; border-radius: 9px; background: #f7f9f8; }.intent-card.intent-approved { border-left-color: var(--primary); background: #eff9f5; }.intent-card.intent-rejected, .intent-card.intent-returned { border-left-color: var(--danger); background: #fff4f1; }.intent-card > div:first-child { display: flex; align-items: center; gap: .55rem; }.intent-card > div:first-child small { margin-left: auto; color: var(--muted); }.intent-card p { margin: 0; color: var(--muted); font-size: .72rem; }
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(15, 110, 86, .28); outline-offset: 2px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 1180px) { .metric-strip { grid-template-columns: repeat(3, 1fr); }.metric-strip article:nth-child(3) { border-right: 0; }.filters { grid-template-columns: repeat(4, 1fr); }.pipeline { grid-template-columns: repeat(8, 210px); } }
-@media (max-width: 760px) { .page-head { align-items: stretch; flex-direction: column; }.head-actions { justify-content: stretch; }.head-actions .btn { flex: 1; }.metric-strip { grid-template-columns: repeat(2, 1fr); }.metric-strip article:nth-child(3) { border-right: 1px solid var(--border); }.filters { grid-template-columns: 1fr 1fr; }.filters .keyword { grid-column: span 2; }.pipeline { grid-template-columns: repeat(8, 82vw); }.detail-drawer { top: .5rem; right: .5rem; bottom: .5rem; width: calc(100vw - 1rem); }.modal-form { grid-template-columns: 1fr; }.modal-form .wide, .modal-submit, .form-note, .duplicate-panel { grid-column: auto; } }
+@media (max-width: 900px) { .governance-grid { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .page-head { align-items: stretch; flex-direction: column; }.head-actions { justify-content: stretch; }.head-actions .btn { flex: 1; }.metric-strip { grid-template-columns: repeat(2, 1fr); }.metric-strip article:nth-child(3) { border-right: 1px solid var(--border); }.filters { grid-template-columns: 1fr 1fr; }.filters .keyword { grid-column: span 2; }.pipeline { grid-template-columns: repeat(8, 82vw); }.detail-drawer { top: .5rem; right: .5rem; bottom: .5rem; width: calc(100vw - 1rem); }.modal-form { grid-template-columns: 1fr; }.modal-form .wide, .modal-submit, .form-note, .duplicate-panel { grid-column: auto; }.governance-row { grid-template-columns: minmax(0, 1fr) auto; }.governance-row > button { grid-column: 1 / -1; justify-self: start; }.channel-events > div { grid-template-columns: minmax(0, 1fr) auto; }.channel-events button { grid-column: 1 / -1; justify-self: start; } }
 </style>

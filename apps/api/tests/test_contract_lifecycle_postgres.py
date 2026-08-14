@@ -7,7 +7,7 @@ import os
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from uuid import uuid4
 
@@ -20,7 +20,12 @@ from app.core.errors import AppError
 from app.infrastructure.database.base import utc_now
 from app.infrastructure.database.models.attachment import Attachment
 from app.infrastructure.database.models.audit import AuditLog
-from app.infrastructure.database.models.investment import LeadUnitLock
+from app.infrastructure.database.models.investment import (
+    LeadIntentApplication,
+    LeadIntentUnit,
+    LeadIntentVersion,
+    LeadUnitLock,
+)
 from app.infrastructure.database.models.lease import (
     LeaseChangeOrder,
     LeaseContract,
@@ -69,6 +74,69 @@ def _ctx(tenant_id: int) -> TenantContext:
         permissions=["*"],
         park_scope_mode=ParkScopeMode.ALL,
     )
+
+
+def _approved_intent(
+    session, *, tenant_id: int, park_id: int, lead_id: int, unit_id: int
+) -> int:
+    unit = session.get(Unit, unit_id)
+    assert unit is not None
+    application = LeadIntentApplication(
+        tenant_id=tenant_id,
+        park_id=park_id,
+        lead_id=lead_id,
+        status="APPROVED",
+        current_version=1,
+        lock_version=1,
+        submitted_at=utc_now(),
+        created_by=1,
+        updated_by=1,
+    )
+    session.add(application)
+    session.flush()
+    version = LeadIntentVersion(
+        tenant_id=tenant_id,
+        application_id=int(application.id),
+        version=1,
+        starts_on=date.today(),
+        ends_on=date.today() + timedelta(days=365),
+        valid_until=utc_now() + timedelta(days=30),
+        proposed_unit_price=Decimal("1.00"),
+        currency="CNY",
+        checksum=f"lease-pg-approved-{application.id}-{uuid4().hex}",
+        created_by=1,
+    )
+    session.add(version)
+    session.flush()
+    session.add(
+        LeadIntentUnit(
+            tenant_id=tenant_id,
+            intent_version_id=int(version.id),
+            unit_id=unit_id,
+            unit_version=int(unit.version_no),
+            requested_area=Decimal(str(unit.rentable_area)),
+        )
+    )
+    approval = ApprovalRequest(
+        tenant_id=tenant_id,
+        park_id=park_id,
+        biz_type="LEAD_INTENT",
+        biz_id=str(application.id),
+        title="合同并发测试批准意向",
+        status="APPROVED",
+        priority="HIGH",
+        applicant_user_id=1,
+        approver_user_id=1,
+        submitted_at=utc_now(),
+        completed_at=utc_now(),
+        lock_version=1,
+        compatibility_mode="NATIVE",
+    )
+    session.add(approval)
+    session.flush()
+    application.approval_request_id = int(approval.id)
+    session.commit()
+    return int(application.id)
 
 
 def _seed_contract(Session) -> dict[str, int]:
@@ -614,6 +682,13 @@ def test_pg_crm_lock_and_activation_share_unit_write_lock() -> None:
         )
         lead_id = int(lead["id"])
         lead_version = int(lead["lock_version"])
+        intent_id = _approved_intent(
+            session,
+            tenant_id=seed["tenant_id"],
+            park_id=seed["park_id"],
+            lead_id=lead_id,
+            unit_id=seed["unit_id"],
+        )
     barrier = threading.Barrier(2)
 
     def activate() -> tuple[str, str]:
@@ -636,6 +711,7 @@ def test_pg_crm_lock_and_activation_share_unit_write_lock() -> None:
                     lead_id,
                     unit_id=seed["unit_id"],
                     expected_version=lead_version,
+                    intent_id=intent_id,
                 )
                 return ("lock", "ok")
             except AppError as exc:

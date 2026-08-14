@@ -74,7 +74,7 @@ def test_lead_create_list_follow_lose(client) -> None:
     assert lost.json()["data"]["lost_reason"] == "预算不够"
 
 
-def test_lead_convert_to_party_and_lease(client) -> None:
+def test_lead_convert_to_party_and_lease(client, approved_intent) -> None:
     h = _h()
     park = client.post(
         "/api/v1/parks", headers=h, json={"name": "转化园", "address": "t"}
@@ -100,6 +100,7 @@ def test_lead_convert_to_party_and_lease(client) -> None:
             "contact_name": "张三",
         },
     ).json()["data"]
+    intent = approved_intent(lead_id=lead["id"], unit_ids=[unit["id"]])
 
     lock = client.post(
         f"/api/v1/leads/{lead['id']}/unit-locks",
@@ -107,6 +108,7 @@ def test_lead_convert_to_party_and_lease(client) -> None:
         json={
             "expected_version": lead["lock_version"],
             "unit_id": unit["id"],
+            "intent_id": intent["id"],
             "duration_hours": 48,
         },
     )

@@ -18,7 +18,7 @@
 | 1 | 组织/RBAC/园区范围/审批/审计 | 集团/区域/园区历史归属、岗位任职、字段策略、会话/RBAC/园区 grant；版本化定义、ANY/ALL 多步实例、任务/委托/SLA、自审批门禁、幂等/并发、事务哈希审计、查询/校验/导出和 PC 真栈均通过 | — | `IMPLEMENTED_AND_VERIFIED` |
 | 2 | 统一工作台和自动待办 | 事务事件和消费者、受限版本化规则、通知、持久调度、独立 worker、来源待办、升级/改派、用户→角色→服务器布局、实时 PC 工作台/控制面；PG16/真实 HTTP/50 条浏览器/性能/合成 ETL 均通过 | — | `IMPLEMENTED_AND_VERIFIED` |
 | 3 | 资产模板、租控矩阵、拆分合并和历史 | 七类内置及租户自定义模板、不可变发布版本、精确 Unit 版本绑定和复合租户外键；空间树/合法 Point/简单 Polygon、拆并血缘与并发；矩阵/真实几何示意地图/列表/空置/到期/分析及 PC 响应式真栈均通过 | 商业 GIS、CAD/BIM 和真实旧坐标迁移未获合同/数据，不作为本能力的伪完成声明 | `IMPLEMENTED_AND_VERIFIED` |
-| 4 | 招商线索、分配、公共池、跟进、带看和锁房 | 去重、人工分配/改派、公海、活动、匹配、限时锁房和转化有 PG/E2E | 自动分配、意向审批和外部渠道未完成 | `MISSING` |
+| 4 | 招商线索、分配、公共池、跟进、带看和锁房 | 去重；人工/版本化自动分配与公海回退；活动、第一类带看、匹配；不可变意向→统一审批→限时锁房→合同转化；签名渠道适配器均有 PG16/真实 HTTP/浏览器/并发/合成 ETL 证据 | 真实供应商联调和真实旧数据迁移分别由第 19/20 项保持阻塞，不伪装成本能力本地产品缺口 | `IMPLEMENTED_AND_VERIFIED` |
 | 5 | 客户、租户、联系人和企业画像 | Party、联系人、地址、角色、园区关系已实现 | 完整企业画像、关联企业、受控证件/风险画像未完成 | `MISSING` |
 | 6 | 多出租单元、多费用合同 | 多单元、多费用、确定性履约计划、占用冲突、API/UI/PG 事务证据 | — | `IMPLEMENTED_AND_VERIFIED` |
 | 7 | 合同变更单和版本链 | 不可变快照、校验和、七类变更、审批、续租/退租、并发和回滚证据 | — | `IMPLEMENTED_AND_VERIFIED` |
@@ -36,7 +36,7 @@
 | 19 | 外部平台适配器 | SMS/通知/对象存储/签章有局部 fake/local/fail-closed 端口 | 银行、支付、税票、IoT、企微等多数适配器缺失；已有端口也未真实联调 | `MISSING` |
 | 20 | 数据迁移和切换 Runbook | PG16 合成 dry/apply/中断/幂等/对账/回滚和备份恢复通过 | 缺经授权旧 schema/脱敏快照、增量同步、停写切换与真实对账 | `BLOCKED` |
 
-汇总：`IMPLEMENTED_AND_VERIFIED=5`，`BLOCKED=1`，`MISSING=14`，`APPROVED_RETIRED=0`，`APPROVED_DEFERRED=0`。
+汇总：`IMPLEMENTED_AND_VERIFIED=6`，`BLOCKED=1`，`MISSING=13`，`APPROVED_RETIRED=0`，`APPROVED_DEFERRED=0`。
 
 ## 22 条关键旅程
 
@@ -46,8 +46,8 @@
 | 2 | 不同业态资产 | `IMPLEMENTED_AND_VERIFIED` | FACTORY/WAREHOUSE/SHOP/OFFICE/DORMITORY/PARKING/PUBLIC_SPACE 七类版本化模板、动态字段和真实 HTTP/浏览器旅程通过 |
 | 3 | 拆分/合并及历史 | `IMPLEMENTED_AND_VERIFIED` | UI/API/PG 并发与血缘历史通过 |
 | 4 | 录入线索 | `IMPLEMENTED_AND_VERIFIED` | 真实 HTTP/UI/PG 通过 |
-| 5 | 自动分配与改派 | `MISSING` | 人工分配/改派通过，自动分配缺失 |
-| 6 | 跟进、带看、意向审批、限时锁房 | `MISSING` | 跟进/带看/锁房通过，意向审批缺失 |
+| 5 | 自动分配与改派 | `IMPLEMENTED_AND_VERIFIED` | 版本化规则/成员容量、确定性选择、创建/渠道/回收触发、公海回退和人工覆盖均有并发/API/UI 证据 |
+| 6 | 跟进、带看、意向审批、限时锁房 | `IMPLEMENTED_AND_VERIFIED` | 第一类 Viewing、不可变 Intent、统一 Approval 权威状态、负向门禁、锁房/续锁/转合同真实 HTTP 和浏览器主路径通过 |
 | 7 | 创建租户 | `IMPLEMENTED_AND_VERIFIED` | Party 租户主档通过 |
 | 8 | 多单元、多费用合同 | `IMPLEMENTED_AND_VERIFIED` | 合同 V2 主旅程通过 |
 | 9 | 生成账单 | `IMPLEMENTED_AND_VERIFIED` | 当前基础账单创建/签发通过 |

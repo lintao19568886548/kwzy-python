@@ -5,7 +5,17 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import FK_TYPE, Base, PrimaryKeyMixin, TimestampMixin
@@ -23,6 +33,11 @@ class WorkItem(Base, PrimaryKeyMixin, TimestampMixin):
             "item_type",
             name="uk_work_item_source",
         ),
+        CheckConstraint(
+            "escalation_level >= 0 AND lock_version >= 1",
+            name="ck_work_item_escalation_version",
+        ),
+        Index("ix_work_items_last_event_id", "last_event_id"),
     )
 
     tenant_id: Mapped[int] = mapped_column(

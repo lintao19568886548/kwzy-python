@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Optional
 
@@ -73,6 +73,9 @@ class LeadAssignmentEventEntity:
     to_owner_user_id: Optional[int] = None
     reason: Optional[str] = None
     actor_user_id: Optional[int] = None
+    rule_version_id: Optional[int] = None
+    trigger: Optional[str] = None
+    decision_json: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -101,3 +104,54 @@ class LeadUnitLockEntity:
     consumed_at: Optional[datetime] = None
     created_by: Optional[int] = None
     lock_version: int = 1
+    intent_application_id: Optional[int] = None
+    intent_version_id: Optional[int] = None
+
+
+@dataclass(frozen=True, slots=True)
+class AssignmentMemberSpec:
+    user_id: int
+    capacity: int
+    weight: int = 1
+    member_order: int = 1
+    open_count: int = 0
+    last_assigned_at: Optional[datetime] = None
+    eligible: bool = True
+    exclusion_reason: Optional[str] = None
+
+
+@dataclass(frozen=True, slots=True)
+class ViewingWindow:
+    starts_at: datetime
+    ends_at: datetime
+    unit_ids: tuple[int, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class IntentUnitSnapshot:
+    unit_id: int
+    unit_version: int
+    requested_area: Decimal
+
+
+@dataclass(frozen=True, slots=True)
+class IntentSnapshot:
+    starts_on: date
+    ends_on: date
+    valid_until: datetime
+    proposed_unit_price: Decimal
+    currency: str
+    units: tuple[IntentUnitSnapshot, ...]
+    remark: Optional[str] = None
+
+
+@dataclass(frozen=True, slots=True)
+class ChannelSignatureEnvelope:
+    timestamp: int
+    external_event_id: str
+    body_sha256: str
+
+    def signing_input(self) -> bytes:
+        return (
+            f"v1\n{self.timestamp}\n{self.external_event_id}\n{self.body_sha256}"
+        ).encode("utf-8")

@@ -2692,6 +2692,321 @@ paths:
         '200': { description: 可选负责人列表 }
         '403': { description: 无线索管理权限 }
 
+  /crm/assignment-rules:
+    get:
+      tags: [Leads]
+      summary: 查询自动分配规则与版本状态
+      operationId: listLeadAssignmentRules
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: park_id, in: query, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 当前租户授权园区的规则列表 }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Leads]
+      summary: 创建自动分配规则草稿
+      operationId: createLeadAssignmentRule
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/AssignmentRuleCreate' } } }
+      responses:
+        '200': { description: 规则草稿与首个不可变版本 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /crm/assignment-rules/preview:
+    get:
+      tags: [Leads]
+      summary: 预演当前已发布规则的确定性归属结果
+      operationId: previewLeadAssignmentRule
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: park_id, in: query, required: true, schema: { type: integer, format: int64 } }
+        - { name: trigger, in: query, required: true, schema: { $ref: '#/components/schemas/AssignmentTrigger' } }
+      responses:
+        '200': { description: 规则版本、候选容量与选中成员证据 }
+
+  /crm/assignment-rules/{rule_id}:
+    parameters:
+      - { name: rule_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    get:
+      tags: [Leads]
+      summary: 查询自动分配规则详情和历史版本
+      operationId: getLeadAssignmentRule
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 规则详情、成员和版本链 }
+
+  /crm/assignment-rules/{rule_id}/draft:
+    parameters:
+      - { name: rule_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    patch:
+      tags: [Leads]
+      summary: 更新尚未发布的规则草稿
+      operationId: updateLeadAssignmentRuleDraft
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/AssignmentRuleDraftUpdate' } } }
+      responses:
+        '200': { description: 已更新草稿 }
+        '409': { $ref: '#/components/responses/Conflict' }
+    post:
+      tags: [Leads]
+      summary: 从已发布版本创建下一草稿
+      operationId: createLeadAssignmentRuleDraft
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ExpectedLockVersion' } } }
+      responses:
+        '200': { description: 新的不可变版本草稿 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /crm/assignment-rules/{rule_id}/publish:
+    parameters:
+      - { name: rule_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    post:
+      tags: [Leads]
+      summary: 原子发布规则并替换同园区同触发器生效版本
+      operationId: publishLeadAssignmentRule
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ExpectedLockVersion' } } }
+      responses:
+        '200': { description: 已发布规则及版本证据 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /crm/assignment-rules/{rule_id}/retire:
+    parameters:
+      - { name: rule_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    post:
+      tags: [Leads]
+      summary: 退役自动分配规则
+      operationId: retireLeadAssignmentRule
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ExpectedLockVersion' } } }
+      responses:
+        '200': { description: 已退役且保留历史版本 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /leads/{lead_id}/viewings:
+    parameters:
+      - { name: lead_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    get:
+      tags: [Leads]
+      summary: 查询线索带看计划与结果
+      operationId: listLeadViewings
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 带看、房源版本快照与状态 }
+    post:
+      tags: [Leads]
+      summary: 创建同园区多单元带看计划
+      operationId: createLeadViewing
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ViewingCreate' } } }
+      responses:
+        '200': { description: 带看已排期 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /crm/viewings/{viewing_id}:
+    parameters:
+      - { name: viewing_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    get:
+      tags: [Leads]
+      summary: 查询带看详情
+      operationId: getLeadViewing
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 带看详情 }
+    patch:
+      tags: [Leads]
+      summary: 按版本重新排期带看
+      operationId: rescheduleLeadViewing
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ViewingReschedule' } } }
+      responses:
+        '200': { description: 已重新排期 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /crm/viewings/{viewing_id}/transition:
+    parameters:
+      - { name: viewing_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    post:
+      tags: [Leads]
+      summary: 确认、完成、取消或标记爽约
+      operationId: transitionLeadViewing
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ViewingTransition' } } }
+      responses:
+        '200': { description: 已转换状态；完成操作幂等写入 VISIT 活动 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /leads/{lead_id}/intent:
+    parameters:
+      - { name: lead_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    get:
+      tags: [Leads]
+      summary: 查询线索当前意向及权威审批状态
+      operationId: getLeadIntent
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 意向快照、版本链和审批深链 }
+    post:
+      tags: [Leads]
+      summary: 冻结首个多单元商业意向快照
+      operationId: createLeadIntent
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/IntentCreate' } } }
+      responses:
+        '200': { description: 意向草稿已创建 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /crm/intents/{intent_id}:
+    parameters:
+      - { name: intent_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    get:
+      tags: [Leads]
+      summary: 查询意向详情与不可变版本链
+      operationId: getLeadIntentDetail
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 意向详情 }
+
+  /crm/intents/{intent_id}/versions:
+    parameters:
+      - { name: intent_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    post:
+      tags: [Leads]
+      summary: 在草稿期追加不可变意向版本
+      operationId: createLeadIntentVersion
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/IntentVersionCreate' } } }
+      responses:
+        '200': { description: 新版本已冻结 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /crm/intents/{intent_id}/submit:
+    parameters:
+      - { name: intent_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    post:
+      tags: [Leads]
+      summary: 提交统一审批并以审批中心为权威结论
+      operationId: submitLeadIntent
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/IntentSubmit' } } }
+      responses:
+        '200': { description: 已创建审批申请和任务 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /crm/channels:
+    get:
+      tags: [Leads]
+      summary: 查询签名渠道配置（不返回明文密钥）
+      operationId: listLeadChannels
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 渠道连接与本地合约验证状态 }
+    post:
+      tags: [Leads]
+      summary: 创建默认关闭的签名渠道
+      operationId: createLeadChannel
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ChannelCreate' } } }
+      responses:
+        '200': { description: 渠道已创建；密钥仅由环境变量引用 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /crm/channels/{channel_id}:
+    parameters:
+      - { name: channel_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    get:
+      tags: [Leads]
+      summary: 查询渠道及最近接收事件
+      operationId: getLeadChannel
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 渠道配置和脱敏事件摘要 }
+    patch:
+      tags: [Leads]
+      summary: 按版本更新、启停或轮换渠道密钥引用
+      operationId: updateLeadChannel
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ChannelUpdate' } } }
+      responses:
+        '200': { description: 渠道已更新 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /crm/channels/{channel_id}/events:
+    parameters:
+      - { name: channel_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    get:
+      tags: [Leads]
+      summary: 查询渠道接收箱与隔离事件
+      operationId: listLeadChannelEvents
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [ACCEPTED, QUARANTINED, REJECTED] } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 100 } }
+      responses:
+        '200': { description: 仅返回安全预览和失败码，不返回密文或明文 PII }
+
+  /crm/channels/{channel_id}/events/{event_id}/replay:
+    parameters:
+      - { name: channel_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      - { name: event_id, in: path, required: true, schema: { type: integer, format: int64 } }
+    post:
+      tags: [Leads]
+      summary: 使用当前授权配置解密并幂等重放隔离事件
+      operationId: replayLeadChannelEvent
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: 重放结果和原事件证据 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /public/lead-channels/{public_id}/events:
+    parameters:
+      - { name: public_id, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Leads]
+      summary: 接收经 HMAC v1 认证的限长渠道事件
+      operationId: receiveLeadChannelEvent
+      security: []
+      parameters:
+        - { name: X-KWZY-Timestamp, in: header, required: true, schema: { type: string } }
+        - { name: X-KWZY-Event-Id, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 128 } }
+        - { name: X-KWZY-Signature, in: header, required: true, schema: { type: string, pattern: '^v1=[0-9a-f]{64}$' } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeadChannelEvent' }
+      responses:
+        '200': { description: 已接收或命中相同事件幂等结果 }
+        '401': { description: 签名、时钟窗、重复头或长度校验失败 }
+        '409': { $ref: '#/components/responses/Conflict' }
+
   /crm/unit-locks/sweep:
     post:
       tags: [Leads]
@@ -6389,6 +6704,9 @@ components:
         reason: { type: string, nullable: true }
         actor_user_id: { type: integer, format: int64, nullable: true }
         occurred_at: { type: string, format: date-time }
+        rule_version_id: { type: integer, format: int64, nullable: true }
+        trigger: { $ref: '#/components/schemas/AssignmentTrigger' }
+        decision: { type: object, additionalProperties: true }
     LeadUnitLock:
       type: object
       properties:
@@ -6401,6 +6719,8 @@ components:
         released_at: { type: string, format: date-time, nullable: true }
         consumed_at: { type: string, format: date-time, nullable: true }
         lock_version: { type: integer, minimum: 1 }
+        intent_application_id: { type: integer, format: int64 }
+        intent_version_id: { type: integer, format: int64 }
     LeadDetail:
       allOf:
         - $ref: '#/components/schemas/Lead'
@@ -6438,6 +6758,7 @@ components:
         source_ref: { type: string, nullable: true }
         duplicate_override_reason: { type: string, nullable: true }
         next_follow_up_at: { type: string, format: date-time, nullable: true }
+        auto_assign: { type: boolean, default: true }
     LeadUpdate:
       type: object
       required: [expected_version]
@@ -6480,6 +6801,177 @@ components:
         expected_version: { type: integer, minimum: 1 }
         owner_user_id: { type: integer, format: int64 }
         reason: { type: string, nullable: true }
+    AssignmentTrigger:
+      type: string
+      enum: [MANUAL_CREATE, CHANNEL_INTAKE, RECYCLE]
+    AssignmentMemberIn:
+      type: object
+      additionalProperties: false
+      required: [user_id, capacity, member_order]
+      properties:
+        user_id: { type: integer, format: int64, minimum: 1 }
+        capacity: { type: integer, minimum: 1, maximum: 10000 }
+        weight: { type: integer, minimum: 1, maximum: 100, default: 1 }
+        member_order: { type: integer, minimum: 1 }
+    AssignmentRuleCreate:
+      type: object
+      additionalProperties: false
+      required: [park_id, code, name, trigger, members]
+      properties:
+        park_id: { type: integer, format: int64, minimum: 1 }
+        code: { type: string, minLength: 2, maxLength: 64 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        trigger: { $ref: '#/components/schemas/AssignmentTrigger' }
+        description: { type: string, maxLength: 2000, nullable: true }
+        recycle_after_hours: { type: integer, minimum: 1, maximum: 8760, default: 72 }
+        members:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items: { $ref: '#/components/schemas/AssignmentMemberIn' }
+    AssignmentRuleDraftUpdate:
+      type: object
+      additionalProperties: false
+      required: [expected_lock_version]
+      properties:
+        expected_lock_version: { type: integer, minimum: 0 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        description: { type: string, maxLength: 2000, nullable: true }
+        recycle_after_hours: { type: integer, minimum: 1, maximum: 8760 }
+        members:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items: { $ref: '#/components/schemas/AssignmentMemberIn' }
+    ExpectedLockVersion:
+      type: object
+      additionalProperties: false
+      required: [expected_lock_version]
+      properties:
+        expected_lock_version: { type: integer, minimum: 0 }
+    ViewingCreate:
+      type: object
+      additionalProperties: false
+      required: [starts_at, ends_at, unit_ids]
+      properties:
+        starts_at: { type: string, format: date-time }
+        ends_at: { type: string, format: date-time }
+        unit_ids:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items: { type: integer, format: int64 }
+        owner_user_id: { type: integer, format: int64, nullable: true }
+        visitor_name: { type: string, maxLength: 64, nullable: true }
+        visitor_count: { type: integer, minimum: 1, maximum: 100, default: 1 }
+        notes: { type: string, maxLength: 2000, nullable: true }
+    ViewingReschedule:
+      type: object
+      additionalProperties: false
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        starts_at: { type: string, format: date-time }
+        ends_at: { type: string, format: date-time }
+        unit_ids:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items: { type: integer, format: int64 }
+        owner_user_id: { type: integer, format: int64, nullable: true }
+        visitor_name: { type: string, maxLength: 64, nullable: true }
+        visitor_count: { type: integer, minimum: 1, maximum: 100 }
+        notes: { type: string, maxLength: 2000, nullable: true }
+    ViewingTransition:
+      type: object
+      additionalProperties: false
+      required: [expected_version, status]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        status: { type: string, enum: [CONFIRMED, COMPLETED, CANCELLED, NO_SHOW] }
+        outcome: { type: string, maxLength: 1000, nullable: true }
+        next_follow_up_at: { type: string, format: date-time, nullable: true }
+        reason: { type: string, maxLength: 255, nullable: true }
+        idempotency_key: { type: string, minLength: 8, maxLength: 64, nullable: true }
+    IntentUnitIn:
+      type: object
+      additionalProperties: false
+      required: [unit_id, requested_area]
+      properties:
+        unit_id: { type: integer, format: int64, minimum: 1 }
+        requested_area: { type: number, exclusiveMinimum: 0 }
+    IntentCreate:
+      type: object
+      additionalProperties: false
+      required: [starts_on, ends_on, valid_until, proposed_unit_price, units]
+      properties:
+        starts_on: { type: string, format: date }
+        ends_on: { type: string, format: date }
+        valid_until: { type: string, format: date-time }
+        proposed_unit_price: { type: number, minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3, default: CNY }
+        remark: { type: string, maxLength: 2000, nullable: true }
+        units:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items: { $ref: '#/components/schemas/IntentUnitIn' }
+    IntentVersionCreate:
+      allOf:
+        - $ref: '#/components/schemas/IntentCreate'
+        - type: object
+          required: [expected_version]
+          properties:
+            expected_version: { type: integer, minimum: 1 }
+    IntentSubmit:
+      type: object
+      additionalProperties: false
+      required: [expected_version, definition_code, idempotency_key]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        definition_code: { type: string, minLength: 1, maxLength: 64 }
+        idempotency_key: { type: string, minLength: 8, maxLength: 64 }
+        priority: { type: string, enum: [LOW, NORMAL, HIGH, URGENT], default: HIGH }
+        remark: { type: string, maxLength: 2000, nullable: true }
+    ChannelCreate:
+      type: object
+      additionalProperties: false
+      required: [park_id, code, name, secret_env_key]
+      properties:
+        park_id: { type: integer, format: int64, minimum: 1 }
+        code: { type: string, minLength: 2, maxLength: 64 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        secret_env_key: { type: string, minLength: 3, maxLength: 128, description: 仅存环境变量名 }
+        previous_secret_env_key: { type: string, maxLength: 128, nullable: true }
+        enabled: { type: boolean, default: false }
+        max_clock_skew_seconds: { type: integer, minimum: 30, maximum: 900, default: 300 }
+        allow_auto_assign: { type: boolean, default: true }
+        mapping: { type: object, additionalProperties: { type: string }, nullable: true }
+    ChannelUpdate:
+      type: object
+      additionalProperties: false
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        secret_env_key: { type: string, minLength: 3, maxLength: 128 }
+        previous_secret_env_key: { type: string, maxLength: 128, nullable: true }
+        enabled: { type: boolean }
+        max_clock_skew_seconds: { type: integer, minimum: 30, maximum: 900 }
+        allow_auto_assign: { type: boolean }
+        mapping: { type: object, additionalProperties: { type: string }, nullable: true }
+    LeadChannelEvent:
+      type: object
+      additionalProperties: false
+      required: [name, contact_phone]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 128 }
+        contact_phone: { type: string, minLength: 5, maxLength: 32 }
+        contact_name: { type: string, maxLength: 64, nullable: true }
+        intent_area: { type: number, exclusiveMinimum: 0, nullable: true }
+        desired_usage: { type: string, maxLength: 64, nullable: true }
+        budget_unit_price: { type: number, minimum: 0, nullable: true }
+        remark: { type: string, maxLength: 2000, nullable: true }
     LeadVersionCommand:
       type: object
       required: [expected_version]
@@ -6512,10 +7004,11 @@ components:
         reason: { type: string, minLength: 1, maxLength: 255 }
     LeadUnitLockCreate:
       type: object
-      required: [expected_version, unit_id]
+      required: [expected_version, unit_id, intent_id]
       properties:
         expected_version: { type: integer, minimum: 1 }
         unit_id: { type: integer, format: int64 }
+        intent_id: { type: integer, format: int64 }
         duration_hours: { type: integer, minimum: 1, maximum: 168, default: 48 }
     LeadUnitLockCommand:
       type: object
@@ -6523,6 +7016,7 @@ components:
       properties:
         expected_version: { type: integer, minimum: 1 }
         duration_hours: { type: integer, minimum: 1, maximum: 168, default: 48 }
+        intent_id: { type: integer, format: int64, nullable: true }
     LeadConvert:
       type: object
       required: [expected_version]

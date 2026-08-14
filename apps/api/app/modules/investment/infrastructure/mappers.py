@@ -97,6 +97,9 @@ class LeadAssignmentEventMapper:
             reason=entity.reason,
             actor_user_id=entity.actor_user_id,
             occurred_at=entity.occurred_at,
+            rule_version_id=entity.rule_version_id,
+            trigger=entity.trigger,
+            decision_json=entity.decision_json or None,
         )
 
 
@@ -129,4 +132,6 @@ class LeadUnitLockMapper:
             consumed_at=entity.consumed_at,
             created_by=entity.created_by,
             lock_version=entity.lock_version,
+            intent_application_id=entity.intent_application_id,
+            intent_version_id=entity.intent_version_id,
         )

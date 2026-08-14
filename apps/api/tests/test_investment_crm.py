@@ -358,7 +358,9 @@ def test_tenant_and_park_scope_isolate_detail_list_summary_and_duplicates(client
         tenant_one.get_lead(foreign["id"])
 
 
-def test_explainable_matching_lock_renew_release_and_expiry(client, db_session) -> None:
+def test_explainable_matching_lock_renew_release_and_expiry(
+    client, db_session, approved_intent
+) -> None:
     headers = _h()
     park_id = _park(client, headers, "锁定园")
     other_park = _park(client, headers, "其他园")
@@ -395,11 +397,16 @@ def test_explainable_matching_lock_renew_release_and_expiry(client, db_session) 
     assert [row["unit_id"] for row in rows] == [best["id"], expensive["id"]]
     assert rows[0]["score"] == 100
     assert rows[0]["score_breakdown"]["area"]["score"] == 50
+    intent = approved_intent(lead_id=lead["id"], unit_ids=[best["id"]])
 
     acquired = client.post(
         f"/api/v1/leads/{lead['id']}/unit-locks",
         headers=headers,
-        json={"expected_version": lead["lock_version"], "unit_id": best["id"]},
+        json={
+            "expected_version": lead["lock_version"],
+            "unit_id": best["id"],
+            "intent_id": intent["id"],
+        },
     )
     assert acquired.status_code == 200, acquired.text
     lock = acquired.json()["data"]
@@ -407,10 +414,15 @@ def test_explainable_matching_lock_renew_release_and_expiry(client, db_session) 
     assert db_session.get(Unit, best["id"]).status == "RESERVED"
 
     other = _lead(client, headers, park_id, name="竞争客户", phone="13200132000")
+    other_intent = approved_intent(lead_id=other["id"], unit_ids=[best["id"]])
     conflict = client.post(
         f"/api/v1/leads/{other['id']}/unit-locks",
         headers=headers,
-        json={"expected_version": other["lock_version"], "unit_id": best["id"]},
+        json={
+            "expected_version": other["lock_version"],
+            "unit_id": best["id"],
+            "intent_id": other_intent["id"],
+        },
     )
     assert conflict.status_code == 409
     assert conflict.json()["code"] == "UNIT_ALREADY_LOCKED"
@@ -418,7 +430,11 @@ def test_explainable_matching_lock_renew_release_and_expiry(client, db_session) 
     renewed = client.post(
         f"/api/v1/leads/{lead['id']}/unit-locks/{lock['id']}/renew",
         headers=headers,
-        json={"expected_version": lock["lock_version"], "duration_hours": 72},
+        json={
+            "expected_version": lock["lock_version"],
+            "duration_hours": 72,
+            "intent_id": intent["id"],
+        },
     )
     assert renewed.status_code == 200, renewed.text
     lock = renewed.json()["data"]
@@ -440,6 +456,7 @@ def test_explainable_matching_lock_renew_release_and_expiry(client, db_session) 
         json={
             "expected_version": acquired.json()["data"]["lead_lock_version"],
             "unit_id": best["id"],
+            "intent_id": intent["id"],
         },
     )
     assert reacquired.status_code == 200, reacquired.text
@@ -458,16 +475,21 @@ def test_explainable_matching_lock_renew_release_and_expiry(client, db_session) 
 
 
 def test_foreign_lock_blocks_independent_lease_activation(
-    client, db_session, governed_activate
+    client, db_session, governed_activate, approved_intent
 ) -> None:
     headers = _h()
     park_id = _park(client, headers, "激活锁园")
     unit = _unit(client, headers, park_id, code="LOCKED")
     lead = _lead(client, headers, park_id, name="锁定客户", phone="13300133000")
+    intent = approved_intent(lead_id=lead["id"], unit_ids=[unit["id"]])
     lock = client.post(
         f"/api/v1/leads/{lead['id']}/unit-locks",
         headers=headers,
-        json={"expected_version": lead["lock_version"], "unit_id": unit["id"]},
+        json={
+            "expected_version": lead["lock_version"],
+            "unit_id": unit["id"],
+            "intent_id": intent["id"],
+        },
     )
     assert lock.status_code == 200, lock.text
 
@@ -556,15 +578,22 @@ def test_funnel_reconciles_with_list_and_empty_range(client) -> None:
     assert empty["average_first_follow_seconds"] is None
 
 
-def test_conversion_failure_rolls_back_and_retry_succeeds(client, db_session) -> None:
+def test_conversion_failure_rolls_back_and_retry_succeeds(
+    client, db_session, approved_intent
+) -> None:
     headers = _h()
     park_id = _park(client, headers, "转化回滚园")
     unit = _unit(client, headers, park_id, code="ROLLBACK")
     lead = _lead(client, headers, park_id, name="回滚客户", phone="13600136001")
+    intent = approved_intent(lead_id=lead["id"], unit_ids=[unit["id"]])
     locked = client.post(
         f"/api/v1/leads/{lead['id']}/unit-locks",
         headers=headers,
-        json={"expected_version": lead["lock_version"], "unit_id": unit["id"]},
+        json={
+            "expected_version": lead["lock_version"],
+            "unit_id": unit["id"],
+            "intent_id": intent["id"],
+        },
     ).json()["data"]
     before_parties = db_session.query(Party).count()
     before_leases = db_session.query(LeaseContract).count()

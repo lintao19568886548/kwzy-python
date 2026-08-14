@@ -186,6 +186,12 @@ def main() -> int:
     parser.add_argument("--max-p95-ms", type=float, default=500.0)
     parser.add_argument("--max-error-rate-percent", type=float, default=1.0)
     parser.add_argument("--min-rps", type=float, default=20.0)
+    parser.add_argument(
+        "--endpoint",
+        action="append",
+        dest="endpoints",
+        help="repeatable 'METHOD /path' override; defaults to the shared business read set",
+    )
     parser.add_argument("--tenant-code", default=os.getenv("PERF_TENANT_CODE", "default"))
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
@@ -194,6 +200,11 @@ def main() -> int:
         parser.error("requests/concurrency must be positive and concurrency <= requests")
     if args.warmup < 0:
         parser.error("warmup must be non-negative")
+    endpoints = tuple(args.endpoints or DEFAULT_ENDPOINTS)
+    for endpoint in endpoints:
+        parts = endpoint.split(" ", 1)
+        if len(parts) != 2 or parts[0] not in {"GET", "POST"} or not parts[1].startswith("/"):
+            parser.error(f"invalid endpoint: {endpoint!r}")
     username = os.getenv("PERF_USERNAME", "").strip()
     password = os.getenv("PERF_PASSWORD", "")
     if not username or not password:
@@ -204,7 +215,7 @@ def main() -> int:
         warmup_samples, _ = run_requests(
             base_url=args.base_url,
             token=token,
-            endpoints=DEFAULT_ENDPOINTS,
+            endpoints=endpoints,
             requests=args.warmup,
             concurrency=min(args.concurrency, args.warmup),
             timeout=args.timeout_seconds,
@@ -215,7 +226,7 @@ def main() -> int:
     samples, elapsed = run_requests(
         base_url=args.base_url,
         token=token,
-        endpoints=DEFAULT_ENDPOINTS,
+        endpoints=endpoints,
         requests=args.requests,
         concurrency=args.concurrency,
         timeout=args.timeout_seconds,
@@ -235,7 +246,7 @@ def main() -> int:
             "requests": args.requests,
             "concurrency": args.concurrency,
             "warmup": args.warmup,
-            "endpoints": list(DEFAULT_ENDPOINTS),
+            "endpoints": list(endpoints),
         },
         "thresholds": {
             "max_p95_ms": args.max_p95_ms,

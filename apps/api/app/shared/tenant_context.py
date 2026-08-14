@@ -85,6 +85,10 @@ class TenantContext:
                 "workbench.layout.",
                 "notification.",
                 "asset.template.",
+                "lead.assignment_rule.",
+                "lead.viewing.",
+                "lead.intent.",
+                "lead.channel.",
             )
         ) or permission_code in {"work_item:reassign", "work_item:override_source"}
         if not sensitive or self.database_permissions is None:

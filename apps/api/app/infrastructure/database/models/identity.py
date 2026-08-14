@@ -35,7 +35,10 @@ class Tenant(Base, PrimaryKeyMixin, TimestampMixin):
 
 class User(Base, PrimaryKeyMixin, TimestampMixin):
     __tablename__ = "users"
-    __table_args__ = (UniqueConstraint("tenant_id", "username", name="uk_users_tenant_username"),)
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "username", name="uk_users_tenant_username"),
+        UniqueConstraint("tenant_id", "id", name="uk_users_tenant_id_id"),
+    )
 
     tenant_id: Mapped[int] = mapped_column(
         FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True

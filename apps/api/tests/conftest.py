@@ -3,6 +3,8 @@ from __future__ import annotations
 import base64
 import hashlib
 import os
+from datetime import date, timedelta
+from decimal import Decimal
 
 # Force isolated sqlite DB for tests — never touch production/old MySQL
 os.environ["DATABASE_URL"] = "sqlite+pysqlite:///:memory:"
@@ -22,6 +24,14 @@ from sqlalchemy.pool import StaticPool
 
 from app.core.config import get_settings
 from app.infrastructure.database.base import Base
+from app.infrastructure.database.base import utc_now
+from app.infrastructure.database.models.investment import (
+    LeadIntentApplication,
+    LeadIntentUnit,
+    LeadIntentVersion,
+)
+from app.infrastructure.database.models.park_property import Unit
+from app.infrastructure.database.models.workflow import ApprovalRequest
 from app.infrastructure.database.session import get_db
 from app.main import create_app
 from app.modules.identity.application.bootstrap import ensure_default_tenant
@@ -78,6 +88,84 @@ def client(engine, db_session: Session):
     with TestClient(application) as c:
         yield c
     application.dependency_overrides.clear()
+
+
+@pytest.fixture()
+def approved_intent(db_session: Session):
+    """Create an approved immutable intent for legacy lock-focused regression tests.
+
+    End-to-end intent submission and approval is covered separately; this fixture keeps
+    older inventory/conversion tests focused on their original assertions while still
+    satisfying the new non-bypassable lock gate.
+    """
+
+    def run(*, lead_id: int, unit_ids: list[int]) -> dict[str, int]:
+        from app.infrastructure.database.models.investment import Lead
+
+        lead = db_session.get(Lead, int(lead_id))
+        assert lead is not None
+        units = [db_session.get(Unit, int(unit_id)) for unit_id in unit_ids]
+        assert all(unit is not None for unit in units)
+        application = LeadIntentApplication(
+            tenant_id=int(lead.tenant_id),
+            park_id=int(lead.park_id),
+            lead_id=int(lead.id),
+            status="APPROVED",
+            current_version=1,
+            lock_version=1,
+            submitted_at=utc_now(),
+            created_by=1,
+            updated_by=1,
+        )
+        db_session.add(application)
+        db_session.flush()
+        version = LeadIntentVersion(
+            tenant_id=int(lead.tenant_id),
+            application_id=int(application.id),
+            version=1,
+            starts_on=date.today(),
+            ends_on=date.today() + timedelta(days=365),
+            valid_until=utc_now() + timedelta(days=30),
+            proposed_unit_price=Decimal("1.00"),
+            currency="CNY",
+            checksum=f"test-approved-intent-{application.id}",
+            created_by=1,
+        )
+        db_session.add(version)
+        db_session.flush()
+        for unit in units:
+            assert unit is not None
+            db_session.add(
+                LeadIntentUnit(
+                    tenant_id=int(lead.tenant_id),
+                    intent_version_id=int(version.id),
+                    unit_id=int(unit.id),
+                    unit_version=int(unit.version_no),
+                    requested_area=Decimal(str(unit.rentable_area)),
+                )
+            )
+        approval = ApprovalRequest(
+            tenant_id=int(lead.tenant_id),
+            park_id=int(lead.park_id),
+            biz_type="LEAD_INTENT",
+            biz_id=str(application.id),
+            title="测试批准意向",
+            status="APPROVED",
+            priority="HIGH",
+            applicant_user_id=1,
+            approver_user_id=1,
+            submitted_at=utc_now(),
+            completed_at=utc_now(),
+            lock_version=1,
+            compatibility_mode="NATIVE",
+        )
+        db_session.add(approval)
+        db_session.flush()
+        application.approval_request_id = int(approval.id)
+        db_session.commit()
+        return {"id": int(application.id), "version_id": int(version.id)}
+
+    return run
 
 
 @pytest.fixture()

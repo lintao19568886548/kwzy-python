@@ -36,6 +36,166 @@ STAGE_MAP = {
     "merged": "MERGED",
 }
 ACTIVITY_TYPES = {"CALL", "NOTE", "VISIT", "QUOTE", "NEGOTIATION", "SYSTEM"}
+FIELDS = {
+    "leads": (
+        "tenant_id",
+        "park_id",
+        "source_system",
+        "source_id",
+        "source_ref",
+        "name",
+        "normalized_phone",
+        "stage",
+        "pool_status",
+        "owner_ref",
+    ),
+    "activities": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "lead_source_system",
+        "lead_source_id",
+        "activity_type",
+        "occurred_at",
+    ),
+    "assignments": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "lead_source_system",
+        "lead_source_id",
+        "event_type",
+        "from_owner_ref",
+        "to_owner_ref",
+    ),
+    "merge_links": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "source_lead_system",
+        "source_lead_id",
+        "target_lead_system",
+        "target_lead_id",
+        "reason_code",
+    ),
+    "assignment_rules": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "park_id",
+        "rule_code",
+        "trigger_type",
+        "status",
+    ),
+    "assignment_rule_versions": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "rule_source_id",
+        "version_no",
+        "status",
+        "checksum",
+    ),
+    "assignment_rule_members": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "version_source_id",
+        "member_ref",
+        "capacity",
+        "weight",
+    ),
+    "viewings": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "lead_source_system",
+        "lead_source_id",
+        "scheduled_start",
+        "scheduled_end",
+        "status",
+    ),
+    "viewing_units": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "viewing_source_id",
+        "unit_ref",
+    ),
+    "intent_applications": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "lead_source_system",
+        "lead_source_id",
+        "status",
+    ),
+    "intent_versions": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "intent_source_id",
+        "version_no",
+        "snapshot_checksum",
+        "status",
+    ),
+    "intent_units": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "version_source_id",
+        "unit_ref",
+    ),
+    "approval_links": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "intent_source_id",
+        "approval_source_ref",
+        "status",
+    ),
+    "channels": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "park_id",
+        "channel_code",
+        "secret_ref",
+        "verification_status",
+    ),
+    "channel_inbox": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "channel_source_id",
+        "external_event_id",
+        "payload_fingerprint",
+        "lead_source_system",
+        "lead_source_id",
+        "status",
+    ),
+    "pii_quarantine": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "field_name",
+        "value_fingerprint",
+        "reason_code",
+    ),
+    "migration_quarantine": (
+        "tenant_id",
+        "source_system",
+        "source_id",
+        "entity_type",
+        "evidence_fingerprint",
+        "reason_code",
+    ),
+}
+SOURCE_TABLES = {
+    **{name: name for name in FIELDS},
+    "pii_quarantine": "pii_rejections",
+    "migration_quarantine": "migration_rejections",
+}
 
 
 def fixture() -> dict[str, list[dict[str, Any]]]:
@@ -121,6 +281,45 @@ def fixture() -> dict[str, list[dict[str, Any]]]:
         "pii_rejections": [
             {"tenant_id": "tenant-demo", "source_system": "RADAR_LIKE", "source_id": "radar-reject-001", "field_name": "contact_phone", "raw_value": "unsupported-contact-token", "reason_code": "PII_FORMAT_UNSUPPORTED"},
         ],
+        "assignment_rules": [
+            {"tenant_id": "tenant-demo", "source_system": "CRM", "source_id": "rule-001", "park_id": "park-a", "rule_code": "LEGACY_AUTO_ASSIGN_A", "trigger_type": "MANUAL_CREATE", "status": "ACTIVE"},
+        ],
+        "assignment_rule_versions": [
+            {"tenant_id": "tenant-demo", "source_system": "CRM", "source_id": "rule-version-001", "rule_source_id": "rule-001", "version_no": 1, "status": "PUBLISHED", "checksum": "sha256:rule-version-001"},
+        ],
+        "assignment_rule_members": [
+            {"tenant_id": "tenant-demo", "source_system": "CRM", "source_id": "rule-member-001", "version_source_id": "rule-version-001", "member_ref": "sales-a", "capacity": 20, "weight": 1},
+        ],
+        "viewings": [
+            {"tenant_id": "tenant-demo", "source_system": "CRM", "source_id": "viewing-001", "lead_source_system": "CRM", "lead_source_id": "crm-merge-target", "scheduled_start": "2026-07-05T01:00:00Z", "scheduled_end": "2026-07-05T02:00:00Z", "status": "COMPLETED"},
+        ],
+        "viewing_units": [
+            {"tenant_id": "tenant-demo", "source_system": "CRM", "source_id": "viewing-unit-001", "viewing_source_id": "viewing-001", "unit_ref": "legacy-unit-a-101"},
+        ],
+        "intent_applications": [
+            {"tenant_id": "tenant-demo", "source_system": "CRM", "source_id": "intent-001", "lead_source_system": "CRM", "lead_source_id": "crm-merge-target", "status": "APPROVED"},
+        ],
+        "intent_versions": [
+            {"tenant_id": "tenant-demo", "source_system": "CRM", "source_id": "intent-version-001", "intent_source_id": "intent-001", "version_no": 1, "snapshot_checksum": "sha256:intent-version-001", "status": "APPROVED"},
+        ],
+        "intent_units": [
+            {"tenant_id": "tenant-demo", "source_system": "CRM", "source_id": "intent-unit-001", "version_source_id": "intent-version-001", "unit_ref": "legacy-unit-a-101"},
+        ],
+        "approval_links": [
+            {"tenant_id": "tenant-demo", "source_system": "CRM", "source_id": "intent-approval-001", "intent_source_id": "intent-001", "approval_source_ref": "legacy-approval-001", "status": "APPROVED"},
+        ],
+        "channels": [
+            {"tenant_id": "tenant-demo", "source_system": "RADAR_LIKE", "source_id": "channel-001", "park_id": "park-b", "channel_code": "RADAR_SYNTHETIC", "secret_ref": "KWZY_CHANNEL_RADAR_SYNTHETIC", "verification_status": "NOT_CONNECTED"},
+        ],
+        "channel_inbox": [
+            {"tenant_id": "tenant-demo", "source_system": "RADAR_LIKE", "source_id": "inbox-001", "channel_source_id": "channel-001", "external_event_id": "synthetic-event-001", "payload_fingerprint": "sha256:synthetic-event-001", "lead_source_system": "RADAR_LIKE", "lead_source_id": "radar-001", "status": "PROCESSED"},
+        ],
+        "migration_rejections": [
+            {"tenant_id": "tenant-demo", "source_system": "CRM", "source_id": "reject-owner-001", "entity_type": "ASSIGNMENT", "raw_evidence": "ambiguous-owner-token", "reason_code": "AMBIGUOUS_OWNER"},
+            {"tenant_id": "tenant-demo", "source_system": "CRM", "source_id": "reject-viewing-001", "entity_type": "VIEWING", "raw_evidence": "missing-unit-token", "reason_code": "INVALID_UNIT_REFERENCE"},
+            {"tenant_id": "tenant-demo", "source_system": "CRM", "source_id": "reject-approval-001", "entity_type": "INTENT", "raw_evidence": "inferred-approver-token", "reason_code": "INFERRED_APPROVER"},
+            {"tenant_id": "tenant-demo", "source_system": "RADAR_LIKE", "source_id": "reject-channel-001", "entity_type": "CHANNEL_EVENT", "raw_evidence": "unknown-channel-token", "reason_code": "UNKNOWN_CHANNEL"},
+        ],
     }
 
 
@@ -163,7 +362,7 @@ def validate_source(data: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
         if len(keys) != len(set(keys)):
             errors.append(f"duplicate {table} source key")
 
-    for table in ("activities", "assignments", "merge_links", "pii_rejections"):
+    for table in data:
         duplicate_source(table)
 
     for row in data["activities"]:
@@ -189,6 +388,53 @@ def validate_source(data: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
     for row in data["pii_rejections"]:
         if not row["raw_value"] or row["reason_code"] != "PII_FORMAT_UNSUPPORTED":
             errors.append("invalid PII quarantine disposition")
+
+    rule_ids = {row["source_id"] for row in data["assignment_rules"]}
+    version_ids = {row["source_id"] for row in data["assignment_rule_versions"]}
+    viewing_ids = {row["source_id"] for row in data["viewings"]}
+    intent_ids = {row["source_id"] for row in data["intent_applications"]}
+    intent_version_ids = {row["source_id"] for row in data["intent_versions"]}
+    channel_ids = {row["source_id"] for row in data["channels"]}
+    for row in data["assignment_rule_versions"]:
+        if row["rule_source_id"] not in rule_ids:
+            errors.append("orphan assignment rule version")
+    for row in data["assignment_rule_members"]:
+        if row["version_source_id"] not in version_ids:
+            errors.append("orphan assignment rule member")
+    for row in data["viewings"]:
+        if (row["tenant_id"], row["lead_source_system"], row["lead_source_id"]) not in leads:
+            errors.append("orphan viewing lead")
+    for row in data["viewing_units"]:
+        if row["viewing_source_id"] not in viewing_ids:
+            errors.append("orphan viewing unit")
+    for row in data["intent_applications"]:
+        if (row["tenant_id"], row["lead_source_system"], row["lead_source_id"]) not in leads:
+            errors.append("orphan intent lead")
+    for row in data["intent_versions"]:
+        if row["intent_source_id"] not in intent_ids:
+            errors.append("orphan intent version")
+    for row in data["intent_units"]:
+        if row["version_source_id"] not in intent_version_ids:
+            errors.append("orphan intent unit")
+    for row in data["approval_links"]:
+        if row["intent_source_id"] not in intent_ids:
+            errors.append("orphan intent approval")
+    for row in data["channel_inbox"]:
+        if row["channel_source_id"] not in channel_ids:
+            errors.append("orphan channel inbox")
+        if (row["tenant_id"], row["lead_source_system"], row["lead_source_id"]) not in leads:
+            errors.append("orphan channel lead")
+    if any("secret" in row for row in data["channels"]):
+        errors.append("raw channel secret supplied")
+    allowed_rejections = {
+        "AMBIGUOUS_OWNER",
+        "INFERRED_APPROVER",
+        "INVALID_UNIT_REFERENCE",
+        "UNKNOWN_CHANNEL",
+    }
+    for row in data["migration_rejections"]:
+        if not row["raw_evidence"] or row["reason_code"] not in allowed_rejections:
+            errors.append("invalid migration quarantine disposition")
 
     return {
         "passed": not errors,
@@ -238,6 +484,103 @@ CREATE TABLE {SCHEMA}.pii_quarantine (
   field_name text NOT NULL, value_fingerprint text NOT NULL, reason_code text NOT NULL,
   PRIMARY KEY (tenant_id, source_system, source_id, field_name)
 );
+CREATE TABLE {SCHEMA}.assignment_rules (
+  tenant_id text NOT NULL, source_system text NOT NULL, source_id text NOT NULL,
+  park_id text NOT NULL, rule_code text NOT NULL, trigger_type text NOT NULL,
+  status text NOT NULL, PRIMARY KEY (tenant_id, source_system, source_id),
+  UNIQUE (tenant_id, park_id, rule_code)
+);
+CREATE TABLE {SCHEMA}.assignment_rule_versions (
+  tenant_id text NOT NULL, source_system text NOT NULL, source_id text NOT NULL,
+  rule_source_id text NOT NULL, version_no integer NOT NULL, status text NOT NULL,
+  checksum text NOT NULL, PRIMARY KEY (tenant_id, source_system, source_id),
+  FOREIGN KEY (tenant_id, source_system, rule_source_id)
+    REFERENCES {SCHEMA}.assignment_rules (tenant_id, source_system, source_id),
+  UNIQUE (tenant_id, source_system, rule_source_id, version_no)
+);
+CREATE TABLE {SCHEMA}.assignment_rule_members (
+  tenant_id text NOT NULL, source_system text NOT NULL, source_id text NOT NULL,
+  version_source_id text NOT NULL, member_ref text NOT NULL,
+  capacity integer NOT NULL CHECK (capacity > 0),
+  weight integer NOT NULL CHECK (weight > 0),
+  PRIMARY KEY (tenant_id, source_system, source_id),
+  FOREIGN KEY (tenant_id, source_system, version_source_id)
+    REFERENCES {SCHEMA}.assignment_rule_versions (tenant_id, source_system, source_id),
+  UNIQUE (tenant_id, source_system, version_source_id, member_ref)
+);
+CREATE TABLE {SCHEMA}.viewings (
+  tenant_id text NOT NULL, source_system text NOT NULL, source_id text NOT NULL,
+  lead_source_system text NOT NULL, lead_source_id text NOT NULL,
+  scheduled_start timestamptz NOT NULL, scheduled_end timestamptz NOT NULL,
+  status text NOT NULL, PRIMARY KEY (tenant_id, source_system, source_id),
+  CHECK (scheduled_end > scheduled_start),
+  FOREIGN KEY (tenant_id, lead_source_system, lead_source_id)
+    REFERENCES {SCHEMA}.leads (tenant_id, source_system, source_id)
+);
+CREATE TABLE {SCHEMA}.viewing_units (
+  tenant_id text NOT NULL, source_system text NOT NULL, source_id text NOT NULL,
+  viewing_source_id text NOT NULL, unit_ref text NOT NULL,
+  PRIMARY KEY (tenant_id, source_system, source_id),
+  FOREIGN KEY (tenant_id, source_system, viewing_source_id)
+    REFERENCES {SCHEMA}.viewings (tenant_id, source_system, source_id),
+  UNIQUE (tenant_id, source_system, viewing_source_id, unit_ref)
+);
+CREATE TABLE {SCHEMA}.intent_applications (
+  tenant_id text NOT NULL, source_system text NOT NULL, source_id text NOT NULL,
+  lead_source_system text NOT NULL, lead_source_id text NOT NULL, status text NOT NULL,
+  PRIMARY KEY (tenant_id, source_system, source_id),
+  FOREIGN KEY (tenant_id, lead_source_system, lead_source_id)
+    REFERENCES {SCHEMA}.leads (tenant_id, source_system, source_id),
+  UNIQUE (tenant_id, lead_source_system, lead_source_id)
+);
+CREATE TABLE {SCHEMA}.intent_versions (
+  tenant_id text NOT NULL, source_system text NOT NULL, source_id text NOT NULL,
+  intent_source_id text NOT NULL, version_no integer NOT NULL,
+  snapshot_checksum text NOT NULL, status text NOT NULL,
+  PRIMARY KEY (tenant_id, source_system, source_id),
+  FOREIGN KEY (tenant_id, source_system, intent_source_id)
+    REFERENCES {SCHEMA}.intent_applications (tenant_id, source_system, source_id),
+  UNIQUE (tenant_id, source_system, intent_source_id, version_no)
+);
+CREATE TABLE {SCHEMA}.intent_units (
+  tenant_id text NOT NULL, source_system text NOT NULL, source_id text NOT NULL,
+  version_source_id text NOT NULL, unit_ref text NOT NULL,
+  PRIMARY KEY (tenant_id, source_system, source_id),
+  FOREIGN KEY (tenant_id, source_system, version_source_id)
+    REFERENCES {SCHEMA}.intent_versions (tenant_id, source_system, source_id),
+  UNIQUE (tenant_id, source_system, version_source_id, unit_ref)
+);
+CREATE TABLE {SCHEMA}.approval_links (
+  tenant_id text NOT NULL, source_system text NOT NULL, source_id text NOT NULL,
+  intent_source_id text NOT NULL, approval_source_ref text NOT NULL, status text NOT NULL,
+  PRIMARY KEY (tenant_id, source_system, source_id),
+  FOREIGN KEY (tenant_id, source_system, intent_source_id)
+    REFERENCES {SCHEMA}.intent_applications (tenant_id, source_system, source_id),
+  UNIQUE (tenant_id, source_system, approval_source_ref)
+);
+CREATE TABLE {SCHEMA}.channels (
+  tenant_id text NOT NULL, source_system text NOT NULL, source_id text NOT NULL,
+  park_id text NOT NULL, channel_code text NOT NULL, secret_ref text NOT NULL,
+  verification_status text NOT NULL, PRIMARY KEY (tenant_id, source_system, source_id),
+  UNIQUE (tenant_id, channel_code)
+);
+CREATE TABLE {SCHEMA}.channel_inbox (
+  tenant_id text NOT NULL, source_system text NOT NULL, source_id text NOT NULL,
+  channel_source_id text NOT NULL, external_event_id text NOT NULL,
+  payload_fingerprint text NOT NULL, lead_source_system text NOT NULL,
+  lead_source_id text NOT NULL, status text NOT NULL,
+  PRIMARY KEY (tenant_id, source_system, source_id),
+  FOREIGN KEY (tenant_id, source_system, channel_source_id)
+    REFERENCES {SCHEMA}.channels (tenant_id, source_system, source_id),
+  FOREIGN KEY (tenant_id, lead_source_system, lead_source_id)
+    REFERENCES {SCHEMA}.leads (tenant_id, source_system, source_id),
+  UNIQUE (tenant_id, source_system, channel_source_id, external_event_id)
+);
+CREATE TABLE {SCHEMA}.migration_quarantine (
+  tenant_id text NOT NULL, source_system text NOT NULL, source_id text NOT NULL,
+  entity_type text NOT NULL, evidence_fingerprint text NOT NULL, reason_code text NOT NULL,
+  PRIMARY KEY (tenant_id, source_system, source_id)
+);
 """
 
 
@@ -247,30 +590,24 @@ def safe_engine(database_url: str):
         raise ValueError("CRM ETL drill requires PostgreSQL")
     if parsed.host not in {"127.0.0.1", "localhost"}:
         raise ValueError("CRM ETL drill is restricted to loopback PostgreSQL")
-    if not parsed.database or "prod" in parsed.database.lower():
-        raise ValueError("CRM ETL drill refuses an empty or production-like database name")
+    database_name = (parsed.database or "").lower()
+    if not database_name or not any(marker in database_name for marker in ("test", "fixture", "dev")):
+        raise ValueError("CRM ETL drill requires an explicitly non-production database name")
     return create_engine(database_url)
 
 
-def apply_rows(conn, data: dict[str, list[dict[str, Any]]]) -> dict[str, int]:
+def apply_rows(
+    conn,
+    data: dict[str, list[dict[str, Any]]],
+    *,
+    only_tables: set[str] | None = None,
+) -> dict[str, int]:
     inserted: dict[str, int] = {}
-    fields = {
-        "leads": ("tenant_id", "park_id", "source_system", "source_id", "source_ref", "name", "normalized_phone", "stage", "pool_status", "owner_ref"),
-        "activities": ("tenant_id", "source_system", "source_id", "lead_source_system", "lead_source_id", "activity_type", "occurred_at"),
-        "assignments": ("tenant_id", "source_system", "source_id", "lead_source_system", "lead_source_id", "event_type", "from_owner_ref", "to_owner_ref"),
-        "merge_links": ("tenant_id", "source_system", "source_id", "source_lead_system", "source_lead_id", "target_lead_system", "target_lead_id", "reason_code"),
-        "pii_quarantine": ("tenant_id", "source_system", "source_id", "field_name", "value_fingerprint", "reason_code"),
-    }
-    source_tables = {
-        "leads": "leads",
-        "activities": "activities",
-        "assignments": "assignments",
-        "merge_links": "merge_links",
-        "pii_quarantine": "pii_rejections",
-    }
-    for target_table, columns in fields.items():
+    for target_table, columns in FIELDS.items():
+        if only_tables is not None and target_table not in only_tables:
+            continue
         count = 0
-        for source in data[source_tables[target_table]]:
+        for source in data[SOURCE_TABLES[target_table]]:
             row = dict(source)
             if target_table == "leads":
                 row["normalized_phone"] = normalize_phone(row.pop("contact_phone"))
@@ -278,6 +615,9 @@ def apply_rows(conn, data: dict[str, list[dict[str, Any]]]) -> dict[str, int]:
             elif target_table == "pii_quarantine":
                 raw = str(row.pop("raw_value"))
                 row["value_fingerprint"] = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+            elif target_table == "migration_quarantine":
+                raw = str(row.pop("raw_evidence"))
+                row["evidence_fingerprint"] = hashlib.sha256(raw.encode("utf-8")).hexdigest()
             result = conn.execute(
                 text(
                     f"INSERT INTO {SCHEMA}.{target_table} ({', '.join(columns)}) "
@@ -304,11 +644,8 @@ def grouped_target(conn, field: str) -> dict[str, int]:
 
 def reconcile(conn, data: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
     expected_counts = {
-        "leads": len(data["leads"]),
-        "activities": len(data["activities"]),
-        "assignments": len(data["assignments"]),
-        "merge_links": len(data["merge_links"]),
-        "pii_quarantine": len(data["pii_rejections"]),
+        table: len(data[SOURCE_TABLES[table]])
+        for table in FIELDS
     }
     counts = {
         table: {"source": source, "target": conn.execute(text(f"SELECT count(*) FROM {SCHEMA}.{table}")).scalar_one()}
@@ -327,6 +664,16 @@ def reconcile(conn, data: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
         "assignments": f"SELECT count(*) FROM {SCHEMA}.assignments x LEFT JOIN {SCHEMA}.leads l ON l.tenant_id=x.tenant_id AND l.source_system=x.lead_source_system AND l.source_id=x.lead_source_id WHERE l.source_id IS NULL",
         "merge_source": f"SELECT count(*) FROM {SCHEMA}.merge_links x LEFT JOIN {SCHEMA}.leads l ON l.tenant_id=x.tenant_id AND l.source_system=x.source_lead_system AND l.source_id=x.source_lead_id WHERE l.source_id IS NULL",
         "merge_target": f"SELECT count(*) FROM {SCHEMA}.merge_links x LEFT JOIN {SCHEMA}.leads l ON l.tenant_id=x.tenant_id AND l.source_system=x.target_lead_system AND l.source_id=x.target_lead_id WHERE l.source_id IS NULL",
+        "assignment_rule_versions": f"SELECT count(*) FROM {SCHEMA}.assignment_rule_versions x LEFT JOIN {SCHEMA}.assignment_rules p ON p.tenant_id=x.tenant_id AND p.source_system=x.source_system AND p.source_id=x.rule_source_id WHERE p.source_id IS NULL",
+        "assignment_rule_members": f"SELECT count(*) FROM {SCHEMA}.assignment_rule_members x LEFT JOIN {SCHEMA}.assignment_rule_versions p ON p.tenant_id=x.tenant_id AND p.source_system=x.source_system AND p.source_id=x.version_source_id WHERE p.source_id IS NULL",
+        "viewings": f"SELECT count(*) FROM {SCHEMA}.viewings x LEFT JOIN {SCHEMA}.leads l ON l.tenant_id=x.tenant_id AND l.source_system=x.lead_source_system AND l.source_id=x.lead_source_id WHERE l.source_id IS NULL",
+        "viewing_units": f"SELECT count(*) FROM {SCHEMA}.viewing_units x LEFT JOIN {SCHEMA}.viewings p ON p.tenant_id=x.tenant_id AND p.source_system=x.source_system AND p.source_id=x.viewing_source_id WHERE p.source_id IS NULL",
+        "intent_applications": f"SELECT count(*) FROM {SCHEMA}.intent_applications x LEFT JOIN {SCHEMA}.leads l ON l.tenant_id=x.tenant_id AND l.source_system=x.lead_source_system AND l.source_id=x.lead_source_id WHERE l.source_id IS NULL",
+        "intent_versions": f"SELECT count(*) FROM {SCHEMA}.intent_versions x LEFT JOIN {SCHEMA}.intent_applications p ON p.tenant_id=x.tenant_id AND p.source_system=x.source_system AND p.source_id=x.intent_source_id WHERE p.source_id IS NULL",
+        "intent_units": f"SELECT count(*) FROM {SCHEMA}.intent_units x LEFT JOIN {SCHEMA}.intent_versions p ON p.tenant_id=x.tenant_id AND p.source_system=x.source_system AND p.source_id=x.version_source_id WHERE p.source_id IS NULL",
+        "approval_links": f"SELECT count(*) FROM {SCHEMA}.approval_links x LEFT JOIN {SCHEMA}.intent_applications p ON p.tenant_id=x.tenant_id AND p.source_system=x.source_system AND p.source_id=x.intent_source_id WHERE p.source_id IS NULL",
+        "channel_inbox_channel": f"SELECT count(*) FROM {SCHEMA}.channel_inbox x LEFT JOIN {SCHEMA}.channels p ON p.tenant_id=x.tenant_id AND p.source_system=x.source_system AND p.source_id=x.channel_source_id WHERE p.source_id IS NULL",
+        "channel_inbox_lead": f"SELECT count(*) FROM {SCHEMA}.channel_inbox x LEFT JOIN {SCHEMA}.leads l ON l.tenant_id=x.tenant_id AND l.source_system=x.lead_source_system AND l.source_id=x.lead_source_id WHERE l.source_id IS NULL",
     }
     orphans = {name: conn.execute(text(query)).scalar_one() for name, query in orphan_queries.items()}
     duplicate_source_refs = conn.execute(
@@ -347,6 +694,39 @@ def reconcile(conn, data: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
         "target_quarantined": counts["pii_quarantine"]["target"],
         "raw_value_persisted": bool(raw_value_column_present),
     }
+    sensitive_columns = conn.execute(
+        text(
+            "SELECT table_name, column_name FROM information_schema.columns "
+            "WHERE table_schema=:schema AND (column_name IN ('raw_value', 'raw_evidence', 'secret') "
+            "OR column_name LIKE '%ciphertext%')"
+        ),
+        {"schema": SCHEMA},
+    ).all()
+    immutable_checksums = {
+        "assignment_rule_versions": conn.execute(
+            text(f"SELECT count(*) FROM {SCHEMA}.assignment_rule_versions WHERE checksum = ''")
+        ).scalar_one(),
+        "intent_versions": conn.execute(
+            text(f"SELECT count(*) FROM {SCHEMA}.intent_versions WHERE snapshot_checksum = ''")
+        ).scalar_one(),
+        "channel_inbox": conn.execute(
+            text(f"SELECT count(*) FROM {SCHEMA}.channel_inbox WHERE payload_fingerprint = ''")
+        ).scalar_one(),
+    }
+    quarantine_reasons = dict(
+        conn.execute(
+            text(
+                f"SELECT reason_code, count(*) FROM {SCHEMA}.migration_quarantine "
+                "GROUP BY reason_code ORDER BY reason_code"
+            )
+        ).all()
+    )
+    required_quarantine_reasons = {
+        "AMBIGUOUS_OWNER",
+        "INFERRED_APPROVER",
+        "INVALID_UNIT_REFERENCE",
+        "UNKNOWN_CHANNEL",
+    }
     passed = (
         all(item["source"] == item["target"] for item in counts.values())
         and all(item["source"] == item["target"] for item in distributions.values())
@@ -354,6 +734,9 @@ def reconcile(conn, data: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
         and duplicate_source_refs == 0
         and pii["source_rejected"] == pii["target_quarantined"]
         and not pii["raw_value_persisted"]
+        and not sensitive_columns
+        and not any(immutable_checksums.values())
+        and set(quarantine_reasons) == required_quarantine_reasons
     )
     return {
         "passed": passed,
@@ -362,6 +745,9 @@ def reconcile(conn, data: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
         "orphans": orphans,
         "duplicate_source_refs": duplicate_source_refs,
         "pii": pii,
+        "sensitive_columns": [list(row) for row in sensitive_columns],
+        "immutable_checksum_failures": immutable_checksums,
+        "quarantine_reasons": quarantine_reasons,
     }
 
 
@@ -404,13 +790,32 @@ def main(argv: list[str] | None = None) -> int:
         with engine.begin() as conn:
             conn.execute(text(f"DROP SCHEMA IF EXISTS {SCHEMA} CASCADE"))
             conn.execute(text(DDL))
+        interrupted_tables = set(list(FIELDS)[:5])
+        interrupted_inserted: dict[str, int] = {}
+        try:
+            with engine.begin() as conn:
+                interrupted_inserted = apply_rows(conn, data, only_tables=interrupted_tables)
+                raise RuntimeError("synthetic interruption after bounded batch")
+        except RuntimeError as exc:
+            if str(exc) != "synthetic interruption after bounded batch":
+                raise
+        with engine.connect() as conn:
+            rolled_back_counts = {
+                table: conn.execute(text(f"SELECT count(*) FROM {SCHEMA}.{table}")).scalar_one()
+                for table in FIELDS
+            }
+        report["stages"]["interruption_recovery"] = {
+            "passed": bool(interrupted_inserted)
+            and not any(rolled_back_counts.values()),
+            "attempted_inserted": interrupted_inserted,
+            "counts_after_interruption": rolled_back_counts,
+            "transaction_rolled_back": not any(rolled_back_counts.values()),
+        }
+        with engine.begin() as conn:
             first = apply_rows(conn, data)
             expected = {
-                "leads": len(data["leads"]),
-                "activities": len(data["activities"]),
-                "assignments": len(data["assignments"]),
-                "merge_links": len(data["merge_links"]),
-                "pii_quarantine": len(data["pii_rejections"]),
+                table: len(data[SOURCE_TABLES[table]])
+                for table in FIELDS
             }
             report["stages"]["first_apply"] = {"passed": first == expected, "inserted": first}
         with engine.begin() as conn:

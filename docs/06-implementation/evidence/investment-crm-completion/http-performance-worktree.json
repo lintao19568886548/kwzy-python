@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-14T12:14:46.430386+00:00",
+  "target": "http://127.0.0.1:8010/api/v1",
+  "runtime": {
+    "requests": 1000,
+    "concurrency": 25,
+    "warmup": 40,
+    "endpoints": [
+      "GET /leads?page=1&page_size=50",
+      "GET /crm/summary",
+      "GET /crm/board",
+      "GET /crm/assignment-rules",
+      "GET /crm/channels"
+    ]
+  },
+  "thresholds": {
+    "max_p95_ms": 500.0,
+    "max_error_rate_percent": 1.0,
+    "min_requests_per_second": 20.0
+  },
+  "aggregate": {
+    "requests": 1000,
+    "failures": 0,
+    "error_rate_percent": 0.0,
+    "elapsed_seconds": 6.41,
+    "requests_per_second": 156.018,
+    "mean_ms": 158.811,
+    "p50_ms": 144.414,
+    "p95_ms": 256.359,
+    "p99_ms": 269.484,
+    "max_ms": 299.498,
+    "by_endpoint": {
+      "GET /crm/assignment-rules": {
+        "requests": 200,
+        "failures": 0,
+        "p50_ms": 134.176,
+        "p95_ms": 236.874,
+        "p99_ms": 253.442,
+        "max_ms": 256.356
+      },
+      "GET /crm/board": {
+        "requests": 200,
+        "failures": 0,
+        "p50_ms": 151.074,
+        "p95_ms": 260.287,
+        "p99_ms": 275.589,
+        "max_ms": 281.325
+      },
+      "GET /crm/channels": {
+        "requests": 200,
+        "failures": 0,
+        "p50_ms": 130.939,
+        "p95_ms": 236.0,
+        "p99_ms": 252.345,
+        "max_ms": 265.47
+      },
+      "GET /crm/summary": {
+        "requests": 200,
+        "failures": 0,
+        "p50_ms": 150.032,
+        "p95_ms": 259.136,
+        "p99_ms": 267.639,
+        "max_ms": 274.554
+      },
+      "GET /leads?page=1&page_size=50": {
+        "requests": 200,
+        "failures": 0,
+        "p50_ms": 152.984,
+        "p95_ms": 265.432,
+        "p99_ms": 271.537,
+        "max_ms": 299.498
+      }
+    },
+    "failure_examples": []
+  },
+  "gate": {
+    "passed": true,
+    "failures": []
+  }
+}

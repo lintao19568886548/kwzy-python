@@ -15,6 +15,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -56,6 +57,10 @@ class EventConsumerLog(Base, PrimaryKeyMixin, TimestampMixin):
         CheckConstraint(
             "status IN ('PENDING','RUNNING','SUCCEEDED','RETRY','DEAD')",
             name="ck_event_consumer_status",
+        ),
+        CheckConstraint(
+            "attempt_count >= 0 AND max_attempts BETWEEN 1 AND 10",
+            name="ck_event_consumer_attempts",
         ),
         Index(
             "ix_event_consumer_claim",
@@ -115,7 +120,17 @@ class AutomationRuleVersion(Base, PrimaryKeyMixin, TimestampMixin):
             "status IN ('DRAFT','PUBLISHED','RETIRED')",
             name="ck_automation_rule_version_status",
         ),
+        CheckConstraint(
+            "priority BETWEEN 0 AND 1000", name="ck_automation_rule_priority"
+        ),
         Index("ix_automation_rule_match", "tenant_id", "event_type", "status"),
+        Index(
+            "uk_automation_rule_one_draft",
+            "rule_id",
+            unique=True,
+            postgresql_where=text("status = 'DRAFT'"),
+            sqlite_where=text("status = 'DRAFT'"),
+        ),
     )
 
     tenant_id: Mapped[int] = mapped_column(
@@ -214,6 +229,13 @@ class SchedulerDefinition(Base, PrimaryKeyMixin, TimestampMixin):
         CheckConstraint(
             "concurrency_policy IN ('FORBID','ALLOW')", name="ck_scheduler_concurrency_policy"
         ),
+        CheckConstraint(
+            "cadence_seconds BETWEEN 10 AND 2678400", name="ck_scheduler_cadence"
+        ),
+        CheckConstraint(
+            "timeout_seconds BETWEEN 10 AND 86400 AND max_attempts BETWEEN 1 AND 10",
+            name="ck_scheduler_limits",
+        ),
         Index("ix_scheduler_due", "tenant_id", "enabled", "next_run_at"),
     )
 
@@ -277,6 +299,9 @@ class WorkbenchLayout(Base, PrimaryKeyMixin, TimestampMixin):
             "(owner_user_id IS NULL AND role_id IS NOT NULL))",
             name="ck_workbench_layout_owner",
         ),
+        CheckConstraint(
+            "priority BETWEEN 0 AND 1000", name="ck_workbench_layout_priority"
+        ),
     )
 
     tenant_id: Mapped[int] = mapped_column(
@@ -300,6 +325,11 @@ class WorkbenchWidget(Base, PrimaryKeyMixin, TimestampMixin):
     __tablename__ = "workbench_widgets"
     __table_args__ = (
         UniqueConstraint("layout_id", "widget_key", name="uk_workbench_layout_widget"),
+        CheckConstraint(
+            "position_x BETWEEN 0 AND 11 AND position_y BETWEEN 0 AND 99 AND "
+            "width BETWEEN 1 AND 12 AND height BETWEEN 1 AND 12 AND position_x + width <= 12",
+            name="ck_workbench_widget_grid",
+        ),
     )
 
     tenant_id: Mapped[int] = mapped_column(

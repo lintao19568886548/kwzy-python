@@ -215,6 +215,7 @@ export default async function globalSetup(_config: FullConfig) {
       OSS_PROVIDER: "local",
       OSS_LOCAL_ROOT: path.join(API_ROOT, "data", "e2e-attachments"),
       NOTIFY_PROVIDER: "fake",
+      KWZY_E2E_LEAD_CHANNEL_SECRET: "e2e-local-channel-secret-32-bytes",
     },
     "api.log"
   );

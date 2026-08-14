@@ -39,6 +39,7 @@ if TYPE_CHECKING:
 
 class Park(Base, PrimaryKeyMixin, SoftDeleteMixin, TimestampMixin):
     __tablename__ = "parks"
+    __table_args__ = (UniqueConstraint("tenant_id", "id", name="uk_parks_tenant_id_id"),)
 
     tenant_id: Mapped[int] = mapped_column(
         FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True
@@ -116,6 +117,7 @@ class Unit(Base, PrimaryKeyMixin, SoftDeleteMixin, TimestampMixin):
             "version_no",
             name="uk_units_space_code_version",
         ),
+        UniqueConstraint("tenant_id", "id", name="uk_units_tenant_id_id"),
         Index(
             "uk_units_current_space_code",
             "building_id",

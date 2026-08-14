@@ -25,7 +25,7 @@ def _bearer(*, permissions: list[str] | None = None) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_main_chain_happy_path(client, governed_activate) -> None:
+def test_main_chain_happy_path(client, governed_activate, approved_intent) -> None:
     h = _bearer()
 
     # 健康
@@ -58,10 +58,15 @@ def test_main_chain_happy_path(client, governed_activate) -> None:
             "intent_level": "HIGH",
         },
     ).json()["data"]
+    intent = approved_intent(lead_id=lead["id"], unit_ids=[unit["id"]])
     lock = client.post(
         f"/api/v1/leads/{lead['id']}/unit-locks",
         headers=h,
-        json={"expected_version": lead["lock_version"], "unit_id": unit["id"]},
+        json={
+            "expected_version": lead["lock_version"],
+            "unit_id": unit["id"],
+            "intent_id": intent["id"],
+        },
     )
     assert lock.status_code == 200, lock.text
     lead_version = lock.json()["data"]["lead_lock_version"]

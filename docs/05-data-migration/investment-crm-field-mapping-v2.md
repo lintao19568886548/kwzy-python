@@ -1,7 +1,7 @@
 # 招商 CRM V2 字段映射与迁移门禁
 
-> 状态：`DRAFT_FROM_REPOSITORY_EVIDENCE`
-> 范围：传统 `investment`、CRM lead 表族、radar external lead → V2 Lead/Activity/Assignment/Merge
+> 状态：`CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA`；真实数据仍 `BLOCKED_PENDING_SCHEMA_AND_SAMPLE_EXPORT`
+> 范围：传统 `investment`、CRM lead 表族、radar external lead → V2 Lead/Activity/Assignment/Merge/Viewing/Intent/ChannelInbox
 > 禁止：连接旧生产库、导出真实 PII、根据字段名猜枚举、把合成演练标记为真实 readiness
 
 ## 1. 证据与可信度
@@ -24,6 +24,10 @@
 | `lead_assignment_events` | source assignment ref 或目标 id | ASSIGN/REASSIGN/CLAIM/RELEASE/RECYCLE 历史 |
 | `lead_merge_links` | source lead + target lead | 重复合并血缘，不删除来源历史 |
 | `lead_unit_locks` | target id；ACTIVE unit 条件唯一 | V2 运行期锁房；旧 property match 不直接生成有效锁 |
+| `lead_assignment_rules/versions/members` | V2 配置 id/version | 只迁经业务签字的规则与成员容量；旧 owner 历史不反推生产规则 |
+| `lead_viewings/viewing_units` | source appointment ref 或目标 id | 只接收明确时间窗、状态与 Unit 映射；自由备注仍为 Activity |
+| `lead_intent_applications/versions/units` | source intent ref/version | 冻结可证明的单元/面积/期限/报价；审批结果须单独映射 |
+| `lead_channels/channel_inbox_events` | channel public id + external event id | 渠道配置默认禁用；只迁来源事实/摘要，不迁密钥和未知原始载荷 |
 
 ## 3. 表/字段映射
 
@@ -49,6 +53,10 @@
 | `property_match_result` | 无直接导入 | 仅作历史证据；V2 用当前 Unit 重新计算匹配 | `RECOMPUTE` |
 | old score/rule result | 无权威目标 | 不当作 AI/规则事实；可在未来保存历史快照 | `DEFERRED` |
 | old reservation/lock | `lead_unit_locks` | 不直接生成 ACTIVE；须结合当前 Unit/Lease 和有效期人工规则 | `BLOCKED_BUSINESS_RULE` |
+| legacy visit/schedule rows | `lead_viewings` 或 `lead_activities` | 只有明确预约时间、状态、owner、park 和 Unit 才建 Viewing；否则只迁历史 Activity | `BLOCKED_SCHEMA` |
+| legacy intention/quotation | `lead_intent_*` | 必须有 Unit、面积、期限、价格和审批来源；缺审批人/结果不得伪造 APPROVED | `BLOCKED_SCHEMA_AND_APPROVAL` |
+| legacy auto assignment rule | `lead_assignment_rule_*` | 必须有园区、触发器、成员、容量/顺序和生效版本签字；不能从历史 owner 反推 | `BLOCKED_BUSINESS_RULE` |
+| external lead receive fact | `lead_channel_inbox_events` | 稳定 event id/source ref、摘要和结果可迁；明文 secret/raw PII 不迁 | `BLOCKED_SCHEMA_AND_PROVIDER` |
 
 ## 4. 阶段兼容
 
@@ -69,7 +77,20 @@
 - 各阶段、公海/私有、负责人映射成功/失败分布。
 - Activity、Assignment、Merge 数量；来源外部键重复数。
 - Lead→Park/User/Merged target 孤儿数。
+- Rule/version/member 数、有效版本唯一性、成员园区授权与容量分布。
+- Viewing/status/unit link 数；自由备注误建 Viewing 数必须为 0。
+- Intent/version/unit/Approval link 数；无审批证据却标 APPROVED 数必须为 0。
+- Channel/inbox/source ref 数、重复 external event id 与 raw secret/PII 持久化数必须为 0。
 - 非法面积、非法电话、未知枚举和缺主键映射的隔离数。
-- 首次 apply 与幂等 re-apply 新增数；rollback 后 isolated schema 不存在。
+- 模拟批次中断必须事务回滚为零行，随后恢复 apply；幂等 re-apply 新增数为 0；rollback 后 isolated schema 不存在。
+
+2026-08-14 本地 PG16 合成演练已覆盖 17 类目标对象和上述四类隔离原因，5/5 测试通过；报告不含原始 PII/secret。该结论不改变真实旧数据授权门禁。
 
 合成演练通过后的唯一允许状态为 `CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA`。真实预发导入必须另有只读脱敏快照授权、映射签字、PII 处理方案、备份/回滚和切换窗口。
+
+## 6. V2 规则与签名口径
+
+- 自动分配排序：`open_lead_count / capacity` 升序 → `last_assigned_at`（NULL 最先）→ `member_order` → `user_id`；执行锁定发布版本，预览不写入。
+- 带看窗口：`end_at > start_at`，最大 24 小时，1–20 个同园区 current Unit；同 owner 的 SCHEDULED/CONFIRMED 时间窗不得重叠。
+- 意向快照：1–20 个 Unit，requested area 大于 0 且不超过 current rentable area，起止日期有序，valid_until 有界；审批 snapshot 排除电话和原始联系人 PII。
+- 渠道签名基串：`v1\n<unix_timestamp>\n<external_event_id>\n<sha256(raw_body)>`，使用 HMAC-SHA256 和恒定时间比较；默认允许偏差 300 秒，请求体与字段上限由服务端固定。

@@ -128,6 +128,7 @@ class ApprovalRequest(Base, PrimaryKeyMixin, TimestampMixin):
     __tablename__ = "approval_requests"
     __table_args__ = (
         UniqueConstraint("tenant_id", "biz_type", "biz_id", name="uk_approval_biz"),
+        UniqueConstraint("tenant_id", "id", name="uk_approval_requests_tenant_id_id"),
         Index(
             "uk_approval_request_no",
             "tenant_id",
