@@ -48,8 +48,8 @@
 - [x] 9.1 Add domain/repository/API/PG concurrency and real HTTP coverage
 - [x] 9.2 Add Playwright role/responsive/error/visual evidence
 - [x] 9.3 Run focused PG16/backend/frontend/contracts/security gates
-- [ ] 9.4 Run clean-SHA acceptance including performance and backup/restore
+- [x] 9.4 Run clean-SHA acceptance including performance and backup/restore
 
 ## 10. Closure
-- [ ] 10.1 Update matrix/register/roadmap/state and evidence truthfully
+- [x] 10.1 Update matrix/register/roadmap/state and evidence truthfully
 - [ ] 10.2 Commit/push, sync specs and archive without force

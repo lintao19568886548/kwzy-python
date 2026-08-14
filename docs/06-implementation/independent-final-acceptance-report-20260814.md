@@ -2,12 +2,22 @@
 
 > 日期：2026-08-15（Asia/Shanghai，滚动更新）
 > 结论：**BLOCKED（已实现范围条件通过，全产品未完成）**
-> 最新精确提交闭环：档案、电子签章与印章治理；`b04d738bc75e865e1c6bfb180e93dc9b95109cf3` 的 36/36 全量门禁通过并正常推送
-> 上一 clean-SHA：设施设备、周巡检与 IoT `e28678b5785b7f8bf03141bd7cffbd162932315b`（35/35，已正常推送）
+> 最新精确提交闭环：HR、排班、考勤、绩效与资质；`5577509a6ca2a473107038be1316a0ea9252fc8d` 的 37/37 全量门禁通过
+> 上一 clean-SHA：档案、电子签章与印章 `b04d738bc75e865e1c6bfb180e93dc9b95109cf3`（36/36，已正常推送）
 > 历史 clean-SHA：租户服务/工单 `ffa72e2531396997cfe24ef1b1e42526cd4735fe`、应收 `1a11cfe08b8d2b800c7121d7462995ebb75eb75d`、Party `36805823ad2e88311b9744e9e720b282b7cc74c8`
 > 本报告滚动记录自治重建；下文早期 repair 数字如与“最新闭环增量”冲突，以最新机器报告与能力矩阵为准。
 
 ## 0. 最新闭环增量
+
+HR/排班/考勤/绩效/资质纵切已补齐为本地产品闭环：手机号、证件号和证书号只存掩码与独立密钥指纹；员工与系统身份显式绑定；不可变班次版本、日期排班、在职/请假/重复排班门禁；考勤策略与只保存配置引用的地点、幂等打卡、缺卡异常和有因调整；请假使用平台原生 Approval；绩效禁止自评并支持发布/确认；资质必须附证据并支持复核、吊销和到期待办。工资核算、真实考勤设备/定位/生物识别和无权威来源的旧绩效/资质历史均未伪造。
+
+本轮新增单一前向迁移 `c5f02d8e9c87`，未修改已应用 `b4ea2c7d8f86`。PostgreSQL 16 fresh base→head、唯一 `current == heads`、c5→b4→c5、metadata/索引/外键/唯一/boolean 及排班、打卡、绩效和资质并发约束均通过。真实 HTTP 另覆盖小写审批定义码规范化、同幂等键异载荷冲突、已批请假阻断排班、PII/坐标不回传和跨租户 404。
+
+精确提交 `5577509` 全量脚本 37/37 步 exit 0、656,601 ms：380 pytest（205.41 s）、worker 无租户失败、全部合成 ETL、36/36 HR 真实 HTTP、1000 请求/并发 25性能 p95 264.836 ms、145.596 RPS、0 错误、1,697,402 bytes/162 表备份删除恢复、前端 ESLint/vue-tsc/6 Vitest/150 modules production build、62 Playwright、16 OpenAPI 契约及 YAML strict、OpenSpec strict 111/111、1,091 文件 secrets scan 和资源清理全部通过。机器报告为 `evidence/workforce-scheduling-attendance-performance/acceptance-clean-5577509.json`。
+
+HR 合成 ETL 对 2 员工、1 班次版本、2 排班、3 打卡、2 汇总、1 请假、3 隔离完成 dry/interruption/apply/reapply/reconcile/rollback；中断后零残留、重跑零新增、原始 PII/精确坐标列和伪造绩效/资质/工资结果均为 0。授权旧 HR schema/行数水位、脱敏快照、园区/用户键映射、旧请假审批证据和生产切换授权仍缺失，真实迁移保持 `BLOCKED`。
+
+下述档案/签章/印章段落为上一纵切 clean-SHA 证据，继续保留：
 
 档案/签章/印章纵切已补齐为本地产品闭环：版本化档案分类/保管策略、确定性档号、附件精确版本和服务端 SHA-256、归档与完整性不一致自动 hold；法律保全、借阅/归还/过期、保管期限与依赖门禁下的处置和双人确认；印章台账、交接、丢失/停用/找回/退役、精确档案版本用印和不可变回执；无密钥签章提供方真相、信封/参与人/追加式事件、重放安全沙箱投递及 live fail-closed。旧 Java/前端/DDL 没有可证明的档案、印章或合法电子签聚合，不把旧按钮和当前 fake 状态当成真实能力。
 
@@ -57,18 +67,18 @@ Party synthetic ETL 对 2 个画像、1 条关系、1 个证件、1 个标签、
 
 Party 的 9 份 delta 已智能合并到主规格并归档为 `2026-08-14-complete-party-enterprise-profile`；归档副本为 43/43 任务，归档后 OpenSpec strict 77/77。CRM 的 `revoked` 语义冲突仍保留 active，没有借 Party 归档一并掩盖。
 
-最新能力矩阵为 11 项 `IMPLEMENTED_AND_VERIFIED`、1 项 `BLOCKED`、8 项 `MISSING`。因此本报告仍是 `BLOCKED`；档案/签章/印章组合能力的本地 PC 产品闭环关闭，绝不外推为合法电子签 live、员工移动端、小程序、全业务、真实旧数据迁移或生产完成。
+最新能力矩阵为 12 项 `IMPLEMENTED_AND_VERIFIED`、1 项 `BLOCKED`、7 项 `MISSING`。因此本报告仍是 `BLOCKED`；HR 组合能力的本地 PC 产品闭环关闭，绝不外推为工资核算、真实考勤设备、员工独立移动端、小程序、全业务、真实旧数据迁移或生产完成。
 
 ### 当前交付基线
 
 | 项 | 当前独立核验结果 |
 | --- | --- |
-| 分支 / 精确 HEAD | `feat/full-rebuild-completion` / `b04d738bc75e865e1c6bfb180e93dc9b95109cf3` |
-| 实现与修复提交 | `95fa44d` 档案/签章/印章业务；`89c83b2` 信封行定位回归；`83697f9` Party 保存就绪竞态；`b04d738` 移动无截断与初版证据 |
-| 远程同步 | 精确 HEAD 已正常、非 force 推送至 `origin/feat/full-rebuild-completion`；本轮未触达 main |
-| 工作树保护 | 全量 Playwright 重生成的其他纵切 24 张截图属于既有用户修改，保持未暂存且不删除/不还原；本轮只提交档案证据、总控文档和 OpenSpec 收尾 |
+| 分支 / 精确 HEAD | `feat/full-rebuild-completion` / `5577509a6ca2a473107038be1316a0ea9252fc8d` |
+| 实现与修复提交 | `370c7f8` HR 本地产品闭环；`5577509` HR 真实 HTTP 与总门禁扩展 |
+| 远程同步 | HR 提交本地领先，待证据/规格收尾后正常、非 force 推送；本轮未触达 main |
+| 工作树保护 | 全量 Playwright 重生成的其他纵切 27 张截图属于既有用户修改，保持未暂存且不删除/不还原；本轮只提交 HR 证据、总控文档和 OpenSpec 收尾 |
 | 运行入口 | API `uvicorn app.main:app`；PC `npm run dev` / `npm run build`；员工移动端和租户小程序无目录/启动方式 |
-| 环境与敏感文件 | `.env.example` 三处均为非生产占位；1,041 个 tracked/untracked non-ignored 文件扫描 0 hits；未自动连接生产 |
+| 环境与敏感文件 | `.env.example` 三处均为非生产占位；1,091 个 tracked/untracked non-ignored 文件扫描 0 hits；未自动连接生产 |
 | 生产授权 | `NOT_AUTHORIZED / NOT_EXECUTED`；真实 provider、不可逆迁移和生产部署继续等待独立人工授权 |
 
 ## 1. 初始 repair 基线（历史证据）
@@ -89,7 +99,7 @@ Party 的 9 份 delta 已智能合并到主规格并归档为 `2026-08-14-comple
 | 应用入口 | API：`uvicorn app.main:app`；PC：`npm run dev` / `npm run build`；生产示例见 `infra/production` |
 | 三端事实 | PC 位于 `apps/web`；员工移动端、租户小程序无应用目录和启动方式 |
 
-环境样例为 `apps/api/.env.example`、`infra/postgres-test/.env.example`、`infra/production/production.env.example`。最新精确提交复验的敏感文件名检查与 1,041 文件内容扫描通过；未发现被跟踪的真实密钥、Token、密码、数据库文件或 PII。样例值均为明确的非生产占位。
+环境样例为 `apps/api/.env.example`、`infra/postgres-test/.env.example`、`infra/production/production.env.example`。最新精确提交复验的敏感文件名检查与 1,091 文件内容扫描通过；未发现被跟踪的真实密钥、Token、密码、数据库文件或 PII。样例值均为明确的非生产占位。
 
 ## 2. 整改提交内容
 
@@ -110,7 +120,7 @@ Party 的 9 份 delta 已智能合并到主规格并归档为 `2026-08-14-comple
 唯一迁移链尾部为：
 
 ```text
-j6e24f9a1c08 -> k7f35a0b2d19 -> l8a46b1c3e20 -> m9b57c2d4e31 -> n0c68d3e5f42 -> o1d79e4f6a53 -> p2e80a5b7c64 -> q3f91b6c8d75 -> r4a02c7d9e86 -> s5b13d8e0f97 -> t6c24e9f1a08 -> u7d35f0a2b19 -> v8e46a1b3c20 -> w9f57b2c4d31 -> x0a68c3d5e42 -> y1b79d4e6f53 -> z2c80e5f6a64 -> a3d91f6a7b75 -> b4ea2c7d8f86 (head)
+j6e24f9a1c08 -> k7f35a0b2d19 -> l8a46b1c3e20 -> m9b57c2d4e31 -> n0c68d3e5f42 -> o1d79e4f6a53 -> p2e80a5b7c64 -> q3f91b6c8d75 -> r4a02c7d9e86 -> s5b13d8e0f97 -> t6c24e9f1a08 -> u7d35f0a2b19 -> v8e46a1b3c20 -> w9f57b2c4d31 -> x0a68c3d5e42 -> y1b79d4e6f53 -> z2c80e5f6a64 -> a3d91f6a7b75 -> b4ea2c7d8f86 -> c5f02d8e9c87 (head)
 ```
 
 精确 SHA 验收执行的关键命令：
@@ -128,15 +138,15 @@ pwsh -NoProfile -File infra/local-staging/run_full_acceptance.ps1
 
 结果：
 
-- 空库 base → head 通过，`current == heads == b4ea2c7d8f86`；b4 down 到 a3 再 up 通过，`alembic check` 无待生成迁移。
-- 备份、删除测试恢复库、重建和恢复复核当前 head 与 146 张表；核心表、索引、外键、唯一性和 boolean 契约由 metadata/PG 测试覆盖。
+- 空库 base → head 通过，`current == heads == c5f02d8e9c87`；c5 down 到 b4 再 up 通过，专项 `alembic check` 无待生成迁移。
+- 备份、删除测试恢复库、重建和恢复复核当前 head 与 162 张表；核心表、索引、外键、唯一性和 boolean 契约由 metadata/PG 测试覆盖。
 - ORM metadata 与迁移契约测试通过；既有 Party、财务、工单、设施约束继续有效，档案新增复合租户/园区/父子引用、档号、活动 hold、借阅/处置、保管、用印回执和签章事件约束，数据库拒绝跨租户、跨园区、职责冲突和异载荷重放。
 - 合同、租控锁房、收款/核销、工单验收、设施任务/告警、档案/用印和 outbox 幂等的 PG 并发/竞态/回滚测试通过；库存域未实现，不能声称库存并发通过。
 - 禁止用 `create_all` 代替验收；完整脚本与 E2E seed 均以 Alembic 初始化。
 
 ## 4. 测试和耗时
 
-当前档案精确 SHA `b04d738` 全量验收为 36/36 步、366 pytest、61 条 Playwright、3 文件/6 Vitest、147 modules production build、15 条 OpenAPI 契约及 YAML strict、OpenSpec strict 102/102、1,041 文件 secrets scan 0 hits，耗时 609,589 ms。档案 21/21 真实 HTTP、PG 并发与职责分离/幂等回归通过；40/40 任务、11 份主规格同步归档，归档后 strict 110/110。下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
+当前 HR 精确 SHA `5577509` 全量验收为 37/37 步、380 pytest、62 条 Playwright、3 文件/6 Vitest、150 modules production build、16 条 OpenAPI 契约及 YAML strict、OpenSpec strict 111/111、1,091 文件 secrets scan 0 hits，耗时 656,601 ms。HR 36/36 真实 HTTP、PG 并发、隐私/幂等/隔离回归通过。下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
 
 精确实现 SHA `a9267d4` 的完整脚本从 11:33:05 到 11:38:53，总耗时 348,122 ms，24/24 步 exit 0。
 
@@ -170,7 +180,7 @@ pwsh -NoProfile -File infra/local-staging/run_full_acceptance.ps1
 
 合同合成数据结果：2 Parties、3 Contracts、3 Versions、4 Units、3 Charges、3 Schedules、2 Documents、2 Reminders、1 Quarantine；占用面积 221.50、押金 27,000、费用 8,800；重复与孤儿均为 0，报告不持久化原始 PII。
 
-当前档案精确 `b04d738` 全量验收使用 `pg_dump -Fc` 生成 1,595,978 bytes dump；删除并重建临时恢复库后 `pg_restore`，恢复 146 张表并再次删除恢复库。档案合成迁移为 2 分类/2 档案/2 版本/2 隔离，伪造印章、保管、提供方和事件为 0。临时 dump 按安全策略未提交 Git。
+当前 HR 精确 `5577509` 全量验收使用 `pg_dump -Fc` 生成 1,697,402 bytes dump；删除并重建临时恢复库后 `pg_restore`，恢复 162 张表并再次删除恢复库。HR 合成迁移为 2 员工/1 班次版本/2 排班/3 打卡/2 汇总/1 请假/3 隔离，原始 PII/精确坐标列与伪造绩效、资质、工资结果均为 0。临时 dump 按安全策略未提交 Git。
 
 真实旧库仍不可验：未取得经授权 schema dump/脱敏快照，无法证明真实字段/枚举/PII 映射、全量金额面积、CDC、停写、切换和回切。故结论只能是：
 
@@ -182,10 +192,10 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 
 最新全量脚本真实 loopback HTTP 使用登录后的 12 个工作台、事件、合同、Party、资产、档案、印章和签章接口，1000 请求、并发 25、预热 40：
 
-- 0 failures，错误率 0.0%，146.259 req/s。
-- p50 162.934 ms，p95 240.541 ms，p99 321.62 ms，max 354.246 ms。
+- 0 failures，错误率 0.0%，145.596 req/s。
+- p50 161.502 ms，p95 264.836 ms，p99 324.036 ms，max 372.069 ms。
 - 门槛 p95 ≤ 500 ms、错误率 ≤ 1%、吞吐 ≥ 20 req/s，结果 PASS。
-- 档案专项真实 HTTP 为 21/21 阶段、926.41 ms，验证跨租户隔离、沙箱投递和外部提供方 fail-closed；全量精确提交报告保存在 `evidence/records-signature-seal-governance/acceptance-clean-b04d738.json`。
+- HR 专项真实 HTTP 为 36/36 阶段、1,261.16 ms，验证 PII/坐标最小化、原生审批、小写定义码、幂等冲突、请假排班门禁、绩效/资质和跨租户隔离；全量精确提交报告保存在 `evidence/workforce-scheduling-attendance-performance/acceptance-clean-5577509.json`。
 
 生产契约提供显式 PG QueuePool 上限/超时/回收、`/health/ready`、非 root 镜像、只读文件系统、tmpfs、drop all capabilities 和 no-new-privileges。API 镜像用户为 `kwzy`，Web 为 UID `101`。
 
@@ -206,10 +216,10 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 | 静态假图表 | `analytics` 未挂载且无真实驾驶舱，计 `MISSING` |
 | 未挂 router | 已实现业务 router 均挂载；`ai_assist`、`analytics` 未挂载并计缺失 |
 | 前端本地 JSON/假按钮 | 未发现业务页读取本地 JSON；关键合同/租控按钮由真实 HTTP/E2E 覆盖 |
-| API/OpenAPI 漂移 | 已修复，15/15 契约、档案/印章/签章 33 个 runtime/YAML 方法对和 YAML strict 通过 |
+| API/OpenAPI 漂移 | 已修复，16/16 契约、workforce 28 个路径的 runtime/YAML 方法精确一致且 YAML strict 通过 |
 | Application→ORM / Router 查 DB | 应收审查发现的 Application 直接构造 ORM已下沉 repository factory；架构回归测试和人工检索未发现当前已实现纵切新增违规 |
 | 默认管理员/开发免鉴权/弱 JWT | 生产/预发 fail-closed；本地测试账号只用于隔离验收 |
-| 密钥/Token/DB/PII | 精确提交复验 tracked + untracked non-ignored 1,041 文件扫描通过、0 hits；既有 clean-SHA 证据继续有效；企业证件只保留指纹与掩码，应收账号只保留掩码，档案合成 fixture 无真实 PII/密钥，环境样例为非生产占位 |
+| 密钥/Token/DB/PII | 精确提交复验 tracked + untracked non-ignored 1,091 文件扫描通过、0 hits；既有 clean-SHA 证据继续有效；HR 手机/证件/资质号只保存掩码与独立密钥指纹，精确坐标/轨迹不持久化，环境样例为非生产占位 |
 | 历史迁移/多 head | 未修改历史迁移；新增修复迁移；唯一 head |
 | 外部集成虚假完成 | 文档和运行时均区分 fake/local、fail-closed 与 live verified |
 
@@ -217,7 +227,7 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 
 ## 8. 三端、角色和 UI
 
-PC 真实浏览器验证使用 PostgreSQL、FastAPI、生产 Vite 构建和真实 HTTP；当前全量 61 条 Playwright 无 skip。档案截图人工复核覆盖桌面/平板签章提供方与信封真相、390px 档案离线重试；既有合同/组织/审批/工作台/资产/Party/应收/工单/设施证据继续保留。页面无假数据、乱码、遮挡或移动端横向溢出；证据位于 `evidence/records-signature-seal-governance/` 等受信目录。
+PC 真实浏览器验证使用 PostgreSQL、FastAPI、生产 Vite 构建和真实 HTTP；当前全量 62 条 Playwright 无 skip。HR 截图人工复核覆盖桌面资质、平板考勤异常与 390px 离线重试；既有合同/组织/审批/工作台/资产/Party/应收/工单/设施/档案证据继续保留。页面无假数据、乱码、遮挡或移动端横向溢出；证据位于 `evidence/workforce-scheduling-attendance-performance/` 等受信目录。
 
 可验证角色切片包括系统管理员、受限用户、资产查看者、招商查看者、合同查看/提交/审批角色、基础财务/物业工单操作和 PC 企业联系人验收。决策管理层、区域/园区经理、完整招商/财务/物业岗位只能算窄功能证据；企业租户管理员与企业员工的独立端仍不存在，不能验收。
 
@@ -225,7 +235,7 @@ PC 真实浏览器验证使用 PostgreSQL、FastAPI、生产 Vite 构建和真�
 
 ## 9. 旧系统与外部集成
 
-旧 Java 证据仓静态规模为 54 Controllers、约 484 HTTP mappings、316 Vue 文件、30 SQL DDL 表。当前 Python 仓库缺少两端且仍有 8 个组合能力为 `MISSING`、1 项迁移为 `BLOCKED`，因此旧系统替代为 `BLOCKED`。
+旧 Java 证据仓静态规模为 54 Controllers、约 484 HTTP mappings、316 Vue 文件、30 SQL DDL 表。当前 Python 仓库缺少两端且仍有 7 个组合能力为 `MISSING`、1 项迁移为 `BLOCKED`，因此旧系统替代为 `BLOCKED`。
 
 | 集成组 | 代码状态 | 真实状态 |
 | --- | --- | --- |
@@ -235,7 +245,7 @@ PC 真实浏览器验证使用 PostgreSQL、FastAPI、生产 Vite 构建和真�
 | 银行/聚合支付/税票/财务软件 | 完整适配器缺失 | MISSING |
 | OCR/档案/印章/存证 | 本地档案/印章业务已闭环；外部 OCR/CA/时间戳/存证/硬件适配器缺失 | LOCAL_PRODUCT_ONLY / NOT_CONNECTED |
 | 门禁/停车/视频/消防/能耗/IoT | 本地设施/巡检/告警业务已闭环；真实厂商适配器缺失 | LOCAL_PRODUCT_ONLY / NOT_CONNECTED |
-| OA/ERP/HR/采购/协作平台 | 缺失 | MISSING |
+| OA/ERP/采购/协作平台与真实 HR 设备 | HR 本地业务已闭环；其余适配器缺失 | HR LOCAL_PRODUCT_ONLY；外部 NOT_CONNECTED/MISSING |
 | 云/私有模型 | AI 业务层缺失 | MISSING |
 
 ## 10. P0/P1/P2 与责任边界
@@ -243,7 +253,7 @@ PC 真实浏览器验证使用 PostgreSQL、FastAPI、生产 Vite 构建和真�
 | 级别 | 未关闭数 | 项目 |
 | --- | --- | --- |
 | P0 | 0 | 当前证据未发现 P0 |
-| P1 | 6 | 员工移动端；租户小程序；8 项能力矩阵缺失的产品闭环；真实旧数据迁移；外部适配器完整性/真实联调；远程预发监控容量灾备 |
+| P1 | 6 | 员工移动端；租户小程序；7 项能力矩阵缺失的产品闭环；真实旧数据迁移；外部适配器完整性/真实联调；远程预发监控容量灾备 |
 | P2 | 0 | 本轮可在当前权限内修复的 P2 已关闭；上游 TestClient 弃用提示记为 INFO |
 
 没有任何 `APPROVED_DEFERRED` 或 `APPROVED_RETIRED`。建议责任人不是虚构姓名：
@@ -256,7 +266,7 @@ PC 真实浏览器验证使用 PostgreSQL、FastAPI、生产 Vite 构建和真�
 
 ## 11. 最终判定
 
-能力矩阵汇总为 11 项 `IMPLEMENTED_AND_VERIFIED`、1 项 `BLOCKED`、8 项 `MISSING`。完整细节见 `full-rebuild-traceability-matrix.md`。因为 P1 不为 0、两端缺失、真实迁移和旧系统替代未完成，完成分支不得合并 main。
+能力矩阵汇总为 12 项 `IMPLEMENTED_AND_VERIFIED`、1 项 `BLOCKED`、7 项 `MISSING`。完整细节见 `full-rebuild-traceability-matrix.md`。因为 P1 不为 0、两端缺失、真实迁移和旧系统替代未完成，完成分支不得合并 main。
 
 ```text
 KWZY_INDEPENDENT_ACCEPTANCE=CONDITIONAL_IMPLEMENTED_SCOPE_ONLY

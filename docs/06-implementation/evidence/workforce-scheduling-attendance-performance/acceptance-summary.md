@@ -2,6 +2,7 @@
 
 > 日期：2026-08-15（Asia/Shanghai）
 > 分支：`feat/full-rebuild-completion`
+> 精确 clean-SHA：`5577509a6ca2a473107038be1316a0ea9252fc8d`
 > 产品结论：本地 API + PC 纵切达到 `IMPLEMENTED_AND_VERIFIED`；员工独立移动端、工资核算、真实设备和真实旧数据迁移不在此结论内，全项目仍为 `BLOCKED`。
 
 ## 已验证闭环
@@ -15,19 +16,24 @@
 - 28 个 workforce 路径 runtime/YAML 方法精确一致；严格命令拒绝未知字段，重复查询参数、伪造 JWT 权限、跨租户/跨园区访问均 fail closed。
 - PC 五个实时页签覆盖桌面、820px 平板和 390px 移动布局；真实数据库/HTTP/production build 验证加载、空态、权限、冲突、离线和重试。
 
-## 当前专项门禁
+## 精确 SHA 全量门禁
 
 | 门禁 | 结果 |
 | --- | --- |
 | PostgreSQL / Alembic | PG16 fresh base→`c5f02d8e9c87`；唯一 head；`c5→b4→c5`；`alembic check` 无漂移 |
-| 后端专项 | 纯领域/API 6 passed；PG 模型/并发 2 passed；合成 ETL 5 passed；OpenAPI 全文件 16 passed；Ruff 通过 |
+| 总控脚本 | 37/37 步 exit 0；07:34:32–07:45:28 +08:00；656,601 ms；0 failed |
+| 后端 | 全量 380 passed（pytest 205.41 s）；Ruff 通过；worker 单周期无租户失败 |
 | 前端 | ESLint 0 warning；vue-tsc 通过；production Vite 150 modules；仅有非阻塞 chunk 大小提示 |
-| 浏览器 | HR 真实栈 1/1 passed；PG16 + FastAPI + production Vite，桌面/平板/390px 与离线恢复 |
+| 浏览器 | 全量 62/62 passed（2.3 min）；HR 1/1 真实栈覆盖桌面/平板/390px 与离线恢复 |
+| 真实 HTTP | HR 36/36 阶段、1,261.16 ms；请假原生审批、幂等/冲突、绩效、资质与跨租户隔离通过 |
+| 性能 | 1000 请求/并发 25；p95 264.836 ms；145.596 RPS；0% 错误；门槛未降低 |
 | 合成迁移 | 2 员工、1 班次版本、2 排班、3 打卡、2 汇总、1 请假、3 隔离；中断零残留、重跑零新增、对账/回滚通过 |
 | 隐私真相 | 合成目标 PII 原文字段/精确坐标/轨迹列为 0；伪造绩效/资质/工资结果为 0 |
+| 备份恢复 | `pg_dump -Fc` 1,697,402 bytes；删除/重建临时库后恢复并验证 162 张 public 表 |
+| 契约/扫描 | OpenAPI 16/16 + YAML strict；OpenSpec 111/111；1,091 文件 secrets scan 0 hits |
 | 生产接触 | `production_contacted=false`，未获得生产部署或不可逆迁移授权 |
 
-完整 clean-SHA 全量门禁、性能、备份恢复、主规格同步和归档将在实现提交后生成精确机器报告并更新本摘要；在此之前不得把专项结果外推为全项目验收通过。
+机器证据：`acceptance-clean-5577509.json`、`workforce-etl-clean-5577509.json`、`workforce-http-clean-5577509.json`、`http-performance-clean-5577509.json`。总报告 SHA-256 为 `EFC333223D2BB2C394E5F0F6882C51B8CF93F449F74570C41A6B322835E2C865`。
 
 ## 视觉证据
 

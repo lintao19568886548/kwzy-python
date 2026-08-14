@@ -1,7 +1,7 @@
 # 瞰维智管 V2 当前能力状态
 
 > 更新时间：2026-08-15（Asia/Shanghai）
-> 最新已完成纵切：档案、电子签章与印章治理；精确提交 `b04d738bc75e865e1c6bfb180e93dc9b95109cf3` 全门禁已通过并正常推送
+> 最新已完成纵切：HR、排班、考勤、绩效与资质；精确提交 `5577509a6ca2a473107038be1316a0ea9252fc8d` 全门禁已通过
 > 完整报告：`independent-final-acceptance-report-20260814.md`
 > 能力权威表：`full-rebuild-traceability-matrix.md`
 
@@ -13,6 +13,7 @@
 - 租户服务闭环：数据库派生 User→Party→园区主体授权、员工/租户受理、不可变规则发布/退役、自动与人工派单、SLA、版本报价/决定、追加式成本/冲正、完工证据、返工/验收、一次性评价及脱敏时间线。
 - 设施闭环：设备台账/历史、周巡检模板/计划/任务、异常/漏检转工单、IoT 提供方真相/绑定/告警关联与升级；真实 IoT 仍保持 `NOT_CONNECTED`。
 - 档案/签章/印章闭环：版本化分类与保管、档号/附件版本/哈希完整性、保全/借阅/处置、印章保管与高风险用印职责分离、签章信封/事件和真实提供方状态；沙箱不产生法律 `SIGNED`。
+- HR 闭环：PII 最小化员工档案与身份绑定、不可变班次版本/排班、幂等打卡与异常调整、原生审批请假、禁止自评的绩效发布/确认、证据化资质与到期待办；真实设备与旧数据不伪装完成。
 - 安全加固：密码策略、JWT/会话撤销、附件归属、RBAC/tenant/park scope、CSRF/Host/安全头、生产 fail-closed。
 - 工程门禁：PG16 单 head 升降级、ORM/迁移契约、并发/回滚、OpenAPI、OpenSpec、依赖漏洞、容器、备份恢复和本地 HTTP 性能。
 
@@ -22,11 +23,13 @@
 
 档案/签章/印章精确提交 `b04d738` 全验收已通过 36/36 步、366 pytest、真实 PG16、61 条全量 Playwright、前端 lint/typecheck/6 Vitest/production build、OpenAPI 15/15+YAML strict、OpenSpec 102/102、1000/25 性能（p95 240.541 ms、146.259 RPS、0 错误）、1,595,978 bytes/146 表备份恢复、21/21 真实 HTTP、档案合成 ETL和 1,041 文件 secrets scan。机器报告为 `evidence/records-signature-seal-governance/acceptance-clean-b04d738.json`；40/40 任务、11 份主规格同步、归档后 strict 110/110。合法电子签/CA/时间戳/存证、真实印章设备及真实旧档案/二进制迁移没有凭据或授权，不计 live 完成。
 
+HR 精确提交 `5577509` 全验收已通过 37/37 步、380 pytest、真实 PG16、62 条全量 Playwright、前端四门禁、OpenAPI 16/16+YAML strict、OpenSpec 111/111、36 阶段 HR 真实 HTTP、1000/25 性能（p95 264.836 ms、145.596 RPS、0 错误）、1,697,402 bytes/162 表备份恢复、HR 合成 ETL 和 1,091 文件 secrets scan。机器报告为 `evidence/workforce-scheduling-attendance-performance/acceptance-clean-5577509.json`。真实旧 HR schema/脱敏快照和考勤设备协议/凭据未获授权，不计迁移或 live 完成。
+
 ## 不能外推为完成的范围
 
 - 员工移动端和租户微信小程序不存在。
-- HR、供应链、园企服务、完整驾驶舱、真实 AI 业务层缺失。
-- 员工移动端、租户微信小程序、HR、供应链、园企服务、驾驶舱、AI、外部平台八个组合能力仍为 `MISSING`；设备/巡检/IoT 与档案/签章/印章只关闭本地产品纵切，live 供应商与真实旧数据仍由外部适配器/迁移条目保持缺口或阻塞。
+- 供应链、园企服务、完整驾驶舱、真实 AI 业务层缺失。
+- 员工移动端、租户微信小程序、供应链、园企服务、驾驶舱、AI、外部平台七个组合能力仍为 `MISSING`；设备/巡检/IoT、档案/签章/印章与 HR 只关闭本地产品纵切，live 供应商与真实旧数据仍由外部适配器/迁移条目保持缺口或阻塞。
 - 没有经授权的旧生产 schema 或脱敏快照，无法完成真实迁移、对账、增量和切换演练。
 - 没有外部厂商凭据、远程预发证据或生产部署授权。
 

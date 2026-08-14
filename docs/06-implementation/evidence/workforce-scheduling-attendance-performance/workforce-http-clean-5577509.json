@@ -1,0 +1,198 @@
+{
+  "generated_at": "2026-08-14T23:41:52.616808+00:00",
+  "base_url": "http://127.0.0.1:8010/api/v1",
+  "real_http": true,
+  "synthetic_only": true,
+  "stage_count": 36,
+  "stages": [
+    {
+      "name": "login",
+      "passed": true,
+      "ms": 197.69
+    },
+    {
+      "name": "identity",
+      "passed": true,
+      "ms": 12.9
+    },
+    {
+      "name": "create_park",
+      "passed": true,
+      "ms": 29.76
+    },
+    {
+      "name": "create_masked_employee",
+      "passed": true,
+      "ms": 23.76
+    },
+    {
+      "name": "create_immutable_shift_version",
+      "passed": true,
+      "ms": 24.19
+    },
+    {
+      "name": "create_assignment",
+      "passed": true,
+      "ms": 28.68
+    },
+    {
+      "name": "reject_duplicate_assignment",
+      "passed": true,
+      "ms": 10.55
+    },
+    {
+      "name": "create_attendance_policy",
+      "passed": true,
+      "ms": 27.29
+    },
+    {
+      "name": "create_reference_only_attendance_location",
+      "passed": true,
+      "ms": 19.07
+    },
+    {
+      "name": "create_coordinate_redacted_punch",
+      "passed": true,
+      "ms": 36.63
+    },
+    {
+      "name": "punch_idempotent_replay",
+      "passed": true,
+      "ms": 11.17
+    },
+    {
+      "name": "reject_changed_idempotency_payload",
+      "passed": true,
+      "ms": 10.81
+    },
+    {
+      "name": "generate_missing_out_anomaly",
+      "passed": true,
+      "ms": 34.35
+    },
+    {
+      "name": "audited_attendance_adjustment",
+      "passed": true,
+      "ms": 32.7
+    },
+    {
+      "name": "create_lowercase_leave_definition",
+      "passed": true,
+      "ms": 24.08
+    },
+    {
+      "name": "publish_leave_definition",
+      "passed": true,
+      "ms": 31.12
+    },
+    {
+      "name": "verify_canonical_definition_code",
+      "passed": true,
+      "ms": 12.28
+    },
+    {
+      "name": "submit_leave_to_native_approval",
+      "passed": true,
+      "ms": 47.67
+    },
+    {
+      "name": "read_native_leave_approval",
+      "passed": true,
+      "ms": 9.68
+    },
+    {
+      "name": "approve_leave_with_audited_override",
+      "passed": true,
+      "ms": 41.73
+    },
+    {
+      "name": "refresh_approved_leave",
+      "passed": true,
+      "ms": 22.53
+    },
+    {
+      "name": "block_roster_on_approved_leave",
+      "passed": true,
+      "ms": 12.12
+    },
+    {
+      "name": "create_performance_cycle",
+      "passed": true,
+      "ms": 31.79
+    },
+    {
+      "name": "create_weighted_goal",
+      "passed": true,
+      "ms": 24.15
+    },
+    {
+      "name": "activate_performance_cycle",
+      "passed": true,
+      "ms": 31.43
+    },
+    {
+      "name": "manager_performance_review",
+      "passed": true,
+      "ms": 23.01
+    },
+    {
+      "name": "publish_performance_review",
+      "passed": true,
+      "ms": 32.45
+    },
+    {
+      "name": "create_qualification_type",
+      "passed": true,
+      "ms": 19.82
+    },
+    {
+      "name": "upload_qualification_evidence",
+      "passed": true,
+      "ms": 18.25
+    },
+    {
+      "name": "create_masked_expired_qualification",
+      "passed": true,
+      "ms": 28.55
+    },
+    {
+      "name": "verify_qualification_evidence",
+      "passed": true,
+      "ms": 21.78
+    },
+    {
+      "name": "expire_qualification_and_create_work_item",
+      "passed": true,
+      "ms": 34.06
+    },
+    {
+      "name": "qualification_sweep_idempotent_replay",
+      "passed": true,
+      "ms": 10.94
+    },
+    {
+      "name": "reject_unknown_employee_field",
+      "passed": true,
+      "ms": 10.83
+    },
+    {
+      "name": "login_other_tenant",
+      "passed": true,
+      "ms": 186.14
+    },
+    {
+      "name": "cross_tenant_employee_isolation",
+      "passed": true,
+      "ms": 10.1
+    }
+  ],
+  "duration_ms": 1261.16,
+  "passed": true,
+  "employee_id": 2,
+  "assignment_id": 2,
+  "attendance_policy_id": 1,
+  "leave_id": 1,
+  "performance_review_id": 1,
+  "qualification_id": 1,
+  "production_contacted": false
+}

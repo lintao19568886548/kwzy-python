@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-14T23:41:39.233239+00:00",
+  "target": "http://127.0.0.1:8010/api/v1",
+  "runtime": {
+    "requests": 1000,
+    "concurrency": 25,
+    "warmup": 40,
+    "endpoints": [
+      "GET /workbench/summary",
+      "GET /workbench/layout",
+      "GET /business-events?page=1&page_size=30",
+      "POST /business-events/dispatch?limit=10",
+      "GET /leases?page=1&page_size=50",
+      "GET /parties?page=1&page_size=50",
+      "GET /enterprise-parties?page=1&page_size=50&sort_by=updated_at&sort_order=desc",
+      "GET /units?page=1&page_size=50",
+      "GET /records?page=1&page_size=50",
+      "GET /record-categories",
+      "GET /seals",
+      "GET /signature-providers"
+    ]
+  },
+  "thresholds": {
+    "max_p95_ms": 500.0,
+    "max_error_rate_percent": 1.0,
+    "min_requests_per_second": 20.0
+  },
+  "aggregate": {
+    "requests": 1000,
+    "failures": 0,
+    "error_rate_percent": 0.0,
+    "elapsed_seconds": 6.868,
+    "requests_per_second": 145.596,
+    "mean_ms": 169.831,
+    "p50_ms": 161.502,
+    "p95_ms": 264.836,
+    "p99_ms": 324.036,
+    "max_ms": 372.069,
+    "by_endpoint": {
+      "GET /business-events?page=1&page_size=30": {
+        "requests": 84,
+        "failures": 0,
+        "p50_ms": 145.949,
+        "p95_ms": 199.867,
+        "p99_ms": 294.351,
+        "max_ms": 304.134
+      },
+      "GET /enterprise-parties?page=1&page_size=50&sort_by=updated_at&sort_order=desc": {
+        "requests": 83,
+        "failures": 0,
+        "p50_ms": 167.877,
+        "p95_ms": 225.52,
+        "p99_ms": 342.918,
+        "max_ms": 355.803
+      },
+      "GET /leases?page=1&page_size=50": {
+        "requests": 83,
+        "failures": 0,
+        "p50_ms": 163.065,
+        "p95_ms": 282.455,
+        "p99_ms": 320.353,
+        "max_ms": 333.783
+      },
+      "GET /parties?page=1&page_size=50": {
+        "requests": 83,
+        "failures": 0,
+        "p50_ms": 161.828,
+        "p95_ms": 217.542,
+        "p99_ms": 325.143,
+        "max_ms": 372.069
+      },
+      "GET /record-categories": {
+        "requests": 83,
+        "failures": 0,
+        "p50_ms": 163.98,
+        "p95_ms": 239.246,
+        "p99_ms": 315.667,
+        "max_ms": 346.992
+      },
+      "GET /records?page=1&page_size=50": {
+        "requests": 83,
+        "failures": 0,
+        "p50_ms": 168.206,
+        "p95_ms": 245.588,
+        "p99_ms": 317.736,
+        "max_ms": 354.412
+      },
+      "GET /seals": {
+        "requests": 83,
+        "failures": 0,
+        "p50_ms": 161.135,
+        "p95_ms": 274.492,
+        "p99_ms": 326.785,
+        "max_ms": 342.174
+      },
+      "GET /signature-providers": {
+        "requests": 83,
+        "failures": 0,
+        "p50_ms": 158.215,
+        "p95_ms": 260.981,
+        "p99_ms": 318.727,
+        "max_ms": 324.008
+      },
+      "GET /units?page=1&page_size=50": {
+        "requests": 83,
+        "failures": 0,
+        "p50_ms": 162.12,
+        "p95_ms": 239.655,
+        "p99_ms": 315.311,
+        "max_ms": 348.064
+      },
+      "GET /workbench/layout": {
+        "requests": 84,
+        "failures": 0,
+        "p50_ms": 170.261,
+        "p95_ms": 274.26,
+        "p99_ms": 312.736,
+        "max_ms": 326.826
+      },
+      "GET /workbench/summary": {
+        "requests": 84,
+        "failures": 0,
+        "p50_ms": 170.288,
+        "p95_ms": 226.225,
+        "p99_ms": 323.524,
+        "max_ms": 327.887
+      },
+      "POST /business-events/dispatch?limit=10": {
+        "requests": 84,
+        "failures": 0,
+        "p50_ms": 146.27,
+        "p95_ms": 198.663,
+        "p99_ms": 299.344,
+        "max_ms": 318.061
+      }
+    },
+    "failure_examples": []
+  },
+  "gate": {
+    "passed": true,
+    "failures": []
+  }
+}

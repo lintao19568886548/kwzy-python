@@ -1,14 +1,14 @@
 # 瞰维智管 V2 独立验收能力矩阵
 
 > 审计日期：2026-08-15（Asia/Shanghai）
-> 最近已完成纵切：档案、电子签章与印章治理；精确提交 `b04d738bc75e865e1c6bfb180e93dc9b95109cf3` 的 36/36 门禁已通过并正常推送。设施设备/巡检/IoT 精确提交 `e28678b5785b7f8bf03141bd7cffbd162932315b` 的证据继续保留。
+> 最近已完成纵切：HR、排班、考勤、绩效与资质；精确提交 `5577509a6ca2a473107038be1316a0ea9252fc8d` 的 37/37 门禁已通过。档案/签章/印章与设施设备/巡检/IoT 的精确证据继续保留。
 > 判定规则：只使用 `IMPLEMENTED_AND_VERIFIED`、`APPROVED_RETIRED`、`APPROVED_DEFERRED`、`BLOCKED`、`MISSING`。子能力通过但组合需求未闭环时，组合项必须判为 `MISSING`；没有人工批准，不使用 retired/deferred。
 
 ## 当前整改纵切
 
 - 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
-- OpenSpec：档案/签章/印章 40/40 任务、11 份主规格已同步并归档为 `2026-08-14-complete-records-signature-seal-governance`；归档后 strict 110/110。设施设备/巡检/IoT 已归档为 `2026-08-14-complete-facility-device-inspection-iot`；`complete-investment-crm-journey` 因任务 5.5 的 `revoked` 与审批 delta 状态定义冲突保持 active、未同步归档。
-- 已关闭证据：档案分类/版本/归档/完整性/保全/借阅/处置，印章台账/保管/用印/职责分离/不可变回执，签章提供方真相/信封/参与人/事件/沙箱投递及 PC 响应式工作区。精确 `b04d738` 的 PG16、366 条后端、61 条全量浏览器、33 个 runtime/YAML 方法对、性能、备份恢复和合成 ETL 36/36 总门禁均通过。
+- OpenSpec：HR change 9.4/10.1 已完成，9 份 delta 待本轮同步归档；档案/签章/印章与设施设备/巡检/IoT 已归档；`complete-investment-crm-journey` 因任务 5.5 的 `revoked` 与审批 delta 状态定义冲突保持 active、未同步归档。
+- 已关闭证据：员工隐私档案、不可变班次版本/排班、考勤/异常调整、原生审批请假、绩效与资质到期闭环及 PC 响应式工作区。精确 `5577509` 的 PG16、380 条后端、62 条全量浏览器、28 个 workforce runtime/YAML 路径、36 阶段真实 HTTP、性能、备份恢复和合成 ETL 的 37/37 总门禁均通过。
 - 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 
 ## 产品能力
@@ -28,7 +28,7 @@
 | 11 | 员工移动端 | 仓库仅有 `apps/api` 和 `apps/web` | 独立应用、现场旅程和设备/离线能力缺失 | `MISSING` |
 | 12 | 租户微信小程序 | 仓库无小程序应用 | 缴费、报修、访客、预约等端到端能力缺失 | `MISSING` |
 | 13 | 档案、签章、印章 | 版本化分类/保管策略、确定性档号、附件版本与服务端哈希、归档/完整性/hold、借阅/处置及统一审批；印章台账/交接/状态历史、精确版本用印、职责分离和不可变幂等回执；无密钥提供方真相、信封/参与人/事件、沙箱投递、live fail-closed 和 Lease 非伪签；PC 桌面/平板/390px、PG16/真实 HTTP/浏览器/并发/合成迁移均通过 | 合法电子签/CA/时间戳/存证和真实印章设备仍 `NOT_CONNECTED`，真实旧档案/二进制迁移未获授权；分别由第 19/20 项保持缺口或阻塞，不伪装成本地产品缺口 | `IMPLEMENTED_AND_VERIFIED` |
-| 14 | HR、排班、考勤、绩效和资质 | 无挂载业务模块 | 全能力缺失 | `MISSING` |
+| 14 | HR、排班、考勤、绩效和资质 | PII 掩码/独立密钥指纹员工档案与身份绑定；不可变班次版本、日期排班和并发/请假冲突；策略/地点引用、幂等打卡、异常汇总/有因调整；原生 Approval 请假；禁止自评的绩效发布/确认；附件证据资质复核/吊销/到期 WorkItem；PC 桌面/平板/390px、PG16/真实 HTTP/浏览器/并发/合成迁移均通过 | 工资核算、真实考勤设备/定位/生物识别和真实旧 HR 数据未获协议、凭据或授权；由第 19/20 项保持缺口或阻塞，不伪装成本地产品缺口 | `IMPLEMENTED_AND_VERIFIED` |
 | 15 | 供应商、采购、库存、领用和外包 | 无挂载业务模块 | 全能力缺失 | `MISSING` |
 | 16 | 政策、园企服务、活动和公告 | 无挂载业务模块 | 全能力缺失 | `MISSING` |
 | 17 | 驾驶舱、指标下钻和多园区比较 | 工作台窄摘要可运行；`analytics` 未挂载 | 深色驾驶舱、指标口径/原单下钻、多园区比较缺失 | `MISSING` |
@@ -36,7 +36,7 @@
 | 19 | 外部平台适配器 | SMS/通知/对象存储/签章有局部 fake/local/fail-closed 端口 | 银行、支付、税票、IoT、企微等多数适配器缺失；已有端口也未真实联调 | `MISSING` |
 | 20 | 数据迁移和切换 Runbook | PG16 合成 dry/apply/中断/幂等/对账/回滚和备份恢复通过 | 缺经授权旧 schema/脱敏快照、增量同步、停写切换与真实对账 | `BLOCKED` |
 
-汇总：`IMPLEMENTED_AND_VERIFIED=11`，`BLOCKED=1`，`MISSING=8`，`APPROVED_RETIRED=0`，`APPROVED_DEFERRED=0`。
+汇总：`IMPLEMENTED_AND_VERIFIED=12`，`BLOCKED=1`，`MISSING=7`，`APPROVED_RETIRED=0`，`APPROVED_DEFERRED=0`。
 
 ## 22 条关键旅程
 
@@ -62,12 +62,12 @@
 | 18 | 驾驶舱指标与原始记录对账 | `MISSING` | 无完整驾驶舱 |
 | 19 | 员工移动端现场任务 | `MISSING` | 应用不存在 |
 | 20 | 租户小程序缴费/报修/访客/预约 | `MISSING` | 应用不存在 |
-| 21 | 越权、跨租户、重复提交、并发冲突 | `IMPLEMENTED_AND_VERIFIED` | 已实现切片的 HTTP/E2E/PG 测试通过；档案纵切新增 tenant/park/父子资源 404 隔离、数据库派生权限、附件同范围/内容哈希、未知字段/重复参数、高风险用印职责分离、命令指纹幂等、事件精确重放、乐观锁和并发唯一获胜；此前设施、工单、财务和 Party 门禁继续有效 |
+| 21 | 越权、跨租户、重复提交、并发冲突 | `IMPLEMENTED_AND_VERIFIED` | 已实现切片的 HTTP/E2E/PG 测试通过；HR 新增数据库派生权限、tenant/park 404、PII/坐标最小化、未知字段/重复参数、打卡与请假幂等、排班/绩效/资质乐观锁及并发唯一获胜；此前档案、设施、工单、财务和 Party 门禁继续有效 |
 | 22 | AI 低风险操作与高风险确认 | `MISSING` | AI 业务层未实现 |
 
 ## 旧系统替代判定
 
-旧证据库 `D:\重构python\kwzg-Java-main` 的静态取证为 54 个 Controller、约 484 个 HTTP mapping、316 个 Vue 文件、30 张 SQL DDL 表。Python 仓库目前仍只有 API 与 PC Web 两个应用，且上表仍有 8 项 `MISSING` 和 1 项 `BLOCKED`，因此：
+旧证据库 `D:\重构python\kwzg-Java-main` 的静态取证为 54 个 Controller、约 484 个 HTTP mapping、316 个 Vue 文件、30 张 SQL DDL 表。Python 仓库目前仍只有 API 与 PC Web 两个应用，且上表仍有 7 项 `MISSING` 和 1 项 `BLOCKED`，因此：
 
 ```text
 KWZY_LEGACY_REPLACEMENT=BLOCKED

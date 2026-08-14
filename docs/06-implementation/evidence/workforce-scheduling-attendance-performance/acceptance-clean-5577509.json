@@ -1,0 +1,293 @@
+{
+  "started_at": "2026-08-15T07:34:32.3293691+08:00",
+  "ended_at": "2026-08-15T07:45:28.9304642+08:00",
+  "duration_ms": 656601,
+  "head": "5577509a6ca2a473107038be1316a0ea9252fc8d",
+  "steps": [
+    {
+      "step": "docker_clean_start",
+      "exit_code": 0,
+      "ms": 1613,
+      "started": "2026-08-15T07:34:33.9700715+08:00",
+      "output_tail": "Container kwzy_party_test_pg Stopping \n Container kwzy_party_test_pg Stopped \n Container kwzy_party_test_pg Removing \n Container kwzy_party_test_pg Removed \n Network kwzy_party_test_net Removing \n Volume kwzy_party_test_pgdata Removing \n Volume kwzy_party_test_pgdata Removed \n Network kwzy_party_test_net Removed \ncleaned"
+    },
+    {
+      "step": "docker_pg_up",
+      "exit_code": 0,
+      "ms": 7120,
+      "started": "2026-08-15T07:34:41.0983956+08:00",
+      "output_tail": "Network kwzy_party_test_net Creating \n Network kwzy_party_test_net Created \n Volume kwzy_party_test_pgdata Creating \n Volume kwzy_party_test_pgdata Created \n Container kwzy_party_test_pg Creating \n Container kwzy_party_test_pg Created \n Container kwzy_party_test_pg Starting \n Container kwzy_party_test_pg Started \nhealthy"
+    },
+    {
+      "step": "alembic_upgrade",
+      "exit_code": 0,
+      "ms": 6978,
+      "started": "2026-08-15T07:34:48.0785809+08:00",
+      "output_tail": "INFO  [alembic.runtime.migration] Running upgrade l8a46b1c3e20 -> m9b57c2d4e31, align timestamp nullability with the ORM contract\nINFO  [alembic.runtime.migration] Running upgrade m9b57c2d4e31 -> n0c68d3e5f42, platform organization governance\nINFO  [alembic.runtime.migration] Running upgrade n0c68d3e5f42 -> o1d79e4f6a53, versioned approval orchestration and tamper-evident audit ledger\nINFO  [alembic.runtime.migration] Running upgrade o1d79e4f6a53 -> p2e80a5b7c64, event-driven configurable workbench automation\nINFO  [alembic.runtime.migration] Running upgrade p2e80a5b7c64 -> q3f91b6c8d75, asset templates, spatial geometry and portfolio views\nINFO  [alembic.runtime.migration] Running upgrade q3f91b6c8d75 -> r4a02c7d9e86, enforce tenant-local asset template references\nINFO  [alembic.runtime.migration] Running upgrade r4a02c7d9e86 -> s5b13d8e0f97, investment crm assignment viewing intent and channel completion\nINFO  [alembic.runtime.migration] Running upgrade s5b13d8e0f97 -> t6c24e9f1a08, governed party enterprise profile and evidence graph\nINFO  [alembic.runtime.migration] Running upgrade t6c24e9f1a08 -> u7d35f0a2b19, receivables matching allocation dunning and adjustment lifecycle\nINFO  [alembic.runtime.migration] Running upgrade u7d35f0a2b19 -> v8e46a1b3c20, add approval-gated receivable dispute resolution type\nINFO  [alembic.runtime.migration] Running upgrade v8e46a1b3c20 -> w9f57b2c4d31, enforce tenant-consistent foreign keys for finance records\nINFO  [alembic.runtime.migration] Running upgrade w9f57b2c4d31 -> x0a68c3d5e42, tenant service work-order quotation acceptance lifecycle\nINFO  [alembic.runtime.migration] Running upgrade x0a68c3d5e42 -> y1b79d4e6f53, harden work-order tenant and park references\nINFO  [alembic.runtime.migration] Running upgrade y1b79d4e6f53 -> z2c80e5f6a64, facility device inspection iot lifecycle\nINFO  [alembic.runtime.migration] Running upgrade z2c80e5f6a64 -> a3d91f6a7b75, records signature seal governance\nINFO  [alembic.runtime.migration] Running upgrade a3d91f6a7b75 -> b4ea2c7d8f86, Harden seal-use execution separation and idempotency.\nINFO  [alembic.runtime.migration] Running upgrade b4ea2c7d8f86 -> c5f02d8e9c87, workforce scheduling attendance performance qualification\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nALEMBIC_UNIQUE_CURRENT_HEAD=PASS revision=c5f02d8e9c87"
+    },
+    {
+      "step": "alembic_down_up",
+      "exit_code": 0,
+      "ms": 4860,
+      "started": "2026-08-15T07:34:52.9400612+08:00",
+      "output_tail": "INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nINFO  [alembic.runtime.migration] Running downgrade c5f02d8e9c87 -> b4ea2c7d8f86, workforce scheduling attendance performance qualification\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade b4ea2c7d8f86 -> c5f02d8e9c87, workforce scheduling attendance performance qualification\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nALEMBIC_UNIQUE_CURRENT_HEAD=PASS revision=c5f02d8e9c87"
+    },
+    {
+      "step": "backend_ruff_error_rules",
+      "exit_code": 0,
+      "ms": 225,
+      "started": "2026-08-15T07:34:53.1661257+08:00",
+      "output_tail": "All checks passed!"
+    },
+    {
+      "step": "pytest_non_pg_and_pg",
+      "exit_code": 0,
+      "ms": 215595,
+      "started": "2026-08-15T07:38:28.7622827+08:00",
+      "output_tail": "\ntests/test_investment_completion.py::test_rule_viewing_intent_approval_and_lock_journey\ntests/test_investment_completion.py::test_rule_viewing_intent_approval_and_lock_journey\ntests/test_investment_completion.py::test_completion_routes_fail_closed_for_permission_park_tenant_and_pollution\n  D:\\重构python\\kwzy-python\\apps\\api\\app\\modules\\investment\\domain\\rules.py:202: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n    if snapshot.valid_until > datetime.utcnow() + timedelta(days=365):\n\ntests/test_main_chain_e2e.py::test_main_chain_happy_path\ntests/test_work_item_api.py::test_lease_activate_opens_and_exit_closes_expiring_todo\ntests/test_workbench_automation_api.py::test_layout_resolution_validation_and_optimistic_conflict\ntests/test_workbench_automation_api.py::test_layout_resolution_validation_and_optimistic_conflict\ntests/test_workbench_automation_api.py::test_layout_resolution_validation_and_optimistic_conflict\ntests/test_workbench_automation_api.py::test_layout_resolution_validation_and_optimistic_conflict\ntests/test_workbench_automation_postgres.py::test_pg_schedule_run_and_layout_versions_have_one_winner\ntests/test_workbench_automation_postgres.py::test_pg_schedule_run_and_layout_versions_have_one_winner\n  D:\\重构python\\kwzy-python\\apps\\api\\app\\modules\\workbench\\application\\summary_service.py:43: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n    now = datetime.utcnow()\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n380 passed, 370 warnings in 205.41s (0:03:25)"
+    },
+    {
+      "step": "workbench_worker_once",
+      "exit_code": 0,
+      "ms": 1850,
+      "started": "2026-08-15T07:38:30.6132998+08:00",
+      "output_tail": "2026-08-15 07:38:30,244 INFO __main__ workbench worker cycle outcome={'tenants': 15, 'dispatched': 0, 'scheduled': 0, 'recovered': 0, 'failed_tenants': 0, 'tenant_results': {'1': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '2': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '3': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '4': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '5': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '6': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '7': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '8': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '9': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '10': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '11': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '12': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '13': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '14': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '15': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}}}"
+    },
+    {
+      "step": "facility_ops_worker_once",
+      "exit_code": 0,
+      "ms": 2226,
+      "started": "2026-08-15T07:38:32.8408335+08:00",
+      "output_tail": "2026-08-15 07:38:32,469 INFO __main__ facility worker cycle outcome={'tenants': 15, 'generated': 0, 'existing': 3, 'missed': 0, 'escalated': 0, 'failed_tenants': 0, 'tenant_results': {'1': {'generated': 0, 'existing': 3, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '2': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '3': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '4': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '5': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '6': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '7': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '8': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '9': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '10': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '11': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '12': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '13': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '14': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '15': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}}}"
+    },
+    {
+      "step": "etl_fast",
+      "exit_code": 0,
+      "ms": 16313,
+      "started": "2026-08-15T07:38:49.1554570+08:00",
+      "output_tail": "ETL_DRILL_REPORT_JSON=D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\etl_fast\\drill_fast.json\nETL_DRILL_REPORT_MD=D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\etl_fast\\drill_fast.md\nETL_DRILL=PASS"
+    },
+    {
+      "step": "etl_acceptance",
+      "exit_code": 0,
+      "ms": 146448,
+      "started": "2026-08-15T07:41:15.6050381+08:00",
+      "output_tail": "ETL_DRILL_REPORT_JSON=D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\etl_acceptance\\drill_acceptance.json\nETL_DRILL_REPORT_MD=D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\etl_acceptance\\drill_acceptance.md\nETL_DRILL=PASS"
+    },
+    {
+      "step": "identity_etl_acceptance",
+      "exit_code": 0,
+      "ms": 549,
+      "started": "2026-08-15T07:41:16.1550633+08:00",
+      "output_tail": "IDENTITY_ETL_REPORT=D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\identity_etl\\identity_etl.json\nIDENTITY_ETL_DRILL=PASS"
+    },
+    {
+      "step": "asset_etl_acceptance",
+      "exit_code": 0,
+      "ms": 582,
+      "started": "2026-08-15T07:41:16.7381204+08:00",
+      "output_tail": "ASSET_ETL_REPORT=D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\asset_etl\\asset_etl.json\nASSET_ETL_DRILL=PASS"
+    },
+    {
+      "step": "asset_portfolio_etl_acceptance",
+      "exit_code": 0,
+      "ms": 593,
+      "started": "2026-08-15T07:41:17.3322903+08:00",
+      "output_tail": "ASSET_PORTFOLIO_ETL_REPORT=D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\asset_portfolio_etl\\asset-portfolio-etl.json\nASSET_PORTFOLIO_ETL_DRILL=PASS"
+    },
+    {
+      "step": "crm_etl_acceptance",
+      "exit_code": 0,
+      "ms": 670,
+      "started": "2026-08-15T07:41:18.0034663+08:00",
+      "output_tail": "CRM_ETL_REPORT=D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\crm_etl\\crm_etl.json\nCRM_ETL_DRILL=PASS\nKWZY_DATA_MIGRATION_READINESS=CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA"
+    },
+    {
+      "step": "contract_etl_acceptance",
+      "exit_code": 0,
+      "ms": 599,
+      "started": "2026-08-15T07:41:18.6037102+08:00",
+      "output_tail": "CONTRACT_ETL_REPORT=D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\contract_etl\\contract_etl.json\nCONTRACT_ETL_DRILL=PASS\nCONTRACT_ETL_READINESS=CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA"
+    },
+    {
+      "step": "organization_governance_etl_acceptance",
+      "exit_code": 0,
+      "ms": 540,
+      "started": "2026-08-15T07:41:19.1443748+08:00",
+      "output_tail": "ORGANIZATION_GOVERNANCE_ETL_REPORT=D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\organization_governance_etl\\organization_governance_etl.json\nORGANIZATION_GOVERNANCE_ETL_DRILL=PASS"
+    },
+    {
+      "step": "approval_audit_etl_acceptance",
+      "exit_code": 0,
+      "ms": 576,
+      "started": "2026-08-15T07:41:19.7215201+08:00",
+      "output_tail": "APPROVAL_AUDIT_ETL_REPORT=D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\approval_audit_etl\\approval_audit_etl.json\nAPPROVAL_AUDIT_ETL_DRILL=PASS"
+    },
+    {
+      "step": "workbench_automation_etl_acceptance",
+      "exit_code": 0,
+      "ms": 548,
+      "started": "2026-08-15T07:41:20.2708100+08:00",
+      "output_tail": "WORKBENCH_AUTOMATION_ETL_REPORT=D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\workbench_automation_etl\\workbench-automation-etl.json\nWORKBENCH_AUTOMATION_ETL_DRILL=PASS"
+    },
+    {
+      "step": "party_enterprise_etl_acceptance",
+      "exit_code": 0,
+      "ms": 568,
+      "started": "2026-08-15T07:41:20.8394316+08:00",
+      "output_tail": "      \"raw_identifier_columns\": 0,\n      \"provider_status_errors\": 0,\n      \"quarantine_reasons\": {\n        \"PERSONAL_IDENTITY_FORBIDDEN\": 1,\n        \"ORPHAN_ENTERPRISE_REFERENCE\": 1\n      }\n    },\n    \"rollback\": {\n      \"passed\": true,\n      \"schema_exists_after\": false,\n      \"authorization_rows_unchanged\": true\n    }\n  },\n  \"blockers\": [\n    \"real legacy schema/dictionary and authorized desensitized snapshot not supplied\",\n    \"external enterprise-registry credentials and contract not supplied\",\n    \"production migration/cutover not authorized\"\n  ],\n  \"passed\": true\n}"
+    },
+    {
+      "step": "receivables_etl_acceptance",
+      "exit_code": 0,
+      "ms": 721,
+      "started": "2026-08-15T07:41:21.5612122+08:00",
+      "output_tail": "      \"orphan_rows\": 0,\n      \"unmasked_account_rows\": 0,\n      \"false_external_deliveries\": 0,\n      \"quarantine_reasons\": {\n        \"FINANCE_SOURCE_LINK_MISSING\": 1\n      }\n    },\n    \"rollback\": {\n      \"passed\": true,\n      \"schema_exists_after\": false,\n      \"authorization_rows_unchanged\": true\n    }\n  },\n  \"blockers\": [\n    \"authorized legacy amount_bill/receipt/finance schema dump not supplied\",\n    \"desensitized production-like finance snapshot and key maps not supplied\",\n    \"bank/payment provider settlement files and contracts not supplied\",\n    \"production freeze, backup, cutover and rollback are not authorized\"\n  ]\n}"
+    },
+    {
+      "step": "work_order_etl_acceptance",
+      "exit_code": 0,
+      "ms": 556,
+      "started": "2026-08-15T07:41:22.1187499+08:00",
+      "output_tail": "        \"UNKNOWN_STATUS\": 1\n      },\n      \"fabricated_quotes\": 0,\n      \"fabricated_ratings\": 0,\n      \"fabricated_provider_deliveries\": 0\n    },\n    \"rollback\": {\n      \"passed\": true,\n      \"schema_exists_after\": false,\n      \"authorization_rows_unchanged\": true\n    }\n  },\n  \"blockers\": [\n    \"authorized legacy repair_order schema dump and status dictionary not supplied\",\n    \"desensitized production-like repair-order snapshot not supplied\",\n    \"park/party/user/unit key maps not supplied\",\n    \"legacy attachment object inventory and checksums not supplied\",\n    \"production freeze, backup, cutover and rollback are not authorized\"\n  ]\n}"
+    },
+    {
+      "step": "facility_device_etl_acceptance",
+      "exit_code": 0,
+      "ms": 569,
+      "started": "2026-08-15T07:41:22.6892584+08:00",
+      "output_tail": "        \"UNKNOWN_DEVICE_TYPE\": 1\n      },\n      \"fabricated_inspection_schedules\": 0,\n      \"fabricated_iot_bindings\": 0,\n      \"fabricated_iot_alarms\": 0\n    },\n    \"rollback\": {\n      \"passed\": true,\n      \"schema_exists_after\": false,\n      \"authorization_rows_unchanged\": true\n    }\n  },\n  \"blockers\": [\n    \"authorized legacy firefighting/elevator/transformer/factory_maint schema dump not supplied\",\n    \"desensitized production-like facility snapshot and dictionaries not supplied\",\n    \"park/unit/device key maps and duplicate-resolution decisions not supplied\",\n    \"real IoT provider credentials, protocol and event samples not supplied\",\n    \"production freeze, backup, cutover and rollback are not authorized\"\n  ]\n}"
+    },
+    {
+      "step": "records_seal_etl_acceptance",
+      "exit_code": 0,
+      "ms": 591,
+      "started": "2026-08-15T07:41:23.2812478+08:00",
+      "output_tail": "      \"fabricated_seals\": 0,\n      \"fabricated_custody_events\": 0,\n      \"fabricated_signature_providers\": 0,\n      \"fabricated_signature_events\": 0\n    },\n    \"rollback\": {\n      \"passed\": true,\n      \"schema_exists_after\": false,\n      \"authorization_rows_unchanged\": true\n    }\n  },\n  \"blockers\": [\n    \"authorized legacy attachment/document schema dump and retention dictionaries not supplied\",\n    \"desensitized metadata plus binary inventory and SHA-256 manifest not supplied\",\n    \"tenant/park/category/owner/source key maps and duplicate decisions not supplied\",\n    \"legacy seal registry and custody aggregate was not found in available evidence\",\n    \"real signature provider certificate, signed evidence and callback events not supplied\",\n    \"production freeze, backup, cutover, storage deletion and rollback are not authorized\"\n  ]\n}"
+    },
+    {
+      "step": "workforce_etl_acceptance",
+      "exit_code": 0,
+      "ms": 601,
+      "started": "2026-08-15T07:41:23.8831455+08:00",
+      "output_tail": "      \"fabricated_performance_records\": 0,\n      \"fabricated_qualifications\": 0,\n      \"payroll_results_generated\": 0\n    },\n    \"rollback\": {\n      \"passed\": true,\n      \"schema_exists_after\": false,\n      \"authorization_rows_unchanged\": true\n    }\n  },\n  \"blockers\": [\n    \"authorized legacy HR schema dump and row-count watermarks not supplied\",\n    \"desensitized employee/attendance/leave snapshot and park/user key maps not supplied\",\n    \"native approval evidence for legacy approved leave not supplied\",\n    \"no authoritative legacy performance or qualification aggregate supplied\",\n    \"production cutover and irreversible data-change authorization not granted\"\n  ],\n  \"production_contacted\": false,\n  \"production_authorized\": false\n}"
+    },
+    {
+      "step": "http_performance_seed",
+      "exit_code": 0,
+      "ms": 3283,
+      "started": "2026-08-15T07:41:27.1673092+08:00",
+      "output_tail": "E2E_SEED=OK tenant=default park_id=47 admin=admin e2e_limited=e2e_limited e2e_workbench_viewer=e2e_workbench_viewer e2e_asset_viewer=e2e_asset_viewer e2e_crm_viewer=e2e_crm_viewer e2e_lease_viewer=e2e_lease_viewer e2e_lease_submitter=e2e_lease_submitter tenant_b=admin_b"
+    },
+    {
+      "step": "http_performance_gate",
+      "exit_code": 0,
+      "ms": 25495,
+      "started": "2026-08-15T07:41:52.6635949+08:00",
+      "output_tail": "      \"ms\": 11.24\n    },\n    {\n      \"name\": \"login_other_tenant\",\n      \"passed\": true,\n      \"ms\": 193.91\n    },\n    {\n      \"name\": \"cross_tenant_record_isolation\",\n      \"passed\": true,\n      \"ms\": 23.23\n    }\n  ],\n  \"duration_ms\": 900.5,\n  \"passed\": true,\n  \"external_signature_status\": \"NOT_CONNECTED\",\n  \"production_contacted\": false\n}\nWORKFORCE_HTTP_REPORT=D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\performance\\workforce-http-journey.json\nWORKFORCE_REAL_HTTP=PASS stages=36"
+    },
+    {
+      "step": "backup_restore",
+      "exit_code": 0,
+      "ms": 6196,
+      "started": "2026-08-15T07:41:58.8614743+08:00",
+      "output_tail": "NOTICE:  database \"kwzy_restore_check\" does not exist, skipping\nDROP DATABASE\nCREATE DATABASE\nDROP DATABASE\nBACKUP_RESTORE=PASS dump_bytes=1697402 restored_tables=162"
+    },
+    {
+      "step": "frontend_lint",
+      "exit_code": 0,
+      "ms": 2499,
+      "started": "2026-08-15T07:42:01.3615581+08:00",
+      "output_tail": "> kwzy-web@0.2.0 lint\n> eslint \"src/**/*.{ts,vue}\" --max-warnings 0"
+    },
+    {
+      "step": "frontend_typecheck",
+      "exit_code": 0,
+      "ms": 4118,
+      "started": "2026-08-15T07:42:05.4805786+08:00",
+      "output_tail": "> kwzy-web@0.2.0 typecheck\n> vue-tsc --noEmit"
+    },
+    {
+      "step": "frontend_unit",
+      "exit_code": 0,
+      "ms": 8061,
+      "started": "2026-08-15T07:42:13.5427107+08:00",
+      "output_tail": "> kwzy-web@0.2.0 test:unit\n> vitest run\n\n\n RUN  v4.1.10 D:/重构python/kwzy-python/apps/web\n\n\n Test Files  3 passed (3)\n      Tests  6 passed (6)\n   Start at  07:42:07\n   Duration  6.42s (transform 141ms, setup 0ms, import 782ms, tests 26ms, environment 16.87s)"
+    },
+    {
+      "step": "frontend_build",
+      "exit_code": 0,
+      "ms": 7408,
+      "started": "2026-08-15T07:42:20.9521205+08:00",
+      "output_tail": "> kwzy-web@0.2.0 build\n> vue-tsc --noEmit && vite build\n\nvite v6.4.3 building for production...\ntransforming...\n✓ 150 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.42 kB │ gzip:   0.30 kB\ndist/assets/index-BFCrgHt6.css  118.55 kB │ gzip:  20.28 kB\ndist/assets/index-DCC6a6kQ.js   616.45 kB │ gzip: 175.48 kB\n\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n✓ built in 2.68s"
+    },
+    {
+      "step": "playwright_browser_e2e",
+      "exit_code": 0,
+      "ms": 138905,
+      "started": "2026-08-15T07:44:39.8579887+08:00",
+      "output_tail": "[stack:api.log] INFO:     127.0.0.1:5147 - \"GET /api/v1/workforce/qualifications HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:5150 - \"GET /api/v1/workforce/leaves HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:4932 - \"OPTIONS /api/v1/workforce/qualification-types HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:5150 - \"POST /api/v1/workforce/qualification-types HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:5147 - \"GET /api/v1/workforce/employees?page=1&page_size=200 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:5149 - \"GET /api/v1/workforce/assignments?date_from=2026-08-14&date_to=2026-09-13 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:5151 - \"GET /api/v1/workforce/attendance/locations HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:5150 - \"GET /api/v1/workforce/overview HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:5148 - \"GET /api/v1/workforce/shifts HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:5152 - \"GET /api/v1/workforce/attendance/summaries?date_from=2026-08-14&date_to=2026-08-14 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:5149 - \"GET /api/v1/workforce/performance/cycles HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:5148 - \"GET /api/v1/workforce/qualifications HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:5150 - \"GET /api/v1/workforce/performance/reviews HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:5151 - \"GET /api/v1/workforce/qualification-types HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:5147 - \"GET /api/v1/workforce/leaves HTTP/1.1\" 200 OK\n  ok 62 e2e\\workforce.spec.ts:31:3 › workforce scheduling attendance performance qualification › real workforce UI journey, responsive layout and offline recovery (3.0s)\n[e2e-teardown] cleaning stack…\n[e2e-teardown] done\n\n  62 passed (2.3m)"
+    },
+    {
+      "step": "openapi_strict",
+      "exit_code": 0,
+      "ms": 41507,
+      "started": "2026-08-15T07:45:21.3691518+08:00",
+      "output_tail": "................                                                         [100%]\n============================== warnings summary ===============================\n.venv\\Lib\\site-packages\\fastapi\\testclient.py:1\n  D:\\重构python\\kwzy-python\\apps\\api\\.venv\\Lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n16 passed, 1 warning in 34.70s\nOPENAPI_YAML_STRICT=PASS"
+    },
+    {
+      "step": "openspec_strict",
+      "exit_code": 0,
+      "ms": 1857,
+      "started": "2026-08-15T07:45:23.2272238+08:00",
+      "output_tail": "✓ change/repair-postgres-baseline-boolean-portability\n✓ spec/scheduler-operations\n✓ spec/seal-registry-custody\n✓ spec/seal-use-governance\n✓ spec/secretless-bootstrap\n✓ spec/spatial-hierarchy-management\n✓ spec/step1-db-migration-ops\n✓ spec/tenant-service-api\n✓ spec/tenant-service-data-migration\n✓ spec/tenant-service-intake\n✓ spec/tenant-service-pc\n✓ spec/unit-opportunity-locking\n✓ spec/work-order-acceptance-rating\n✓ spec/work-order-dispatch-sla\n✓ spec/work-order-fulfillment\n✓ spec/work-order-quotation\n✓ spec/workbench-automation-migration\n✓ spec/workbench-layout-pc\n✓ spec/workbench-ops\nTotals: 111 passed, 0 failed (111 items)"
+    },
+    {
+      "step": "secrets_scan",
+      "exit_code": 0,
+      "ms": 2952,
+      "started": "2026-08-15T07:45:26.1801226+08:00",
+      "output_tail": "SECRETS_SCAN=PASS files_scanned=1091"
+    },
+    {
+      "step": "git_diff_check",
+      "exit_code": 0,
+      "ms": 223,
+      "started": "2026-08-15T07:45:26.4042798+08:00",
+      "output_tail": ""
+    },
+    {
+      "step": "cleanup_test_resources",
+      "exit_code": 0,
+      "ms": 2525,
+      "started": "2026-08-15T07:45:28.9301264+08:00",
+      "output_tail": "Container kwzy_party_test_pg Stopping \n Container kwzy_party_test_pg Stopped \n Container kwzy_party_test_pg Removing \n Container kwzy_party_test_pg Removed \n Volume kwzy_party_test_pgdata Removing \n Network kwzy_party_test_net Removing \n Volume kwzy_party_test_pgdata Removed \n Network kwzy_party_test_net Removed \nCLEANUP=PASS"
+    }
+  ],
+  "playwright_report": "D:\\重构python\\kwzy-python\\apps\\web\\playwright-report",
+  "test_results": "D:\\重构python\\kwzy-python\\apps\\web\\test-results",
+  "etl_fast": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\etl_fast",
+  "etl_acceptance": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\etl_acceptance",
+  "identity_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\identity_etl\\identity_etl.json",
+  "asset_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\asset_etl\\asset_etl.json",
+  "asset_portfolio_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\asset_portfolio_etl\\asset-portfolio-etl.json",
+  "crm_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\crm_etl\\crm_etl.json",
+  "contract_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\contract_etl\\contract_etl.json",
+  "organization_governance_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\organization_governance_etl\\organization_governance_etl.json",
+  "approval_audit_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\approval_audit_etl\\approval_audit_etl.json",
+  "workbench_automation_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\workbench_automation_etl\\workbench-automation-etl.json",
+  "party_enterprise_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\party_enterprise_etl\\party-enterprise-etl.json",
+  "receivables_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\receivables_etl\\receivables-etl.json",
+  "work_order_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\work_order_etl\\work-order-etl.json",
+  "facility_device_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\facility_device_etl\\facility-device-etl.json",
+  "records_seal_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\records_seal_etl\\records-seal-etl.json",
+  "workforce_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\workforce_etl\\workforce-etl.json",
+  "http_performance": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\performance\\http-performance.json",
+  "approval_audit_http": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\performance\\approval-audit-http-journey.json",
+  "workbench_automation_http": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\performance\\workbench-automation-http-journey.json",
+  "asset_portfolio_http": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\performance\\asset-portfolio-http-journey.json",
+  "party_enterprise_http": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\performance\\party-enterprise-http-journey.json",
+  "records_seal_http": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\performance\\records-seal-http-journey.json",
+  "workforce_http": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\performance\\workforce-http-journey.json",
+  "backup": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\backup"
+}

@@ -7,15 +7,21 @@
 | 更新时间 | 2026-08-15（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | `b04d738bc75e865e1c6bfb180e93dc9b95109cf3`：档案/签章/印章 36/36 精确提交全验收，366 后端、61 浏览器、前端四门禁、OpenAPI/OpenSpec、1000/25 性能、备份恢复和合成迁移通过 |
-| 远程同步 | 实现、修复与初版证据至 `b04d738bc75e865e1c6bfb180e93dc9b95109cf3` 已正常推送到 `origin/feat/full-rebuild-completion`；未 force、未触达 main |
-| 工作树 | 本轮档案证据、总控文档和 OpenSpec 收尾待提交；24 张其他纵切被全量 Playwright 重生成的视觉证据保持未暂存，不得删除、还原或混入本轮提交 |
-| Alembic | 唯一 head `b4ea2c7d8f86`；PG16 fresh head、`current == heads`、`b4→a3→b4`、146 表备份删除恢复通过；既有已应用 `a3d91f6a7b75` 未修改，硬化使用前向 `b4` |
-| 当前阶段 | 独立验收为 11 implemented / 1 blocked / 8 missing；组合能力 1–10、13 已关闭本地产品范围，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | 档案/签章/印章 40/40，11 份主规格已同步并归档为 `2026-08-14-complete-records-signature-seal-governance`，归档后 strict 110/110。CRM `revoked` 语义冲突仍保持 active |
+| 已验证 HEAD | `5577509a6ca2a473107038be1316a0ea9252fc8d`：HR/排班/考勤/绩效/资质 37/37 精确提交全验收，380 后端、62 浏览器、前端四门禁、36 阶段真实 HTTP、OpenAPI/OpenSpec、1000/25 性能、备份恢复和合成迁移通过 |
+| 远程同步 | 远端至档案证据 `b04d738bc75e865e1c6bfb180e93dc9b95109cf3`；HR 实现 `370c7f8` 与验收工具 `5577509` 本地领先、待证据提交后正常推送；未 force、未触达 main |
+| 工作树 | 本轮只允许提交 HR 三张新视觉证据、机器报告、总控文档和 OpenSpec 收尾；全量 Playwright 重生成的其他纵切 27 张截图保持未暂存，不得删除、还原或混入本轮提交 |
+| Alembic | 唯一 head `c5f02d8e9c87`；PG16 fresh head、`current == heads`、`c5→b4→c5`、162 表备份删除恢复通过；既有已应用 `b4ea2c7d8f86` 未修改，HR 使用单一前向 `c5` |
+| 当前阶段 | 独立验收为 12 implemented / 1 blocked / 7 missing；组合能力 1–10、13–14 已关闭本地产品范围，完整项目仍 `CONDITIONAL/BLOCKED` |
+| 当前 OpenSpec | HR 9.4/10.1 已完成，9 份 delta 待本轮同步归档；档案/签章/印章已归档。CRM `revoked` 语义冲突仍保持 active |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
+
+- [x] 独立取证旧 HR Java/前端与数据库证据，明确轨迹、固定办公点、工资摘要、绩效/资质旧聚合和真实设备协议的证据边界，没有把旧 CRUD 或页面按钮当完整业务。
+- [x] 新增单一前向 `c5f02d8e9c87` 与 16 张 workforce 表，完成 PII 最小化员工档案、身份绑定、不变班次版本/排班、考勤策略/地点引用、打卡/汇总/调整和请假原生 Approval。
+- [x] 完成绩效周期/权重目标/禁止自评/发布确认、附件证据化资质/复核/吊销/到期 WorkItem；真实设备、工资核算和无权威旧聚合均不伪造。
+- [x] 重建 PC 五页签 HR 工作区，覆盖桌面、820px 平板、390px 离线/重试；修复窄屏当前导航不可见，三张截图逐张人工复核。
+- [x] 精确 `5577509` 全门禁 37/37：PG16 fresh/down-up/唯一 head，380 pytest，62 Playwright，前端 lint/typecheck/6 Vitest/build，16 OpenAPI+YAML strict，111 OpenSpec，36 阶段 HR 真实 HTTP，1000/25 p95 264.836 ms/145.596 RPS/0 错误，1,697,402 bytes/162 表备份恢复，1,091 文件 secrets scan；合成 ETL 中断零残留、重跑零新增、对账/回滚通过且不伪造绩效/资质/工资。
 
 - [x] 独立取证蓝图、旧 Java/前端/DDL 与现有附件/合同文档，确认旧证据没有可证明的档案、印章或合法电子签聚合，未把旧按钮和 fake `SIGNED` 当业务事实。
 - [x] 新增 `a3d91f6a7b75` 与前向硬化 `b4ea2c7d8f86`，完成 16 张档案/保全/借阅/处置/印章/签章表、复合租户/园区外键和唯一/检查/索引约束；已应用 a3 未被修改。
@@ -132,7 +138,11 @@
 - [x] 将已落地基础合同 5 份 delta 同步主规格并归档 `2026-08-13-implement-lease-contract`，消除合同 V2 增量基线缺口。
 - [x] 完成 `implement-contract-lifecycle-v2` proposal/design、10 份 delta specs 和 102 项任务；change strict 与全量 OpenSpec 49/49 PASS。
 
-## 最新机器证据（档案/签章/印章精确 SHA）
+## 最新机器证据（HR/排班/考勤/绩效/资质精确 SHA）
+
+版本化报告 `docs/06-implementation/evidence/workforce-scheduling-attendance-performance/acceptance-clean-5577509.json` 精确对应 `5577509a6ca2a473107038be1316a0ea9252fc8d`：37/37 步、656,601 ms、0 failed；PG16 唯一 head `c5f02d8e9c87`、380 pytest、62 Playwright、28 个 workforce 路径、前端四门禁、36/36 真实 HTTP、1000/25 p95 264.836 ms/145.596 RPS/0 错误、HR 合成 ETL、1,697,402 bytes/162 表备份恢复、111 OpenSpec 和 1,091 文件 secrets scan 通过。
+
+## 历史机器证据（档案/签章/印章精确 SHA）
 
 版本化报告 `docs/06-implementation/evidence/records-signature-seal-governance/acceptance-clean-b04d738.json` 精确对应 `b04d738bc75e865e1c6bfb180e93dc9b95109cf3`：36/36 步、609,589 ms、0 failed；PG16 唯一 head `b4ea2c7d8f86`、366 pytest、61 Playwright、33 个 runtime/YAML 方法、前端四门禁、21/21 真实 HTTP、1000/25 p95 240.541 ms/146.259 RPS/0 错误、档案合成 ETL、1,595,978 bytes/146 表备份恢复、102 OpenSpec 和 1,041 文件 secrets scan 通过。
 
@@ -187,14 +197,14 @@
 - `apps/tenant-miniprogram` 不存在；租户微信小程序未实现。
 - `analytics`、`ai_assist`、旧 `tenant_ops` 仍是未挂载的空响应或 stub，不能计为驾驶舱、AI 或旧模块完成；租户服务已由受控 `facility_ops` 纵切闭合，但员工移动端、租户小程序和外部通知/对象存储仍未完成。
 - 资产模板与组合租控本地产品范围已闭合；集团/区域/园区归属治理已闭合；商业 GIS/CAD/BIM 和真实旧坐标迁移未获合同/数据，保持 NOT_CONNECTED/BLOCKED_EXTERNAL。
-- CRM/锁房、合同 V2、Party 企业画像、应收、工单、设施/巡检/IoT 及档案/签章/印章本地产品范围已形成代码和机器证据；外部工商/银行/支付/IoT/合法电子签提供商、真实外部渠道、企微回调/自动触达、AI 评分、HR/供应链、完整驾驶舱和真实旧数据迁移仍未完成。
+- CRM/锁房、合同 V2、Party 企业画像、应收、工单、设施/巡检/IoT、档案/签章/印章及 HR 本地产品范围已形成代码和机器证据；外部工商/银行/支付/IoT/合法电子签/考勤设备提供商、真实外部渠道、企微回调/自动触达、AI 评分、供应链、完整驾驶舱和真实旧数据迁移仍未完成。
 - 外部短信/微信/邮件/OSS/支付/签章/发票/IoT 无真实凭据，生产联调均 `NOT_LIVE`。
 - ETL 只验证合成 fixture；缺少经授权的脱敏旧库快照、字段闭合签字和新旧结果对账。
 - 无登记的远程预发环境；性能基线、容灾/监控/告警和生产 Runbook 尚未完成。
 
 ## 下一恢复点
 
-1. 从能力矩阵第 14 项 HR、排班、考勤、绩效和资质进入下一纵切，继续关闭剩余 8 个 `MISSING`。
+1. 从能力矩阵第 15 项供应商、采购、库存、领用和外包进入下一纵切，继续关闭剩余 7 个 `MISSING`。
 2. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 
 ## 不可变安全约束
