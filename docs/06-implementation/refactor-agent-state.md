@@ -12,7 +12,7 @@
 | 工作树 | 本轮档案证据、总控文档和 OpenSpec 收尾待提交；24 张其他纵切被全量 Playwright 重生成的视觉证据保持未暂存，不得删除、还原或混入本轮提交 |
 | Alembic | 唯一 head `b4ea2c7d8f86`；PG16 fresh head、`current == heads`、`b4→a3→b4`、146 表备份删除恢复通过；既有已应用 `a3d91f6a7b75` 未修改，硬化使用前向 `b4` |
 | 当前阶段 | 独立验收为 11 implemented / 1 blocked / 8 missing；组合能力 1–10、13 已关闭本地产品范围，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | 档案/签章/印章 41/41，11 份 delta 待本轮证据提交后同步归档；精确实现 strict 102/102。CRM `revoked` 语义冲突仍保持 active |
+| 当前 OpenSpec | 档案/签章/印章 40/40，11 份主规格已同步并归档为 `2026-08-14-complete-records-signature-seal-governance`，归档后 strict 110/110。CRM `revoked` 语义冲突仍保持 active |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -194,9 +194,8 @@
 
 ## 下一恢复点
 
-1. 提交档案/签章/印章证据与总控文档，正常推送后同步 11 份主规格并归档。
-2. 从能力矩阵第 14 项 HR、排班、考勤、绩效和资质进入下一纵切，继续关闭剩余 8 个 `MISSING`。
-3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
+1. 从能力矩阵第 14 项 HR、排班、考勤、绩效和资质进入下一纵切，继续关闭剩余 8 个 `MISSING`。
+2. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 
 ## 不可变安全约束
 

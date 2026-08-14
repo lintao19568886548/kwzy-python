@@ -13,7 +13,7 @@
 
 本轮新增前向迁移 `a3d91f6a7b75`，并在其已应用后使用 `b4ea2c7d8f86` 前向硬化，没有修改历史。PostgreSQL 16 fresh base→head、唯一 `current == heads`、b4→a3→b4、metadata、复合租户/园区外键、唯一/检查/索引、档号/处置/用印并发和幂等均通过。安全审查关闭了高风险用印申请人/最终审批人/执行人未分离、执行幂等键未绑定完整命令、沙箱 Lease 伪造法律 `SIGNED` 与附件完整性边界；显式 override 必须有独立权限和审计原因。
 
-精确提交 `b04d738` 全量脚本 36/36 步 exit 0、609,589 ms：366 pytest（188.68 s）、15 租户 worker零失败、全部合成 ETL、21/21 档案真实 HTTP、1000 请求/并发 25 性能 p95 240.541 ms、146.259 RPS、0 错误、1,595,978 bytes/146 表备份删除恢复、前端 ESLint/vue-tsc/6 Vitest/147 modules production build、61 Playwright、15 OpenAPI 契约及 YAML strict、OpenSpec strict 102/102、1,041 文件 secrets scan 和资源清理全部通过。档案/印章/签章 runtime/YAML 33 个方法精确一致；机器报告为 `evidence/records-signature-seal-governance/acceptance-clean-b04d738.json`。
+精确提交 `b04d738` 全量脚本 36/36 步 exit 0、609,589 ms：366 pytest（188.68 s）、15 租户 worker 零失败、全部合成 ETL、21/21 档案真实 HTTP、1000 请求/并发 25 性能 p95 240.541 ms、146.259 RPS、0 错误、1,595,978 bytes/146 表备份删除恢复、前端 ESLint/vue-tsc/6 Vitest/147 modules production build、61 Playwright、15 OpenAPI 契约及 YAML strict、OpenSpec strict 102/102、1,041 文件 secrets scan 和资源清理全部通过。档案/印章/签章 runtime/YAML 33 个方法精确一致；机器报告为 `evidence/records-signature-seal-governance/acceptance-clean-b04d738.json`。40/40 任务、11 份主规格同步并归档为 `2026-08-14-complete-records-signature-seal-governance`，归档后 strict 110/110。
 
 全量浏览器先后真实暴露并关闭两个 P1：共享库多 DRAFT 信封让全局“发送”定位歧义，改为精确信封行；Party 企业画像在列表刷新前提前提示成功，紧接着提交关系因共享 `saving` 状态静默丢失，成功提示改到 `await load()` 后。其后视觉复核又关闭 390px 页签/六列表格依赖横向滚动的问题：页签三等分，档案/信封表改为字段完整卡片，并加入边界断言。三张人工截图覆盖桌面/平板签章真相和 390px 档案离线重试，无假数据、乱码、遮挡或横向溢出。
 
@@ -136,7 +136,7 @@ pwsh -NoProfile -File infra/local-staging/run_full_acceptance.ps1
 
 ## 4. 测试和耗时
 
-当前档案精确 SHA `b04d738` 全量验收为 36/36 步、366 pytest、61 条 Playwright、3 文件/6 Vitest、147 modules production build、15 条 OpenAPI 契约及 YAML strict、OpenSpec strict 102/102、1,041 文件 secrets scan 0 hits，耗时 609,589 ms。档案 21/21 真实 HTTP、PG 并发与职责分离/幂等回归通过；归档前 41/41 任务。下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
+当前档案精确 SHA `b04d738` 全量验收为 36/36 步、366 pytest、61 条 Playwright、3 文件/6 Vitest、147 modules production build、15 条 OpenAPI 契约及 YAML strict、OpenSpec strict 102/102、1,041 文件 secrets scan 0 hits，耗时 609,589 ms。档案 21/21 真实 HTTP、PG 并发与职责分离/幂等回归通过；40/40 任务、11 份主规格同步归档，归档后 strict 110/110。下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
 
 精确实现 SHA `a9267d4` 的完整脚本从 11:33:05 到 11:38:53，总耗时 348,122 ms，24/24 步 exit 0。
 

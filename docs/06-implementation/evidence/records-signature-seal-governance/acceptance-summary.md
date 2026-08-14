@@ -26,7 +26,7 @@
 | 前端 | ESLint 0 warning；vue-tsc 通过；3 文件/6 Vitest；147 modules production build；仅有非阻塞 586.57 kB chunk 提示 |
 | 浏览器 | 61 Playwright / 0 failed / 0 skipped；真实 PG16 + FastAPI + production Vite；全角色/响应式真栈通过 |
 | OpenAPI | 15/15 契约测试及 YAML OpenAPI 3.1 strict；档案/印章/签章 runtime/YAML 33 个方法精确一致 |
-| OpenSpec | 精确实现提交 strict 102/102；归档前 41/41 任务（同步归档结果见总状态文档） |
+| OpenSpec | 精确实现提交 strict 102/102；40/40 任务、11 份主规格同步并归档为 `2026-08-14-complete-records-signature-seal-governance`；归档后 strict 110/110 |
 | 性能 | 登录后 1000 请求、并发 25、预热 40；p95 240.541 ms、146.259 RPS、0% 错误 |
 | 合成迁移 | 2 分类、2 档案、2 版本、2 隔离；dry/interruption/apply/reapply/reconcile/rollback 全部通过；伪造印章、保管、提供方和事件均为 0 |
 | 档案真实 HTTP | 21/21 阶段通过，926.41 ms；外部签章 `NOT_CONNECTED`；`production_contacted=false` |

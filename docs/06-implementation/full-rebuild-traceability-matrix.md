@@ -7,7 +7,7 @@
 ## 当前整改纵切
 
 - 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
-- OpenSpec：档案/签章/印章 41/41 任务、11 份 delta 待本轮证据提交后同步归档；精确实现提交 strict 102/102。设施设备/巡检/IoT 已归档为 `2026-08-14-complete-facility-device-inspection-iot`；`complete-investment-crm-journey` 因任务 5.5 的 `revoked` 与审批 delta 状态定义冲突保持 active、未同步归档。
+- OpenSpec：档案/签章/印章 40/40 任务、11 份主规格已同步并归档为 `2026-08-14-complete-records-signature-seal-governance`；归档后 strict 110/110。设施设备/巡检/IoT 已归档为 `2026-08-14-complete-facility-device-inspection-iot`；`complete-investment-crm-journey` 因任务 5.5 的 `revoked` 与审批 delta 状态定义冲突保持 active、未同步归档。
 - 已关闭证据：档案分类/版本/归档/完整性/保全/借阅/处置，印章台账/保管/用印/职责分离/不可变回执，签章提供方真相/信封/参与人/事件/沙箱投递及 PC 响应式工作区。精确 `b04d738` 的 PG16、366 条后端、61 条全量浏览器、33 个 runtime/YAML 方法对、性能、备份恢复和合成 ETL 36/36 总门禁均通过。
 - 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 
