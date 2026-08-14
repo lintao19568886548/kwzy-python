@@ -131,7 +131,7 @@
 - [x] 11.9 Perform real browser visual QA on desktop and tablet and repair shared layout regressions in scope
 - [x] 11.10 Commit implementation, run full acceptance on the exact clean implementation SHA and record the report/head/hash evidence
 - [x] 11.11 Update controlling rebuild/acceptance documents with truthful local scope and remaining external/product blockers
-- [ ] 11.12 Commit and non-force push a clean non-production checkpoint when explicit remote egress authorization is available
+- [x] 11.12 Commit and non-force push a clean non-production checkpoint when explicit remote egress authorization is available
 
 ## Non-goals
 

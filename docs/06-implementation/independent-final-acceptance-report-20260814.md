@@ -12,9 +12,10 @@
 | --- | --- |
 | repair 分支 | `audit/full-rebuild-final-repair` |
 | 实现提交 | `a9267d4c30096a7c80d66588ab06bc6838b32b0d`；114 files，14,830 insertions，2,190 deletions |
+| 验收文档提交 | `be730439610fb213eefc280f851d5e86721b75a6`；已正常、非 force 推送到 `origin/audit/full-rebuild-final-repair` |
 | 本地 main | `64417c61177f4e47463062fbebe48f7c54d1bc94` |
 | origin/main | 2026-08-14 终验前 `git fetch origin --prune` 后为 `4be4fe0c060543178ae71783d1ce0b29fad235fe` |
-| 同步关系 | main 比 origin/main ahead 2；实现提交比 origin/main ahead 3；无远端新增提交 |
+| 同步关系 | main 比 origin/main ahead 2；repair 验收文档检查点比 origin/main ahead 4；无远端新增提交 |
 | 工作树 | 精确 SHA 验收前 clean；报告和构建输出在 gitignored `infra/local-staging/out` |
 | remote | `https://github.com/lintao19568886548/kwzy-python.git` |
 | 禁止项 | 未 force push、未连接生产、未改历史迁移、未覆盖用户修改、未部署生产 |
