@@ -1,60 +1,43 @@
-# 当前能力状态（代码级 · 范围化证据表）
+# 瞰维智管 V2 当前能力状态
 
-> 更新：2026-08-13 19:50（Asia/Shanghai）
-> `TESTED_CODE_SHA`：`8adcd77e782db47a466ba0759ac04ffaae488b1b`
-> 验收脚本 SHA256：`747C954458394D6D9F8CE4B9355DB849C3859A2199C7090386334311D3887EC3`
-> 规则：无模型/API/UI/测试证据不得标记本地实现；本地实现、适配器和生产联调必须分开。禁止连接真实生产库。
+> 更新时间：2026-08-14（Asia/Shanghai）
+> 独立验收实现 SHA：`a9267d4c30096a7c80d66588ab06bc6838b32b0d`
+> 完整报告：`independent-final-acceptance-report-20260814.md`
+> 能力权威表：`full-rebuild-traceability-matrix.md`
 
-| 能力 | docs 来源 | 旧 Java 证据 | 新后端 | 新 API | 新前端路由 | 迁移/表 | 权限码 | 自动测试 | 结论 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Identity 会话 | identity | 登录/会话 | modules/identity | /auth/* | /login | tenants/users/security_events | session | pytest + e2e auth | IMPLEMENTED_LOCAL_SCOPE |
-| 用户/角色/权限/组织配置 | identity/config admin | 系统管理 | admin services | /system/* | /system | users/roles/permissions/org/dicts/params | identity.* | e2e system-admin | PARTIAL_LEGACY_LONG_TAIL |
-| 空间层级/出租单元 | park_property | 园区/楼栋/单元 | spatial/unit/version/lineage | /parks /spaces /units | /rent-control | parks/buildings/units/unit_lineages | park:* unit:* | pytest + PG race + e2e | IMPLEMENTED_LOCAL_SCOPE |
-| 租控工作台 | park_property | 租控 | rent_control | /rent-control/* | /rent-control | query projection | park:read/unit:* | pytest + e2e desktop/tablet | IMPLEMENTED_LOCAL_SCOPE |
-| Party+联系人 | party | 主体 | party service | /parties /contacts | /parties | parties/contacts | party:* | e2e party | PARTIAL |
-| Lease 生命周期 | lease | 合同 | lease service | /leases/* | /leases | lease_contracts | lease:* | e2e lease + main-chain | PARTIAL |
-| Bill/Payment | billing/collection | 账单收款 | bill/payment | /bills /payments | /bills /payments | bills/payments | bill:* payment:* | e2e billing-payment | PARTIAL |
-| Workbench/WorkItem | workbench | 待办 | work_item | /workbench /work-items | /workbench /todos | work_items | work_item:* | e2e workbench | PARTIAL |
-| Investment CRM | investment | 招商/CRM/radar | lifecycle/pool/activity/match/lock/conversion | /leads/* | /leads | leads/activities/assignment_events/merge_links/unit_locks | lead:*/claim/manage/lock | pytest + PG concurrency + 6 e2e CRM | IMPLEMENTED_LOCAL_SCOPE |
-| Work Orders/Collection | facility_ops/collection | 工单/催缴 | work_order/case | /work-orders /collection/cases | /work-orders /collection | work_orders/collection_cases | work_order:* collection:* | e2e | PARTIAL |
-| Approvals/Attachments | workflow/attachments | 审批/附件 | minimal services | /approvals /attachments | /approvals | approvals/attachments | approval:* attachment:* | pytest | MINIMAL_LOCAL_SCOPE |
-| SMS/Notify/Object storage | integrations | 通知/存储 | fake/local + fail-closed | /integrations/* | — | integration_outbox | — | pytest + outbox | ADAPTER_NOT_LIVE |
-| 跨租户/园区隔离 | security | multi-tenant | tenant/park scope | mounted APIs | /forbidden | tenant_id/park grants | * | pytest + e2e cross-tenant | IMPLEMENTED_CURRENT_SCOPE |
-| Asset ETL fixture→PG16 | ETL tools | 旧资产待取证 | isolated synthetic drill | n/a | n/a | etl_asset_fixture | n/a | dry/apply/idempotent/reconcile/rollback | CONDITIONAL_SYNTHETIC_READY |
-| CRM ETL fixture→PG16 | ETL tools | 旧 CRM/radar 待取证 | isolated synthetic drill | n/a | n/a | etl_investment_crm_fixture | n/a | 5 leads/4 activities/4 assignments/1 merge/1 PII quarantine + rollback | CONDITIONAL_SYNTHETIC_READY |
-| PC 浏览器主链 | FE | SPA | FastAPI | REST | apps/web | PG16 e2e | RBAC UI | Playwright 32/32 no-skip | PARTIAL_PRODUCT_SCOPE |
-| 员工移动端/租户小程序 | product scope | 多端 | — | — | 应用不存在 | — | — | — | NOT_STARTED |
-| 支付网关/企微/OCR 真联调 | external | 凭据 | Fake only | — | — | — | — | not live | LIVE_VERIFICATION_PENDING |
-| Radar 爬虫 | disposition | Java | — | — | — | — | — | deprecated | DEPRECATED_WITH_EVIDENCE |
+## 已独立验证的范围
 
-## 本地全栈验收（当前已实现范围）
+- 合同 V2：多出租单元、多费用、履约计划、审批、文档门禁、不可变版本、七类变更、续租和退租结算。
+- 现有 PC 切片：Identity/System、Party、资产租控、招商 CRM、合同、基础账单/收款、待办、简版工单/催缴。
+- 安全加固：密码策略、JWT/会话撤销、附件归属、RBAC/tenant/park scope、CSRF/Host/安全头、生产 fail-closed。
+- 工程门禁：PG16 单 head 升降级、ORM/迁移契约、并发/回滚、OpenAPI、OpenSpec、依赖漏洞、容器、备份恢复和本地 HTTP 性能。
 
-- 命令：`pwsh -NoProfile -File .\infra\local-staging\run_full_acceptance.ps1`
-- 被测提交：`8adcd77e782db47a466ba0759ac04ffaae488b1b`
-- 机器报告：`infra/local-staging/out/acceptance_20260813_195020.json`（gitignored，本机）
-- 结果：21/21 exit 0；pytest 166；Vitest 4；Playwright 32/0/0；core/Identity/Asset/CRM ETL PASS；52 表备份恢复 PASS；OpenAPI 4/4 + YAML strict；OpenSpec 38/0；545 文件密钥扫描 PASS；清理 PASS。
+精确 SHA 的机器报告为 `evidence/independent-final-audit/acceptance-a9267d4.json`，24/24 步通过；这只证明已实现范围。
 
-## 门禁
+## 不能外推为完成的范围
+
+- 员工移动端和租户微信小程序不存在。
+- 设备/巡检/IoT、HR、供应链、园企服务、完整驾驶舱、真实 AI 业务层缺失。
+- 组织/资产/招商/Party/账收/工单/档案/外部平台等组合能力仍有关键环节缺失。
+- 没有经授权的旧生产 schema 或脱敏快照，无法完成真实迁移、对账、增量和切换演练。
+- 没有外部厂商凭据、远程预发证据或生产部署授权。
+
+## 状态摘要
 
 ```text
-KWZY_PRODUCT_BLUEPRINT=IN_PROGRESS
-KWZY_BACKEND_REBUILD=CONDITIONAL_CORE_SLICE_ONLY
-KWZY_PC_UI_REBUILD=CONDITIONAL_CORE_SLICE_ONLY
-KWZY_EMPLOYEE_MOBILE=BLOCKED_NOT_IMPLEMENTED
-KWZY_TENANT_MINIPROGRAM=BLOCKED_NOT_IMPLEMENTED
-KWZY_LEGACY_CAPABILITY_CLOSURE=BLOCKED
-KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_FIXTURE_ONLY
+KWZY_INDEPENDENT_ACCEPTANCE=CONDITIONAL_IMPLEMENTED_SCOPE_ONLY
+KWZY_BUSINESS_CLOSURE=BLOCKED
+KWZY_BACKEND_REBUILD=CONDITIONAL_CORE_AND_CONTRACT_SLICE_ONLY
+KWZY_PC_UI_REBUILD=CONDITIONAL_CORE_AND_CONTRACT_SLICE_ONLY
+KWZY_EMPLOYEE_MOBILE=MISSING
+KWZY_TENANT_MINIPROGRAM=MISSING
+KWZY_LEGACY_REPLACEMENT=BLOCKED
+KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 KWZY_SECURITY_ACCEPTANCE=CONDITIONAL_IMPLEMENTED_SCOPE_ONLY
-KWZY_PERFORMANCE_ACCEPTANCE=BLOCKED_NOT_RUN
-KWZY_E2E_ACCEPTANCE=CONDITIONAL_CORE_SLICE_ONLY
-KWZY_OPERATIONS_READINESS=BLOCKED
-LIVE_EXTERNAL_INTEGRATION=NOT_VERIFIED
-KWZY_REMOTE_STAGING_ACCEPTANCE=NOT_RUN
-KWZY_PRODUCTION_MIGRATION=NOT_EXECUTED
-KWZY_PRODUCTION_DEPLOYMENT=NOT_EXECUTED
+KWZY_PERFORMANCE_ACCEPTANCE=CONDITIONAL_LOCAL_LOOPBACK_ONLY
+KWZY_OPERATIONS_READINESS=CONDITIONAL_LOCAL_ONLY
 KWZY_FULL_REBUILD_ACCEPTANCE=BLOCKED
+KWZY_PRODUCTION_DEPLOYMENT=AWAITING_HUMAN_APPROVAL
 ```
 
-## 历史状态
-
-旧版本曾把代码样板、适配器和完整产品替代混写为 COMPLETE；该表述已撤销。当前 PASS 只绑定上述精确 SHA 的已实现范围，不能外推为旧 Java 全替代、三端全量、真实数据迁移、外部平台联调或生产就绪。
+禁止把上述任何 `CONDITIONAL` 改写为全产品 `PASS`。当前 P0 为 0，但 P1 产品/迁移/外部环境验收阻塞仍存在。

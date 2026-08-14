@@ -129,8 +129,8 @@
 - [x] 11.7 Pass frontend lint/typecheck/unit/build and full browser E2E
 - [x] 11.8 Pass contract ETL, backup restore, OpenAPI, OpenSpec, secrets, diff and cleanup gates
 - [x] 11.9 Perform real browser visual QA on desktop and tablet and repair shared layout regressions in scope
-- [ ] 11.10 Commit implementation, run full acceptance on the exact clean implementation SHA and record the report/head/hash evidence
-- [ ] 11.11 Update controlling rebuild/acceptance documents with truthful local scope and remaining external/product blockers
+- [x] 11.10 Commit implementation, run full acceptance on the exact clean implementation SHA and record the report/head/hash evidence
+- [x] 11.11 Update controlling rebuild/acceptance documents with truthful local scope and remaining external/product blockers
 - [ ] 11.12 Commit and non-force push a clean non-production checkpoint when explicit remote egress authorization is available
 
 ## Non-goals

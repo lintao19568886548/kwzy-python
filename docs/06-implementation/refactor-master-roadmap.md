@@ -1,54 +1,38 @@
 # 瞰维智管 V2 全量重建主路线图
 
-> 更新时间：2026-08-13 20:09（Asia/Shanghai）
-> 当前已验证基线：`main@8adcd77e782db47a466ba0759ac04ffaae488b1b`
-> 总体状态：**IN_PROGRESS — 资产/租控与招商 CRM 定义纵切本地 PASS，不等于 V2 全产品完成**
+> 更新时间：2026-08-14（Asia/Shanghai）
+> 当前独立验收基线：repair 分支实现提交 `a9267d4c30096a7c80d66588ab06bc6838b32b0d`
+> 总体状态：**BLOCKED — 已实现纵切通过，不等于三端、旧系统和全业务完成。**
 
-## 1. 权威顺序与恢复协议
+## 权威顺序与永久门禁
 
-需求冲突按以下顺序裁决：真实业务与已确认产品需求 → `docs/` 证据 → 旧 Java/前端/schema/运行行为 → OpenSpec/OpenAPI/测试/当前代码 → 有记录的行业最佳实践决策。
+冲突按真实业务规则与用户操作 → `docs/` 蓝图 → 旧 Java/旧前端/数据库证据 → OpenSpec/OpenAPI/ADR/测试 → 当前代码与历史报告裁决。
 
-每次上下文压缩、会话恢复或分支切换后，必须先读取本文件、`refactor-agent-state.md`、`full-rebuild-traceability-matrix.md`、`refactor-final-acceptance.md`，再核对 `git status --short --branch` 与 `git rev-parse HEAD`。禁止用旧封板摘要代替当前代码取证。
+不连接生产，不覆盖用户未提交修改，不改已应用历史迁移，不 force push。没有真实凭据时只允许交付 fake/sandbox/fail-closed 适配和契约测试；没有旧数据时只允许给出合成迁移就绪结论。
 
-## 2. 当前真实基线
+## 当前阶段
 
-- 已有：FastAPI 模块化单体、PostgreSQL 16/Alembic、Vue 3 PC 管理端、核心身份/Party/合同/账单/收款/待办/简版工单与催缴案件，资产空间树/单元版本与租控工作台，以及招商 CRM 去重合并、公海、活动、漏斗、匹配锁房和原子转化工作台。
-- 已验证 `8adcd77`：21/21 门禁，PG16 fresh upgrade/down-up、166 pytest、4 Vitest、32 Playwright、OpenAPI 4/4 + YAML strict、OpenSpec 38/38、core/Identity/Asset/CRM 合成 ETL、52 表恢复、545 文件 secrets scan 均通过。
-- 未拥有：员工移动端、租户微信小程序、集团层与 GIS/CAD/BIM 地图、CRM 真实外部获客/企微自动触达/意向审批/AI 评分、合同变更链、自动计费/到账匹配、设备巡检/IoT、完整经营驾驶舱、HR/供应链、真实 AI 业务能力和生产外部联调。
-- 迁移现状：资产与 CRM 合成数据已证明首次导入、幂等重放、分布/数量/面积/血缘/PII 隔离对账和回滚；仍未获得旧生产库授权，也未完成脱敏真实快照演练。
-
-## 3. 纵切路线
-
-| 阶段 | 交付边界 | 当前状态 | 退出门禁 |
+| 阶段 | 已关闭范围 | 仍需关闭 | 状态 |
 | --- | --- | --- | --- |
-| 0 | 全仓审计、证据矩阵、设计系统、平台底座 | **IN_PROGRESS** | 四份总控文档一致；历史 PASS 限定范围；新缺口进入 OpenSpec |
-| 1 | 资产与租控 | **LOCAL_ACCEPTANCE_PASS** | 本次 OpenSpec 范围已闭合；集团/GIS/CAD/BIM、真实旧数据和更深经营分析继续由后续纵切关闭 |
-| 2 | 招商 CRM | **LOCAL_ACCEPTANCE_PASS** | 本次 OpenSpec 的去重合并、分配/公海、活动状态机、漏斗、匹配锁房并发与原子转化已闭合；真实渠道/审批/AI/旧数据继续由后续纵切关闭 |
-| 3 | Party、租户与合同 | **PARTIAL** | 多单元、多费用规则、变更单/补充协议版本链、审批/退租结算 |
-| 4 | 账单、收款、核销与催缴 | **PARTIAL** | 自动出账、银行/支付流水、待匹配池、多账单核销、分级催缴与复核 |
-| 5 | 租户服务、工单与供应链 | **PARTIAL** | 多入口、派单/SLA/验收/返工、报价、材料工时、供应商库存 |
-| 6 | 设备、巡检、安防与 IoT | **NOT_STARTED** | 设备台账、每周巡检、告警聚合升级、厂商适配器与模拟器 |
-| 7 | 驾驶舱与多角色工作台 | **PARTIAL** | 统一指标口径、角色工作台、待办优先级/升级/复核、逐级下钻 |
-| 8 | 员工移动端与租户小程序 | **NOT_STARTED** | 两端真实 API、权限、关键旅程、响应式/离线/错误状态 E2E |
-| 9 | AI 与外部集成 | **STUB_OR_ADAPTER_ONLY** | AI 可审计/可降级；无凭据适配器明确 `NOT_LIVE`；契约测试 |
-| 10 | 旧系统替代、迁移、全链路验收 | **BLOCKED_BY_PRIOR_PHASES** | 能力处置闭合、脱敏数据演练、性能安全运维证据、P0/P1=0 |
+| 平台安全与工程底座 | 会话/JWT/密码、scope、附件、生产配置、PG pool/readiness、CI/容器/Runbook | 字段权限、完整审计/审批、远程监控/告警/灾备证据 | IN_PROGRESS |
+| 资产与租控 | 空间树、单元版本/拆并血缘、矩阵/列表 | 业态模板、地图/GIS/CAD/BIM、组合分析 | IN_PROGRESS |
+| 招商 CRM | 去重、分配/改派、公海、活动、匹配、锁房、转化 | 自动分配、意向审批、外部渠道/企微、AI 评分 | IN_PROGRESS |
+| Party 与合同 | Party 基础；合同多单元/多费用/版本/变更/退租 | 企业画像、完整档案/签章/印章和真实提供商 | IN_PROGRESS |
+| 账单、收款和催缴 | 基础账单/收款/分配/冲正/案件 | 自动出账、流水匹配、异常复核、多账单核销、分级催缴 | IN_PROGRESS |
+| 服务与运营业务 | 简版工单 | 租户服务、派单/SLA/报价/验收、设备巡检 IoT、HR、供应链、园企服务 | MISSING |
+| 决策与 AI | 窄工作台摘要 | 深色驾驶舱、下钻、多园区比较、AI/人工确认门禁 | MISSING |
+| 员工移动端 | — | 独立应用与现场 E2E | MISSING |
+| 租户微信小程序 | — | 缴费/报修/访客/预约 E2E | MISSING |
+| 迁移与切换 | 合成 dry/apply/中断/幂等/对账/回滚；本地备份恢复 | 旧 schema/脱敏快照、全量对账、CDC、停写、切换/回切 | BLOCKED_EXTERNAL_EVIDENCE |
+| 生产交付 | 本地生产镜像/Compose 契约和操作 Runbook | 远程预发、监控告警、容量/灾备、生产授权 | BLOCKED_EXTERNAL_EVIDENCE |
 
-## 4. 当前执行队列
+## 下一执行队列
 
-1. 资产代码、精确 SHA 验收证据已非强推送；`implement-asset-rent-control-v2` 已同步主规格并归档为 `2026-08-13-implement-asset-rent-control-v2`。
-2. 招商 CRM 实现提交 `8adcd77` 已在 clean SHA 上 21/21 验收；8 份 delta 已同步主规格并归档为 `2026-08-13-implement-investment-crm-v2`。
-3. `complete-identity-system-admin` 保持 active，等待人工提供经授权的只读旧 schema dump 与密码哈希样本；这不阻塞后续非生产研发，但阻止 Identity 迁移 readiness 变为 READY。
-4. 阶段 3 已完成基础 Lease 规格同步归档与 `implement-contract-lifecycle-v2` 规划（4/4 工件、3/102 任务、strict PASS）；当前进入 schema/version、费用计划、审批文档、变更占用、退租结算和查询 API 实施。
-5. CRM 归档及合同规划检查点暂留本地；向 GitHub 继续非强推送需用户明确确认该仓库的数据外发授权。
-6. 之后依次执行阶段 4–10；每个纵切必须同时交付模型、迁移、服务、API、适用终端 UI、测试、OpenAPI、迁移映射和运行手册。
+1. 产品负责人把能力矩阵 17 个 `MISSING` 项拆成纵切，或提供有依据、有责任人的退休/延期批准。
+2. 优先建设员工移动端、租户小程序，以及设备巡检 IoT、账收匹配和租户服务等 P1 旅程。
+3. 数据负责人/DBA 提供经授权旧 schema dump 与脱敏快照；在隔离 PG16 重跑全量/增量/中断/回滚/对账。
+4. 集成负责人提供沙箱协议和短期凭据，完成回调验签、重试/死信/补偿与降级演练。
+5. SRE 在获批预发执行容量、慢 SQL、连接池、重启恢复、监控告警和灾备演练。
+6. 只有能力矩阵无 `MISSING/BLOCKED`、三端关键旅程通过、P0/P1=0 且生产部署另获人工授权后，才能非强制合并 main 并在最终 main 重验。
 
-## 5. 每个纵切的固定循环
-
-证据取证 → 更新矩阵 → OpenSpec/设计 → strict validate → domain/application/infrastructure/interface → Alembic → 真实 UI → unit/repository/API/contract/E2E → SQLite/PG16 → 权限/跨租户/并发/幂等/异常 → 截图与响应式 → stub/TODO/未挂载扫描 → 文档/映射/runbook → P0/P1 清零 → 安全提交并推送。
-
-## 6. 永久门禁
-
-- 不连接或修改旧 Java 生产库；不执行生产部署/生产迁移；不做不可逆数据操作。
-- 不 force push，不覆盖用户未提交修改，不删除历史迁移。
-- 生产凭据缺失时只能交付 fail-closed adapter、sandbox/mock 和契约测试，并标记 `NOT_LIVE`。
-- 只有三端、全业务闭环、旧能力处置、真实脱敏迁移演练、安全/性能/E2E/运维证据全部成立时，才允许 `KWZY_FULL_REBUILD_ACCEPTANCE=PASS`。
+每个纵切固定执行：原始证据 → OpenSpec → DDD/API/迁移/UI → 单元/PG/HTTP/浏览器 → 安全/并发/性能 → 数据演练 → 截图/报告 → 正常提交与非强制推送。
