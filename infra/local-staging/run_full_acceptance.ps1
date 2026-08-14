@@ -96,6 +96,7 @@ $env:POSTGRES_TEST_URL = $pgUrl
 $env:ETL_DATABASE_URL = $pgUrl
 $env:DATABASE_URL = $pgUrl
 $env:JWT_SECRET = "local-staging-jwt-secret-not-for-production-32"
+$env:PII_FINGERPRINT_SECRET = "local-staging-pii-fingerprint-secret-not-production-32chars"
 $env:LOCAL_ADMIN_PASSWORD = "admin123"
 $env:ALLOW_ANON_DEV = "false"
 $env:APP_ENV = "local"
@@ -241,6 +242,11 @@ try {
     & $Py (Join-Path $Root "tools\etl\run_records_seal_etl_drill.py") --database-url $pgUrl --out $recordsSealReport
   }
 
+  Step "workforce_etl_acceptance" {
+    $workforceReport = Join-Path $ReportDir "workforce_etl\workforce-etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_workforce_etl_drill.py") --database-url $pgUrl --out $workforceReport
+  }
+
   Step "http_performance_seed" {
     & $Py (Join-Path $Root "scripts\e2e_seed.py")
   }
@@ -301,6 +307,11 @@ try {
         --username "admin" --password $env:LOCAL_ADMIN_PASSWORD `
         --output (Join-Path $perfDir "records-seal-http-journey.json")
       Assert-NativeSuccess "records seal HTTP journey"
+      & $Py (Join-Path $Root "scripts\workforce_http_journey.py") `
+        --base-url "http://127.0.0.1:8010/api/v1" `
+        --username "admin" --password $env:LOCAL_ADMIN_PASSWORD `
+        --output (Join-Path $perfDir "workforce-http-journey.json")
+      Assert-NativeSuccess "workforce HTTP journey"
     } finally {
       Remove-Item Env:PERF_PASSWORD -ErrorAction SilentlyContinue
       if ($apiProc -and -not $apiProc.HasExited) {
@@ -471,12 +482,14 @@ $summary = [ordered]@{
   work_order_etl = (Join-Path $ReportDir "work_order_etl\work-order-etl.json")
   facility_device_etl = (Join-Path $ReportDir "facility_device_etl\facility-device-etl.json")
   records_seal_etl = (Join-Path $ReportDir "records_seal_etl\records-seal-etl.json")
+  workforce_etl = (Join-Path $ReportDir "workforce_etl\workforce-etl.json")
   http_performance = (Join-Path $ReportDir "performance\http-performance.json")
   approval_audit_http = (Join-Path $ReportDir "performance\approval-audit-http-journey.json")
   workbench_automation_http = (Join-Path $ReportDir "performance\workbench-automation-http-journey.json")
   asset_portfolio_http = (Join-Path $ReportDir "performance\asset-portfolio-http-journey.json")
   party_enterprise_http = (Join-Path $ReportDir "performance\party-enterprise-http-journey.json")
   records_seal_http = (Join-Path $ReportDir "performance\records-seal-http-journey.json")
+  workforce_http = (Join-Path $ReportDir "performance\workforce-http-journey.json")
   backup = (Join-Path $ReportDir "backup")
 }
 $summary | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding utf8
