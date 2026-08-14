@@ -143,7 +143,12 @@ test.describe("records, signature and seal governance", () => {
     await page.getByLabel("脱敏联系方式").fill("138****8000");
     await page.getByRole("button", { name: "绑定最新版本" }).click();
     await expect(page.getByText("签署信封已绑定档案最新版本")).toBeVisible();
-    await page.getByRole("button", { name: "发送" }).click();
+    await page
+      .getByTestId("signature-envelope-table")
+      .getByRole("row")
+      .filter({ hasText: "E2E 合同签署流程验证" })
+      .getByRole("button", { name: "发送" })
+      .click();
     await expect(page.getByText("签署流程已处理；沙箱结果不具法律效力")).toBeVisible();
     await expect(page.getByTestId("signature-envelope-table")).toContainText("SANDBOX_COMPLETED");
 
