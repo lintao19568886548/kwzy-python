@@ -129,6 +129,11 @@ try {
     & $Py (Join-Path $Root "tools\etl\run_organization_governance_etl_drill.py") --database-url $pgUrl --out $organizationGovernanceReport
   }
 
+  Step "approval_audit_etl_acceptance" {
+    $approvalAuditReport = Join-Path $ReportDir "approval_audit_etl\approval_audit_etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_approval_audit_etl_drill.py") --database-url $pgUrl --out $approvalAuditReport
+  }
+
   Step "http_performance_seed" {
     & $Py (Join-Path $Root "scripts\e2e_seed.py")
   }
@@ -163,6 +168,10 @@ try {
         --requests 1000 --concurrency 25 --warmup 40 `
         --max-p95-ms 500 --max-error-rate-percent 1 --min-rps 20 `
         --output (Join-Path $perfDir "http-performance.json")
+      & $Py (Join-Path $Root "scripts\approval_audit_http_journey.py") `
+        --base-url "http://127.0.0.1:8010/api/v1" `
+        --username "admin" --password "admin123" `
+        --output (Join-Path $perfDir "approval-audit-http-journey.json")
     } finally {
       Remove-Item Env:PERF_PASSWORD -ErrorAction SilentlyContinue
       if ($apiProc -and -not $apiProc.HasExited) {
@@ -317,7 +326,9 @@ $summary = [ordered]@{
   crm_etl = (Join-Path $ReportDir "crm_etl\crm_etl.json")
   contract_etl = (Join-Path $ReportDir "contract_etl\contract_etl.json")
   organization_governance_etl = (Join-Path $ReportDir "organization_governance_etl\organization_governance_etl.json")
+  approval_audit_etl = (Join-Path $ReportDir "approval_audit_etl\approval_audit_etl.json")
   http_performance = (Join-Path $ReportDir "performance\http-performance.json")
+  approval_audit_http = (Join-Path $ReportDir "performance\approval-audit-http-journey.json")
   backup = (Join-Path $ReportDir "backup")
 }
 $summary | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding utf8

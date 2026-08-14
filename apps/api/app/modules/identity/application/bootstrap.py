@@ -72,6 +72,14 @@ DEFAULT_PERMISSIONS = (
     ("approval:read", "查看审批", "workflow"),
     ("approval:write", "提交审批", "workflow"),
     ("approval:decide", "审批决定", "workflow"),
+    ("approval.definition.read", "查看审批定义", "workflow"),
+    ("approval.definition.write", "维护审批定义", "workflow"),
+    ("approval.task.read", "查看审批任务", "workflow"),
+    ("approval.task.decide", "处理审批任务", "workflow"),
+    ("approval.task.override_self", "越权自审批", "workflow"),
+    ("approval.delegation.manage", "管理审批委托", "workflow"),
+    ("audit.read", "查看审计中心", "audit"),
+    ("audit.export", "导出审计记录", "audit"),
     ("attachment:read", "查看附件", "attachment"),
     ("attachment:write", "上传删除附件", "attachment"),
     ("identity.user.read", "查看用户", "identity"),
@@ -121,9 +129,7 @@ def ensure_default_tenant(session: Session) -> Tenant | None:
 
     permissions: dict[str, Permission] = {}
     for code, name, module in DEFAULT_PERMISSIONS:
-        permission = session.scalars(
-            select(Permission).where(Permission.code == code)
-        ).first()
+        permission = session.scalars(select(Permission).where(Permission.code == code)).first()
         if permission is None:
             permission = Permission(code=code, name=name, module=module)
             session.add(permission)

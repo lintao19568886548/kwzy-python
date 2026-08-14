@@ -7,15 +7,23 @@
 | 更新时间 | 2026-08-14（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | `8bb87707251de1e4c22cf4009928c71d84958b8a`；clean SHA 25/25 总闸门通过 |
-| 远程同步 | `origin/feat/full-rebuild-completion` 与 `8bb8770` 一致；未 force；当前只在补充 clean-SHA 证据 |
-| 工作树 | 实现提交复验前为 clean；当前仅有复验截图与证据文档变更 |
-| Alembic | 唯一 head `n0c68d3e5f42`；fresh upgrade 和 head→-1→head 通过 |
-| 当前阶段 | 独立验收仍为 2 implemented / 1 blocked / 17 missing；关键旅程 1 已关闭，组合能力 1 因完整审批/审计仍缺失而保持 `MISSING` |
-| 当前 OpenSpec | 组织治理 27/27 已同步六份主规格并归档为 `2026-08-14-complete-platform-organization-governance`；`complete-identity-system-admin` 51/53，两个真实旧数据任务保持外部门禁 |
+| 已验证 HEAD | 最近 clean-SHA 为 `8bb87707251de1e4c22cf4009928c71d84958b8a`；当前审批/审计实现基于 `c3f653ebef26ab68cbc74f037b34a906001ca88b`，待总闸门后提交复验 |
+| 远程同步 | `origin/feat/full-rebuild-completion` 当前仍为 `c3f653e`；本轮未 force、未触达 main |
+| 工作树 | 审批/审计实现、测试、截图、迁移和证据文档尚未提交；26/26 工作树总门禁已通过，用户既有修改未覆盖 |
+| Alembic | 唯一 head `o1d79e4f6a53`；fresh upgrade 与 `head→-1→head` 通过，降级任务投影残留缺陷已修复并由真实 HTTP 复演关闭 |
+| 当前阶段 | 独立验收为 3 implemented / 1 blocked / 16 missing；组合能力 1 已升级，完整项目仍 `CONDITIONAL/BLOCKED` |
+| 当前 OpenSpec | 组织治理已归档；`complete-platform-approval-audit-center` 共 58 项任务，必须按最终机器证据逐项关闭后才可同步/归档；Identity 两个真实旧数据任务继续外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
+
+- [x] 独立取证旧报销、请假、触达模板、菜单待办和 `api_log`，明确平台替代与领域/真实迁移边界。
+- [x] 新增定义/不可变版本/节点/审批人/申请扩展/任务/委托/事件/租户审计链头 ORM 与唯一前向 Alembic revision。
+- [x] 完成 ANY/阈值 ALL、多步、退回/驳回/撤回/重提、自审批特批、幂等/乐观锁、有效期委托、SLA 升级和 WorkItem 投影。
+- [x] 完成递归脱敏、链头锁、确定性 SHA-256、独立校验、租户/园区查询和公式安全受权 CSV 导出。
+- [x] 重建 PC 审批审计中心五区；真实浏览器覆盖委托决定、409 保持、403 伪造权限、平板只读、移动 503/重试和截图人工复核。
+- [x] 完成 13 阶段独立真实 HTTP 旅程及合成 ETL dry/interruption/apply/reapply/reconcile/rollback。
+- [x] 真实 HTTP 在降升级后发现 `APPROVAL_TASK` 孤儿投影撞唯一键；修复新迁移的投影清理后，同一路径通过。
 
 - [x] 从 repair 精确 SHA `37d7cf7` 建立 `feat/full-rebuild-completion`，并保留 local main、origin/main、repair 三条 safety ref。
 - [x] 独立复核 repair 验收报告、20 项能力、22 条旅程与旧 Java/PC/SQL 原始证据，不把历史 PASS 当作全量完成。
@@ -64,6 +72,8 @@
 
 ## 最新机器证据（组织治理 clean SHA）
 
+审批/审计工作树证据：后端完整 264 passed；PG16 fresh/down-up 与唯一 head 通过；前端 lint/typecheck/Vitest 6/build 通过；Playwright 聚焦 3/3、全量 46/46；独立 HTTP 13 阶段 694.25 ms；性能 1,000 请求、p95 297.179 ms、0 错误；ETL 9 表对账、零重复/PII/伪造决定且 rollback 通过；备份恢复 72 表；OpenAPI 8/8、OpenSpec 54/54、secrets 689 文件；26/26 工作树总门禁通过。clean-SHA 数字待提交后复验。
+
 | 项 | 结果 |
 | --- | --- |
 | 精确提交报告 | `infra/local-staging/out/acceptance_20260814_130159.json`（gitignored，本机），25/25 PASS；追踪副本 `acceptance-clean-8bb8770.json` |
@@ -85,14 +95,14 @@
 - `apps/tenant-miniprogram` 不存在；租户微信小程序未实现。
 - `analytics`、`ai_assist`、`finance`、`tenant_ops` 仍是未挂载的空响应或 stub，不能计为能力。
 - 资产与租控本次定义范围已闭合；集团/区域/园区归属治理已闭合；GIS/CAD/BIM 地图与更深组合经营分析仍未实现。
-- CRM/锁房本次定义范围已形成代码与本地验收；真实外部渠道接入、企微回调/自动触达、意向审批、AI 评分及真实旧数据迁移仍未完成，合同变更链、自动计费/对账催缴、IoT/巡检、HR/供应链、完整驾驶舱也未闭环。
+- CRM/锁房与合同 V2 定义范围已形成代码与本地验收；真实外部渠道、企微回调/自动触达、意向审批、AI 评分、自动计费/对账催缴、IoT/巡检、HR/供应链、完整驾驶舱和真实旧数据迁移仍未完成。
 - 外部短信/微信/邮件/OSS/支付/签章/发票/IoT 无真实凭据，生产联调均 `NOT_LIVE`。
 - ETL 只验证合成 fixture；缺少经授权的脱敏旧库快照、字段闭合签字和新旧结果对账。
 - 无登记的远程预发环境；性能基线、容灾/监控/告警和生产 Runbook 尚未完成。
 
 ## 下一恢复点
 
-1. 创建并实施完整审批中心/审计中心的下一垂直切片，继续关闭组合能力 1。
+1. 正常提交/推送审批审计纵切，完成 clean-SHA 总门禁、delta 同步与归档。
 2. 建设事件驱动待办、规则/定时任务和多角色可配置工作台，继续关闭组合能力 2。
 3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 

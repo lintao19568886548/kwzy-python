@@ -1,6 +1,6 @@
 """ORM models package — Step1 foundation + Party + Lease."""
 
-from app.infrastructure.database.models.audit import AuditLog
+from app.infrastructure.database.models.audit import AuditChainHead, AuditLog
 from app.infrastructure.database.models.identity import (
     AuthSecurityEvent,
     Menu,
@@ -57,7 +57,16 @@ from app.infrastructure.database.models.system_config import (
 )
 from app.infrastructure.database.models.facility_ops import WorkOrder
 from app.infrastructure.database.models.collection_case import CollectionCase
-from app.infrastructure.database.models.workflow import ApprovalEvent, ApprovalRequest
+from app.infrastructure.database.models.workflow import (
+    ApprovalDefinition,
+    ApprovalDefinitionStep,
+    ApprovalDefinitionVersion,
+    ApprovalDelegation,
+    ApprovalEvent,
+    ApprovalRequest,
+    ApprovalStepAssignee,
+    ApprovalTask,
+)
 from app.infrastructure.database.models.attachment import Attachment
 from app.infrastructure.database.models.integration_outbox import IntegrationOutbox
 from app.infrastructure.database.models.organization_governance import (
@@ -85,6 +94,7 @@ __all__ = [
     "Menu",
     "RoleMenu",
     "AuditLog",
+    "AuditChainHead",
     "Park",
     "Building",
     "Unit",
@@ -126,6 +136,12 @@ __all__ = [
     "CollectionCase",
     "ApprovalRequest",
     "ApprovalEvent",
+    "ApprovalDefinition",
+    "ApprovalDefinitionVersion",
+    "ApprovalDefinitionStep",
+    "ApprovalStepAssignee",
+    "ApprovalTask",
+    "ApprovalDelegation",
     "Attachment",
     "IntegrationOutbox",
     "OrganizationGroup",

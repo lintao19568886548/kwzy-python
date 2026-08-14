@@ -7,7 +7,13 @@ const auth = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
-type NavItem = { to: string; label: string; testid: string; permission?: string | string[] };
+type NavItem = {
+  to: string;
+  label: string;
+  testid: string;
+  permission?: string | string[];
+  permissionAny?: string[];
+};
 
 const allNav: NavItem[] = [
   { to: "/workbench", label: "工作台", testid: "nav-workbench", permission: "work_item:read" },
@@ -21,7 +27,21 @@ const allNav: NavItem[] = [
   { to: "/bills", label: "账单", testid: "nav-bills", permission: "bill:read" },
   { to: "/payments", label: "收款", testid: "nav-payments", permission: "payment:read" },
   { to: "/collection", label: "催缴", testid: "nav-collection", permission: "collection:read" },
-  { to: "/approvals", label: "审批", testid: "nav-approvals", permission: "approval:read" },
+  {
+    to: "/approvals",
+    label: "审批审计",
+    testid: "nav-approvals",
+    permissionAny: [
+      "approval:read",
+      "approval:write",
+      "approval.task.read",
+      "approval.task.decide",
+      "approval.definition.read",
+      "approval.definition.write",
+      "approval.delegation.manage",
+      "audit.read",
+    ],
+  },
   {
     to: "/system",
     label: "系统",
@@ -32,8 +52,12 @@ const allNav: NavItem[] = [
 
 const navItems = computed(() =>
   allNav.filter((item) => {
+    if (auth.can("*")) return true;
+    if (item.permissionAny) {
+      return item.permissionAny.some((permission) => auth.can(permission));
+    }
     if (!item.permission) return true;
-    return auth.can(item.permission) || auth.can("*");
+    return auth.can(item.permission);
   })
 );
 

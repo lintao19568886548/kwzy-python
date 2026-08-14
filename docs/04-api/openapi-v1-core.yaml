@@ -22,6 +22,8 @@ tags:
   - name: Collection
   - name: WorkItems
   - name: OrganizationGovernance
+  - name: Approvals
+  - name: Audit
   - name: Leads
   - name: AI
 
@@ -3199,35 +3201,79 @@ paths:
 
   /approvals:
     get:
-      tags: [Auth]
-      summary: 审批列表
+      tags: [Approvals]
+      summary: 查询授权范围内的审批申请
       operationId: listApprovals
       security: [{ bearerAuth: [] }]
-      responses: { '200': { description: OK } }
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/ApprovalStatus' } }
+        - { name: biz_type, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: park_id, in: query, schema: { type: integer, format: int64, minimum: 1 } }
+        - { name: priority, in: query, schema: { $ref: '#/components/schemas/ApprovalPriority' } }
+        - { name: mine, in: query, schema: { type: boolean, default: false } }
+        - { name: created_from, in: query, schema: { type: string, format: date-time } }
+        - { name: created_to, in: query, schema: { type: string, format: date-time } }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
     post:
-      tags: [Auth]
-      summary: 提交审批
+      tags: [Approvals]
+      summary: 幂等提交版本绑定审批；缺省 definition_code 时仅保留旧兼容模式
       operationId: createApproval
       security: [{ bearerAuth: [] }]
-      responses: { '200': { description: OK } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApprovalCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /approvals/{approval_id}:
+    get:
+      tags: [Approvals]
+      summary: 审批实例详情、稳定任务与不可变事件时间线
+      operationId: getApprovalDetail
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: approval_id, in: path, required: true, schema: { type: integer, format: int64, minimum: 1 } }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: 审批不存在或不可见 }
   /approvals/{approval_id}/approve:
     post:
-      tags: [Auth]
-      summary: 通过审批
+      tags: [Approvals]
+      summary: 仅旧 LEGACY_COMPAT 审批的兼容通过入口
       operationId: approveRequest
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: approval_id, in: path, required: true, schema: { type: integer } }
-      responses: { '200': { description: OK } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApprovalCommand' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
   /approvals/{approval_id}/reject:
     post:
-      tags: [Auth]
-      summary: 拒绝审批
+      tags: [Approvals]
+      summary: 仅旧 LEGACY_COMPAT 审批的兼容拒绝入口
       operationId: rejectRequest
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: approval_id, in: path, required: true, schema: { type: integer } }
-      responses: { '200': { description: OK } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApprovalCommand' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
   /parties/export.csv:
     get:
       tags: [Parties]
@@ -3269,22 +3315,290 @@ paths:
       responses: { '200': { description: OK } }
   /approvals/{approval_id}/withdraw:
     post:
-      tags: [Auth]
-      summary: 撤回审批
+      tags: [Approvals]
+      summary: 申请人幂等撤回审批
       operationId: withdrawApproval
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: approval_id, in: path, required: true, schema: { type: integer } }
-      responses: { '200': { description: OK } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApprovalCommand' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /approvals/{approval_id}/resubmit:
+    post:
+      tags: [Approvals]
+      summary: 申请人将已退回实例以新轮次重新提交
+      operationId: resubmitApproval
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: approval_id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApprovalResubmit' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
   /approvals/{approval_id}/history:
     get:
-      tags: [Auth]
+      tags: [Approvals]
       summary: 审批历史
       operationId: approvalHistory
       security: [{ bearerAuth: [] }]
       parameters:
         - { name: approval_id, in: path, required: true, schema: { type: integer } }
-      responses: { '200': { description: OK } }
+      responses: { '200': { $ref: '#/components/responses/ApiOkResponse' } }
+
+  /approval-definitions:
+    get:
+      tags: [Approvals]
+      summary: 查询授权范围内的审批定义
+      operationId: listApprovalDefinitions
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - { name: status, in: query, schema: { type: string, enum: [ACTIVE, RETIRED] } }
+        - { name: biz_type, in: query, schema: { type: string, maxLength: 64 } }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Approvals]
+      summary: 创建审批定义及第一个草稿版本
+      operationId: createApprovalDefinition
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApprovalDefinitionCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /approval-definitions/{definition_id}:
+    get:
+      tags: [Approvals]
+      summary: 查询定义及不可变版本历史
+      operationId: getApprovalDefinition
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: definition_id, in: path, required: true, schema: { type: integer, format: int64, minimum: 1 } }
+      responses: { '200': { $ref: '#/components/responses/ApiOkResponse' } }
+    patch:
+      tags: [Approvals]
+      summary: 以乐观版本更新定义元数据和草稿步骤
+      operationId: updateApprovalDefinition
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: definition_id, in: path, required: true, schema: { type: integer, format: int64, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApprovalDefinitionUpdate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /approval-definitions/{definition_id}/draft:
+    post:
+      tags: [Approvals]
+      summary: 从当前已发布版本复制或返回独立草稿
+      operationId: createApprovalDefinitionDraft
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: definition_id, in: path, required: true, schema: { type: integer, format: int64, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApprovalVersionCommand' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /approval-definitions/{definition_id}/publish:
+    post:
+      tags: [Approvals]
+      summary: 校验并以乐观锁发布不可变版本
+      operationId: publishApprovalDefinition
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: definition_id, in: path, required: true, schema: { type: integer, format: int64, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApprovalPublishCommand' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /approval-definitions/{definition_id}/retire:
+    post:
+      tags: [Approvals]
+      summary: 停用定义并阻止新提交
+      operationId: retireApprovalDefinition
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: definition_id, in: path, required: true, schema: { type: integer, format: int64, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApprovalVersionCommand' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /approval-tasks:
+    get:
+      tags: [Approvals]
+      summary: 查询当前用户直属或有效委托的待办/已办任务
+      operationId: listApprovalTasks
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: processed, in: query, schema: { type: boolean, default: false } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/ApprovalTaskStatus' } }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /approval-tasks/{task_id}/decide:
+    post:
+      tags: [Approvals]
+      summary: 幂等决定当前审批任务；自审批须显式越权权限和原因
+      operationId: decideApprovalTask
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: task_id, in: path, required: true, schema: { type: integer, format: int64, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApprovalTaskDecision' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /approval-tasks/sweep-overdue:
+    post:
+      tags: [Approvals]
+      summary: 幂等升级逾期任务但不改变审批结果
+      operationId: sweepOverdueApprovalTasks
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 500, default: 200 } }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /approval-delegations:
+    get:
+      tags: [Approvals]
+      summary: 查询当前用户发出或收到的审批委托
+      operationId: listApprovalDelegations
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Approvals]
+      summary: 创建同租户、有效期受限且无环的审批委托
+      operationId: createApprovalDelegation
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApprovalDelegationCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /approval-delegations/{delegation_id}/revoke:
+    post:
+      tags: [Approvals]
+      summary: 委托人撤销审批委托
+      operationId: revokeApprovalDelegation
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: delegation_id, in: path, required: true, schema: { type: integer, format: int64, minimum: 1 } }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '404': { description: 委托不存在或不可见 }
+
+  /audit-logs:
+    get:
+      tags: [Audit]
+      summary: 按租户和园区范围分页查询脱敏审计证据
+      operationId: listAuditLogs
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - { name: user_id, in: query, schema: { type: integer, format: int64, minimum: 1 } }
+        - { name: action, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: resource_type, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: resource_id, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: park_id, in: query, schema: { type: integer, format: int64, minimum: 1 } }
+        - { name: request_id, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: integrity_state, in: query, schema: { $ref: '#/components/schemas/AuditIntegrityState' } }
+        - { name: created_from, in: query, schema: { type: string, format: date-time } }
+        - { name: created_to, in: query, schema: { type: string, format: date-time } }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /audit-logs/verify:
+    get:
+      tags: [Audit]
+      summary: 独立重算当前租户审计哈希链且不修改证据
+      operationId: verifyAuditChain
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /audit-logs/export:
+    get:
+      tags: [Audit]
+      summary: 以独立权限导出同范围、公式安全且最多 2000 行的 CSV
+      operationId: exportAuditLogs
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 2000, default: 2000 } }
+        - { name: user_id, in: query, schema: { type: integer, format: int64, minimum: 1 } }
+        - { name: action, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: resource_type, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: resource_id, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: park_id, in: query, schema: { type: integer, format: int64, minimum: 1 } }
+        - { name: request_id, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: integrity_state, in: query, schema: { $ref: '#/components/schemas/AuditIntegrityState' } }
+        - { name: created_from, in: query, schema: { type: string, format: date-time } }
+        - { name: created_to, in: query, schema: { type: string, format: date-time } }
+      responses:
+        '200':
+          description: UTF-8 BOM CSV
+          content:
+            text/csv:
+              schema: { type: string }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /audit-logs/{audit_id}:
+    get:
+      tags: [Audit]
+      summary: 查询单条脱敏审计证据与完整性状态
+      operationId: getAuditLog
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: audit_id, in: path, required: true, schema: { type: integer, format: int64, minimum: 1 } }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '404': { description: 审计记录不存在或不可见 }
 
   /integrations/outbox:
     get:
@@ -5164,6 +5478,221 @@ components:
             items:
               type: array
               items: { $ref: '#/components/schemas/CollectionRecord' }
+
+    ApprovalStatus:
+      type: string
+      enum: [PENDING, APPROVED, REJECTED, RETURNED, WITHDRAWN]
+    ApprovalPriority:
+      type: string
+      enum: [LOW, MEDIUM, HIGH, URGENT]
+    ApprovalTaskStatus:
+      type: string
+      enum: [PENDING, APPROVED, REJECTED, RETURNED, SKIPPED, CANCELLED]
+    AuditIntegrityState:
+      type: string
+      enum: [VERIFIED, FAILED, LEGACY_UNVERIFIED]
+
+    ApprovalCreate:
+      type: object
+      additionalProperties: false
+      required: [biz_type, biz_id, title]
+      properties:
+        biz_type: { type: string, minLength: 1, maxLength: 64 }
+        biz_id: { type: string, minLength: 1, maxLength: 64 }
+        title: { type: string, minLength: 1, maxLength: 255 }
+        park_id: { type: integer, format: int64, nullable: true }
+        remark: { type: string, maxLength: 2000, nullable: true }
+        definition_code:
+          type: string
+          maxLength: 64
+          nullable: true
+          description: 传入时必须命中 ACTIVE 已发布定义；缺省仅用于旧兼容路径
+        priority: { $ref: '#/components/schemas/ApprovalPriority' }
+        snapshot:
+          type: object
+          additionalProperties: true
+          nullable: true
+          description: 服务端会移除凭据并遮罩注册 PII，序列化结果最多 8192 字节
+        idempotency_key:
+          type: string
+          minLength: 8
+          maxLength: 64
+          nullable: true
+          description: 使用 definition_code 时必填
+    ApprovalCommand:
+      type: object
+      additionalProperties: false
+      properties:
+        remark: { type: string, maxLength: 2000, nullable: true }
+        expected_version: { type: integer, minimum: 0, nullable: true }
+        idempotency_key: { type: string, minLength: 8, maxLength: 64, nullable: true }
+    ApprovalResubmit:
+      type: object
+      additionalProperties: false
+      required: [expected_version, idempotency_key]
+      properties:
+        remark: { type: string, maxLength: 2000, nullable: true }
+        expected_version: { type: integer, minimum: 0 }
+        idempotency_key: { type: string, minLength: 8, maxLength: 64 }
+    ApprovalTaskDecision:
+      type: object
+      additionalProperties: false
+      required: [action, expected_version, idempotency_key]
+      properties:
+        action: { type: string, enum: [APPROVE, REJECT, RETURN] }
+        remark: { type: string, maxLength: 2000, nullable: true }
+        expected_version: { type: integer, minimum: 0 }
+        idempotency_key: { type: string, minLength: 8, maxLength: 64 }
+        override_reason:
+          type: string
+          maxLength: 1000
+          nullable: true
+          description: 申请人处理自己的任务时，具备显式越权权限仍必须填写
+
+    ApprovalAssignee:
+      type: object
+      additionalProperties: false
+      properties:
+        user_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        role_id: { type: integer, format: int64, minimum: 1, nullable: true }
+      oneOf:
+        - required: [user_id]
+          not: { required: [role_id] }
+        - required: [role_id]
+          not: { required: [user_id] }
+    ApprovalDefinitionStep:
+      type: object
+      additionalProperties: false
+      required: [step_order, name, approval_mode, min_approvals, sla_hours, assignees]
+      properties:
+        step_order: { type: integer, minimum: 1 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        approval_mode: { type: string, enum: [ANY, ALL] }
+        min_approvals: { type: integer, minimum: 1, maximum: 100 }
+        sla_hours: { type: integer, minimum: 1, maximum: 8760 }
+        assignees:
+          type: array
+          maxItems: 100
+          items: { $ref: '#/components/schemas/ApprovalAssignee' }
+    ApprovalDefinitionCreate:
+      type: object
+      additionalProperties: false
+      required: [code, name, biz_type]
+      properties:
+        code:
+          type: string
+          minLength: 2
+          maxLength: 64
+          pattern: '^[A-Za-z][A-Za-z0-9_.-]+$'
+        name: { type: string, minLength: 1, maxLength: 128 }
+        biz_type: { type: string, minLength: 1, maxLength: 64 }
+        park_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        description: { type: string, maxLength: 2000, nullable: true }
+        steps:
+          type: array
+          maxItems: 50
+          items: { $ref: '#/components/schemas/ApprovalDefinitionStep' }
+    ApprovalDefinitionUpdate:
+      type: object
+      additionalProperties: false
+      required: [expected_lock_version]
+      properties:
+        expected_lock_version: { type: integer, minimum: 0 }
+        name: { type: string, minLength: 1, maxLength: 128, nullable: true }
+        description: { type: string, maxLength: 2000, nullable: true }
+        steps:
+          type: array
+          maxItems: 50
+          nullable: true
+          items: { $ref: '#/components/schemas/ApprovalDefinitionStep' }
+    ApprovalVersionCommand:
+      type: object
+      additionalProperties: false
+      required: [expected_lock_version]
+      properties:
+        expected_lock_version: { type: integer, minimum: 0 }
+    ApprovalPublishCommand:
+      type: object
+      additionalProperties: false
+      required: [expected_lock_version, version_id]
+      properties:
+        expected_lock_version: { type: integer, minimum: 0 }
+        version_id: { type: integer, format: int64, minimum: 1 }
+    ApprovalDelegationCreate:
+      type: object
+      additionalProperties: false
+      required: [delegate_user_id, starts_at, ends_at]
+      properties:
+        delegate_user_id: { type: integer, format: int64, minimum: 1 }
+        biz_type: { type: string, minLength: 1, maxLength: 64, nullable: true }
+        starts_at: { type: string, format: date-time }
+        ends_at: { type: string, format: date-time }
+
+    ApprovalInstance:
+      type: object
+      required: [id, biz_type, biz_id, title, status, priority, round_no, lock_version, compatibility_mode]
+      properties:
+        id: { type: integer, format: int64 }
+        request_no: { type: string, nullable: true }
+        definition_version_id: { type: integer, format: int64, nullable: true }
+        park_id: { type: integer, format: int64, nullable: true }
+        biz_type: { type: string }
+        biz_id: { type: string }
+        title: { type: string }
+        status: { $ref: '#/components/schemas/ApprovalStatus' }
+        priority: { $ref: '#/components/schemas/ApprovalPriority' }
+        applicant_user_id: { type: integer, format: int64, nullable: true }
+        approver_user_id: { type: integer, format: int64, nullable: true }
+        current_step_order: { type: integer, nullable: true }
+        round_no: { type: integer, minimum: 1 }
+        due_at: { type: string, format: date-time, nullable: true }
+        submitted_at: { type: string, format: date-time, nullable: true }
+        completed_at: { type: string, format: date-time, nullable: true }
+        snapshot: { type: object, additionalProperties: true, nullable: true }
+        lock_version: { type: integer, minimum: 0 }
+        compatibility_mode: { type: string, enum: [NATIVE, LEGACY_COMPAT] }
+    ApprovalTask:
+      type: object
+      required: [id, approval_id, round_no, step_order, assignee_user_id, status]
+      properties:
+        id: { type: integer, format: int64 }
+        approval_id: { type: integer, format: int64 }
+        request_no: { type: string, nullable: true }
+        title: { type: string }
+        biz_type: { type: string }
+        biz_id: { type: string }
+        park_id: { type: integer, format: int64, nullable: true }
+        priority: { $ref: '#/components/schemas/ApprovalPriority' }
+        approval_status: { $ref: '#/components/schemas/ApprovalStatus' }
+        approval_lock_version: { type: integer, minimum: 0 }
+        round_no: { type: integer, minimum: 1 }
+        step_order: { type: integer, minimum: 1 }
+        assignee_user_id: { type: integer, format: int64 }
+        status: { $ref: '#/components/schemas/ApprovalTaskStatus' }
+        due_at: { type: string, format: date-time }
+        decided_at: { type: string, format: date-time, nullable: true }
+        acted_by_user_id: { type: integer, format: int64, nullable: true }
+        delegation_id: { type: integer, format: int64, nullable: true }
+        escalated_at: { type: string, format: date-time, nullable: true }
+    AuditLogEvidence:
+      type: object
+      required: [id, request_id, action, resource_type, created_at, integrity_state]
+      properties:
+        id: { type: integer, format: int64 }
+        user_id: { type: integer, format: int64, nullable: true }
+        request_id: { type: string }
+        action: { type: string }
+        resource_type: { type: string }
+        resource_id: { type: string, nullable: true }
+        park_id: { type: integer, format: int64, nullable: true }
+        detail: { type: object, additionalProperties: true, nullable: true }
+        client_ip: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        sequence_no: { type: integer, format: int64, nullable: true }
+        previous_hash: { type: string, minLength: 64, maxLength: 64, nullable: true }
+        record_hash: { type: string, minLength: 64, maxLength: 64, nullable: true }
+        integrity_version: { type: integer, nullable: true }
+        integrity_state: { $ref: '#/components/schemas/AuditIntegrityState' }
 
     AiJob:
       type: object

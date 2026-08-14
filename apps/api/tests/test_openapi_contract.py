@@ -33,13 +33,15 @@ def _iter_api_paths(app) -> set[str]:
 
     walk(app.routes)
     # 补齐：从 openapi schema 导出更可靠
-    try:
-        schema = app.openapi()
-        for p in schema.get("paths") or {}:
-            paths.add(p)
-    except Exception:
-        pass
-    return {p for p in paths if p and ("/api/" in p or p.startswith("/parties") or p.startswith("/parks") or p.startswith("/auth") or p.startswith("/units"))}
+    schema = app.openapi()
+    for path in schema.get("paths") or {}:
+        paths.add(path)
+    return {
+        path
+        for path in paths
+        if path
+        and ("/api/" in path or path.startswith(("/parties", "/parks", "/auth", "/units")))
+    }
 
 
 def test_openapi_v1_core_is_valid_openapi_31() -> None:
@@ -129,6 +131,80 @@ def test_step1_runtime_paths_covered_by_openapi() -> None:
             for op in openapi_with_prefix
         )
         assert found, f"runtime route {rp} not reflected in OpenAPI ({resource})"
+
+
+def test_approval_audit_center_openapi_matches_runtime_methods_and_schemas() -> None:
+    """Approval/audit routes are controlled method-by-method, not merely by resource prefix."""
+
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    expected_methods = {
+        "/approvals": {"get", "post"},
+        "/approvals/{approval_id}": {"get"},
+        "/approvals/{approval_id}/approve": {"post"},
+        "/approvals/{approval_id}/reject": {"post"},
+        "/approvals/{approval_id}/withdraw": {"post"},
+        "/approvals/{approval_id}/resubmit": {"post"},
+        "/approvals/{approval_id}/history": {"get"},
+        "/approval-definitions": {"get", "post"},
+        "/approval-definitions/{definition_id}": {"get", "patch"},
+        "/approval-definitions/{definition_id}/draft": {"post"},
+        "/approval-definitions/{definition_id}/publish": {"post"},
+        "/approval-definitions/{definition_id}/retire": {"post"},
+        "/approval-tasks": {"get"},
+        "/approval-tasks/{task_id}/decide": {"post"},
+        "/approval-tasks/sweep-overdue": {"post"},
+        "/approval-delegations": {"get", "post"},
+        "/approval-delegations/{delegation_id}/revoke": {"post"},
+        "/audit-logs": {"get"},
+        "/audit-logs/verify": {"get"},
+        "/audit-logs/export": {"get"},
+        "/audit-logs/{audit_id}": {"get"},
+    }
+    runtime_paths = create_app().openapi()["paths"]
+    controlled_paths = document["paths"]
+    for path, methods in expected_methods.items():
+        assert path in controlled_paths, path
+        assert methods == {
+            method.lower()
+            for method in controlled_paths[path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, path
+        runtime_path = "/api/v1" + path
+        assert runtime_path in runtime_paths, runtime_path
+        assert methods == {
+            method.lower()
+            for method in runtime_paths[runtime_path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, runtime_path
+
+    schemas = document["components"]["schemas"]
+    for name in (
+        "ApprovalCreate",
+        "ApprovalTaskDecision",
+        "ApprovalDefinitionCreate",
+        "ApprovalDefinitionUpdate",
+        "ApprovalDelegationCreate",
+        "ApprovalInstance",
+        "ApprovalTask",
+        "AuditLogEvidence",
+        "AuditIntegrityState",
+    ):
+        assert name in schemas, name
+    assert schemas["ApprovalCreate"]["additionalProperties"] is False
+    assert schemas["ApprovalTaskDecision"]["additionalProperties"] is False
+    approval_query_names = {
+        parameter.get("name")
+        for parameter in controlled_paths["/approvals"]["get"]["parameters"]
+        if isinstance(parameter, dict) and "name" in parameter
+    }
+    assert {"park_id", "status", "biz_type", "priority", "mine", "created_from", "created_to"} <= approval_query_names
+    assert set(schemas["AuditIntegrityState"]["enum"]) == {
+        "VERIFIED",
+        "FAILED",
+        "LEGACY_UNVERIFIED",
+    }
 
 
 def test_investment_crm_v2_openapi_matches_runtime_and_legacy_stage_mapping() -> None:

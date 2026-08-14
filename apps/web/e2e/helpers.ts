@@ -79,9 +79,10 @@ export async function loginAs(
   await page.fill("#login-password", password);
   await page.getByTestId("login-submit").click();
   await expect(page).not.toHaveURL(/login/, { timeout: 30000 });
-  await expect(page.getByTestId("app-shell").or(page.getByTestId("forbidden-page"))).toBeVisible({
-    timeout: 15000,
-  });
+  // ForbiddenView is a child route rendered inside AppLayout.  Asserting the
+  // shell avoids Playwright strict-mode failures when both parent and child are
+  // present for users whose first post-login route has no matching permission.
+  await expect(page.getByTestId("app-shell")).toBeVisible({ timeout: 15000 });
 }
 
 export async function expectErrorVisible(page: Page) {

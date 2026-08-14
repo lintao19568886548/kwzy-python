@@ -1,0 +1,112 @@
+{
+  "started_at": "2026-08-14T14:19:44.7288254+08:00",
+  "ended_at": "2026-08-14T14:24:18.7122864+08:00",
+  "duration_ms": 273983,
+  "head": "c3f653ebef26ab68cbc74f037b34a906001ca88b",
+  "steps": [
+    {
+      "step": "docker_clean_start",
+      "exit_code": 0,
+      "ms": 1515,
+      "started": "2026-08-14T14:19:46.2526809+08:00",
+      "output_tail": "Container kwzy_party_test_pg Stopping \r\n Container kwzy_party_test_pg Stopped \r\n Container kwzy_party_test_pg Removing \r\n Container kwzy_party_test_pg Removed \r\n Network kwzy_party_test_net Removing \r\n Volume kwzy_party_test_pgdata Removing \r\n Volume kwzy_party_test_pgdata Removed \r\n Network kwzy_party_test_net Removed \r\ncleaned"
+    },
+    {
+      "step": "docker_pg_up",
+      "exit_code": 0,
+      "ms": 6965,
+      "started": "2026-08-14T14:19:53.2289019+08:00",
+      "output_tail": "Network kwzy_party_test_net Creating \r\n Network kwzy_party_test_net Created \r\n Volume kwzy_party_test_pgdata Creating \r\n Volume kwzy_party_test_pgdata Created \r\n Container kwzy_party_test_pg Creating \r\n Container kwzy_party_test_pg Created \r\n Container kwzy_party_test_pg Starting \r\n Container kwzy_party_test_pg Started \r\nhealthy"
+    },
+    {
+      "step": "alembic_upgrade",
+      "exit_code": 0,
+      "ms": 2751,
+      "started": "2026-08-14T14:19:55.9814368+08:00",
+      "output_tail": "INFO  [alembic.runtime.migration] Running upgrade 9f17fd2e9180 -> c3a91b2e4f10, party master tables\r\nINFO  [alembic.runtime.migration] Running upgrade c3a91b2e4f10 -> d4b02c3f5a21, lease contract tables\r\nINFO  [alembic.runtime.migration] Running upgrade d4b02c3f5a21 -> e5c13d4a6b32, bill master tables\r\nINFO  [alembic.runtime.migration] Running upgrade e5c13d4a6b32 -> f6d24e5b7c43, payment collection tables\r\nINFO  [alembic.runtime.migration] Running upgrade f6d24e5b7c43 -> a7e35f6c8d54, auth payment integrity tables\r\nINFO  [alembic.runtime.migration] Running upgrade a7e35f6c8d54 -> b8f46a1c9e20, identity session menu admin\r\nINFO  [alembic.runtime.migration] Running upgrade b8f46a1c9e20 -> c9a57b2d0f31, work items workbench\r\nINFO  [alembic.runtime.migration] Running upgrade c9a57b2d0f31 -> d0b68c3e1a42, investment leads\r\nINFO  [alembic.runtime.migration] Running upgrade d0b68c3e1a42 -> e1c79d4f2b53, identity org dict params + work orders + collection cases\r\nINFO  [alembic.runtime.migration] Running upgrade e1c79d4f2b53 -> f2a80e5c3b64, approval requests minimal\r\nINFO  [alembic.runtime.migration] Running upgrade f2a80e5c3b64 -> g3b91f6d4c75, integration outbox and attachments\r\nINFO  [alembic.runtime.migration] Running upgrade g3b91f6d4c75 -> h4c02d7e9a86, identity security events\r\nINFO  [alembic.runtime.migration] Running upgrade h4c02d7e9a86 -> i5d13e8f0b97, asset rent control v2\r\nINFO  [alembic.runtime.migration] Running upgrade i5d13e8f0b97 -> j6e24f9a1c08, investment crm v2\r\nINFO  [alembic.runtime.migration] Running upgrade j6e24f9a1c08 -> k7f35a0b2d19, contract lifecycle v2\r\nINFO  [alembic.runtime.migration] Running upgrade k7f35a0b2d19 -> l8a46b1c3e20, integration outbox idempotency uniqueness\r\nINFO  [alembic.runtime.migration] Running upgrade l8a46b1c3e20 -> m9b57c2d4e31, align timestamp nullability with the ORM contract\r\nINFO  [alembic.runtime.migration] Running upgrade m9b57c2d4e31 -> n0c68d3e5f42, platform organization governance\r\nINFO  [alembic.runtime.migration] Running upgrade n0c68d3e5f42 -> o1d79e4f6a53, versioned approval orchestration and tamper-evident audit ledger\r\no1d79e4f6a53 (head)"
+    },
+    {
+      "step": "alembic_down_up",
+      "exit_code": 0,
+      "ms": 2105,
+      "started": "2026-08-14T14:19:58.0872166+08:00",
+      "output_tail": "INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\r\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\r\nINFO  [alembic.runtime.migration] Running downgrade o1d79e4f6a53 -> n0c68d3e5f42, versioned approval orchestration and tamper-evident audit ledger\r\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\r\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\r\nINFO  [alembic.runtime.migration] Running upgrade n0c68d3e5f42 -> o1d79e4f6a53, versioned approval orchestration and tamper-evident audit ledger"
+    },
+    {
+      "step": "pytest_non_pg_and_pg",
+      "exit_code": 0,
+      "ms": 100892,
+      "started": "2026-08-14T14:21:38.9799728+08:00",
+      "output_tail": "........................................................................ [ 27%]\r\n........................................................................ [ 54%]\r\n........................................................................ [ 81%]\r\n................................................                         [100%]\r\n============================== warnings summary ===============================\r\n.venv\\lib\\site-packages\\fastapi\\testclient.py:1\r\n  D:\\�ع�python\\kwzy-python\\apps\\api\\.venv\\lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\r\n    from starlette.testclient import TestClient as TestClient  # noqa\r\n\r\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\r\n264 passed, 1 warning in 95.24s (0:01:35)"
+    },
+    {
+      "step": "etl_fast",
+      "exit_code": 0,
+      "ms": 15606,
+      "started": "2026-08-14T14:21:54.5869959+08:00",
+      "output_tail": "ETL_DRILL_REPORT_JSON=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\etl_fast\\drill_fast.json\r\nETL_DRILL_REPORT_MD=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\etl_fast\\drill_fast.md\r\nETL_DRILL=PASS"
+    },
+    {
+      "step": "etl_acceptance",
+      "exit_code": 0,
+      "ms": 140250,
+      "started": "2026-08-14T14:24:14.8377694+08:00",
+      "output_tail": "ETL_DRILL_REPORT_JSON=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\etl_acceptance\\drill_acceptance.json\r\nETL_DRILL_REPORT_MD=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\etl_acceptance\\drill_acceptance.md\r\nETL_DRILL=PASS"
+    },
+    {
+      "step": "identity_etl_acceptance",
+      "exit_code": 0,
+      "ms": 446,
+      "started": "2026-08-14T14:24:15.2846584+08:00",
+      "output_tail": "IDENTITY_ETL_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\identity_etl\\identity_etl.json\r\nIDENTITY_ETL_DRILL=PASS"
+    },
+    {
+      "step": "asset_etl_acceptance",
+      "exit_code": 0,
+      "ms": 420,
+      "started": "2026-08-14T14:24:15.7054397+08:00",
+      "output_tail": "ASSET_ETL_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\asset_etl\\asset_etl.json\r\nASSET_ETL_DRILL=PASS"
+    },
+    {
+      "step": "crm_etl_acceptance",
+      "exit_code": 0,
+      "ms": 422,
+      "started": "2026-08-14T14:24:16.1284037+08:00",
+      "output_tail": "CRM_ETL_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\crm_etl\\crm_etl.json\r\nCRM_ETL_DRILL=PASS\r\nKWZY_DATA_MIGRATION_READINESS=CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA"
+    },
+    {
+      "step": "contract_etl_acceptance",
+      "exit_code": 0,
+      "ms": 477,
+      "started": "2026-08-14T14:24:16.6064306+08:00",
+      "output_tail": "CONTRACT_ETL_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\contract_etl\\contract_etl.json\r\nCONTRACT_ETL_DRILL=PASS\r\nCONTRACT_ETL_READINESS=CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA"
+    },
+    {
+      "step": "organization_governance_etl_acceptance",
+      "exit_code": 0,
+      "ms": 426,
+      "started": "2026-08-14T14:24:17.0335041+08:00",
+      "output_tail": "ORGANIZATION_GOVERNANCE_ETL_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\organization_governance_etl\\organization_governance_etl.json\r\nORGANIZATION_GOVERNANCE_ETL_DRILL=PASS"
+    },
+    {
+      "step": "approval_audit_etl_acceptance",
+      "exit_code": 1,
+      "ms": 59,
+      "started": "2026-08-14T14:24:17.0929778+08:00",
+      "output_tail": "Traceback (most recent call last):\r\n  File \"D:\\�ع�python\\kwzy-python\\tools\\etl\\run_approval_audit_etl_drill.py\", line 18, in <module>\r\n    from datetime import UTC, datetime\r\nImportError: cannot import name 'UTC' from 'datetime' (C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310\\lib\\datetime.py)"
+    }
+  ],
+  "playwright_report": "D:\\重构python\\kwzy-python\\apps\\web\\playwright-report",
+  "test_results": "D:\\重构python\\kwzy-python\\apps\\web\\test-results",
+  "etl_fast": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\etl_fast",
+  "etl_acceptance": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\etl_acceptance",
+  "identity_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\identity_etl\\identity_etl.json",
+  "asset_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\asset_etl\\asset_etl.json",
+  "crm_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\crm_etl\\crm_etl.json",
+  "contract_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\contract_etl\\contract_etl.json",
+  "organization_governance_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\organization_governance_etl\\organization_governance_etl.json",
+  "approval_audit_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\approval_audit_etl\\approval_audit_etl.json",
+  "http_performance": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\performance\\http-performance.json",
+  "approval_audit_http": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\performance\\approval-audit-http-journey.json",
+  "backup": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\backup"
+}

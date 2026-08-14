@@ -58,7 +58,18 @@ const routes: RouteRecordRaw[] = [
         path: "approvals",
         name: "approvals",
         component: ApprovalsView,
-        meta: { permission: "approval:read" },
+        meta: {
+          permissionAny: [
+            "approval:read",
+            "approval:write",
+            "approval.task.read",
+            "approval.task.decide",
+            "approval.definition.read",
+            "approval.definition.write",
+            "approval.delegation.manage",
+            "audit.read",
+          ],
+        },
       },
       {
         path: "parks",
@@ -128,7 +139,16 @@ router.beforeEach(async (to) => {
     return { name: "forbidden" };
   }
   const perm = to.meta.permission as string | string[] | undefined;
+  const permissionAny = to.meta.permissionAny as string[] | undefined;
   if (perm && auth.isAuthed && !auth.can(perm) && !auth.can("*")) {
+    return { name: "forbidden", query: { denied: "1", from: String(to.fullPath) } };
+  }
+  if (
+    permissionAny &&
+    auth.isAuthed &&
+    !auth.can("*") &&
+    !permissionAny.some((permission) => auth.can(permission))
+  ) {
     return { name: "forbidden", query: { denied: "1", from: String(to.fullPath) } };
   }
   return true;
