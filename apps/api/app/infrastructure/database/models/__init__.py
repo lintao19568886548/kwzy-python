@@ -60,6 +60,14 @@ from app.infrastructure.database.models.collection_case import CollectionCase
 from app.infrastructure.database.models.workflow import ApprovalEvent, ApprovalRequest
 from app.infrastructure.database.models.attachment import Attachment
 from app.infrastructure.database.models.integration_outbox import IntegrationOutbox
+from app.infrastructure.database.models.organization_governance import (
+    FieldAccessPolicy,
+    OrganizationGroup,
+    OrganizationRegion,
+    Position,
+    RegionParkAssignment,
+    UserPositionAssignment,
+)
 
 __all__ = [
     "Tenant",
@@ -120,4 +128,10 @@ __all__ = [
     "ApprovalEvent",
     "Attachment",
     "IntegrationOutbox",
+    "OrganizationGroup",
+    "OrganizationRegion",
+    "RegionParkAssignment",
+    "Position",
+    "UserPositionAssignment",
+    "FieldAccessPolicy",
 ]

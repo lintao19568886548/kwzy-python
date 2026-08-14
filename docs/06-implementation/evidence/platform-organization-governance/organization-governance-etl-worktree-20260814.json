@@ -1,0 +1,76 @@
+{
+  "started_at": "2026-08-14T04:48:02.572269+00:00",
+  "source_schema_version": "kwzy.organization-governance.synthetic.v1",
+  "schema": "etl_organization_governance_fixture",
+  "synthetic_only": true,
+  "readiness": "CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA",
+  "real_legacy_readiness": "BLOCKED_PENDING_AUTHORIZED_SCHEMA_AND_DESENSITIZED_SAMPLE",
+  "stages": {
+    "dry_run": {
+      "passed": true,
+      "errors": []
+    },
+    "first_apply": {
+      "passed": true,
+      "inserted": {
+        "organization_groups": 1,
+        "organization_regions": 2,
+        "region_park_assignments": 3,
+        "positions": 2,
+        "user_position_assignments": 2,
+        "field_access_policies": 2
+      }
+    },
+    "idempotent_reapply": {
+      "passed": true,
+      "inserted": {
+        "organization_groups": 0,
+        "organization_regions": 0,
+        "region_park_assignments": 0,
+        "positions": 0,
+        "user_position_assignments": 0,
+        "field_access_policies": 0
+      }
+    },
+    "reconciliation": {
+      "passed": true,
+      "counts": {
+        "organization_groups": {
+          "source": 1,
+          "target": 1
+        },
+        "organization_regions": {
+          "source": 2,
+          "target": 2
+        },
+        "region_park_assignments": {
+          "source": 3,
+          "target": 3
+        },
+        "positions": {
+          "source": 2,
+          "target": 2
+        },
+        "user_position_assignments": {
+          "source": 2,
+          "target": 2
+        },
+        "field_access_policies": {
+          "source": 2,
+          "target": 2
+        }
+      },
+      "current_region_duplicates": 0,
+      "current_primary_duplicates": 0,
+      "authorization_rows_emitted": 0,
+      "raw_pii_rows": 0
+    },
+    "rollback": {
+      "passed": true,
+      "schema_exists_after": false
+    }
+  },
+  "finished_at": "2026-08-14T04:48:02.759991+00:00",
+  "exit_code": 0,
+  "result": "PASS"
+}

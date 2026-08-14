@@ -1,14 +1,21 @@
 # 瞰维智管 V2 独立验收能力矩阵
 
 > 审计日期：2026-08-14（Asia/Shanghai）
-> 实现证据提交：`a9267d4c30096a7c80d66588ab06bc6838b32b0d`
+> 实现证据基线：repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 加当前组织治理整改工作树；交付提交待正常 push 后回填。
 > 判定规则：只使用 `IMPLEMENTED_AND_VERIFIED`、`APPROVED_RETIRED`、`APPROVED_DEFERRED`、`BLOCKED`、`MISSING`。子能力通过但组合需求未闭环时，组合项必须判为 `MISSING`；没有人工批准，不使用 retired/deferred。
+
+## 当前整改纵切
+
+- 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
+- 当前 OpenSpec：`complete-platform-organization-governance`，proposal/design/6 specs/tasks strict PASS，实施进度 26/27；仅正常 commit/push 交付项待执行。
+- 已关闭证据：集团→区域→园区历史归属、岗位任职、服务端字段策略及 PC 真实旅程；PostgreSQL 16 迁移/并发、真实 HTTP、43 条浏览器 E2E、合成 ETL、OpenAPI/OpenSpec 均通过。
+- 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 
 ## 产品能力
 
 | # | 能力 | 独立核验证据 | 未关闭事实 | 状态 |
 | --- | --- | --- | --- | --- |
-| 1 | 组织/RBAC/园区范围/审批/审计 | 登录会话、角色权限、园区 grant、最小审批、审计日志有 API/PG/E2E | 集团/区域治理、岗位、字段权限、完整审批中心与审计中心未闭环 | `MISSING` |
+| 1 | 组织/RBAC/园区范围/审批/审计 | 集团/区域/园区历史归属、岗位任职、服务端字段策略、登录会话、角色权限、园区 grant、最小审批和事务审计均有 API/PG/E2E | 完整审批中心与审计中心仍未闭环，因此组合能力不得升级 | `MISSING` |
 | 2 | 统一工作台和自动待办 | WorkItem、摘要、合同治理待办可运行 | 多角色组件配置、全事件源、自动升级/改派/复核未完成 | `MISSING` |
 | 3 | 资产模板、租控矩阵、拆分合并和历史 | 空间树、单元版本/血缘、拆并并发、矩阵/列表 UI 已验证 | 业态模板、地图/GIS/CAD/BIM、组合分析未完成 | `MISSING` |
 | 4 | 招商线索、分配、公共池、跟进、带看和锁房 | 去重、人工分配/改派、公海、活动、匹配、限时锁房和转化有 PG/E2E | 自动分配、意向审批和外部渠道未完成 | `MISSING` |
@@ -35,7 +42,7 @@
 
 | # | 旅程 | 状态 | 说明 |
 | --- | --- | --- | --- |
-| 1 | 集团、区域、园区、角色、用户 | `MISSING` | 园区/角色/用户有证据，集团与区域闭环缺失 |
+| 1 | 集团、区域、园区、角色、用户 | `IMPLEMENTED_AND_VERIFIED` | 集团/区域/园区历史归属、角色、用户、岗位任职及字段策略的 API/PG/浏览器旅程通过 |
 | 2 | 不同业态资产 | `MISSING` | 空间/单元可建，业态模板未完成 |
 | 3 | 拆分/合并及历史 | `IMPLEMENTED_AND_VERIFIED` | UI/API/PG 并发与血缘历史通过 |
 | 4 | 录入线索 | `IMPLEMENTED_AND_VERIFIED` | 真实 HTTP/UI/PG 通过 |

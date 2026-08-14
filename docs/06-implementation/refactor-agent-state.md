@@ -4,18 +4,28 @@
 
 | 字段 | 当前值 |
 | --- | --- |
-| 更新时间 | 2026-08-13 20:09（Asia/Shanghai） |
+| 更新时间 | 2026-08-14（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
-| 分支 | `main` |
-| 已验证 HEAD | `8adcd77e782db47a466ba0759ac04ffaae488b1b` |
-| 远程同步 | CRM 实现 `8adcd77` 与证据 `4be4fe0` 已非强推送；CRM 归档 `080d5aa` 及后续合同规划因外发安全门禁保持本地，等待用户明确授权目标仓库 |
-| 工作树 | 被测业务代码仍精确绑定 clean `8adcd77`；其后变化仅为总控证据、主规格同步、OpenSpec 归档与合同 V2 规划 |
-| Alembic | 唯一 head `j6e24f9a1c08` |
-| 当前阶段 | 招商 CRM V2 本次定义范围 `LOCAL_ACCEPTANCE_PASS` 且已归档；合同 V2 规划 4/4 工件完成，3/102 任务，进入实施 |
-| 当前 OpenSpec | 基础 `implement-lease-contract` 已同步 5 份主规格并归档；`implement-contract-lifecycle-v2` strict PASS；Identity 真实旧数据项保持外部门禁 |
+| 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
+| 已验证 HEAD | repair 实现 `a9267d4c30096a7c80d66588ab06bc6838b32b0d`；完整推送记录 HEAD `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` |
+| 远程同步 | repair 已与 origin 同 SHA；完成分支尚未首次提交/推送；禁止 force |
+| 工作树 | 用户基线原为 clean；当前组织治理纵切 25/25 总闸门通过，待 commit/push |
+| Alembic | 唯一 head `n0c68d3e5f42`；fresh upgrade 和 head→-1→head 通过 |
+| 当前阶段 | 独立验收仍为 2 implemented / 1 blocked / 17 missing；关键旅程 1 已关闭，组合能力 1 因完整审批/审计仍缺失而保持 `MISSING` |
+| 当前 OpenSpec | `complete-platform-organization-governance` strict PASS、26/27，仅交付项待完成；`complete-identity-system-admin` 51/53，两个真实旧数据任务保持外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
+
+- [x] 从 repair 精确 SHA `37d7cf7` 建立 `feat/full-rebuild-completion`，并保留 local main、origin/main、repair 三条 safety ref。
+- [x] 独立复核 repair 验收报告、20 项能力、22 条旅程与旧 Java/PC/SQL 原始证据，不把历史 PASS 当作全量完成。
+- [x] 读取 `complete-identity-system-admin` 全部上下文，确认 51/53；授权 schema dump 与密码样本是事实外部阻塞。
+- [x] 创建 `complete-platform-organization-governance` 的 proposal、design、6 份 specs 和 27 项任务，strict PASS 并进入 apply。
+- [x] 记录旧 organization/region/dept/park/role/position/字段策略证据和处置，未把组织开通或真实迁移误计为完成。
+- [x] 完成集团/区域生命周期、园区有效期归属历史、岗位任职和服务端字段投影；任职不隐式授予 RBAC 或园区范围。
+- [x] 完成 PC 组织治理工作区及桌面/平板/移动端加载、只读、403、409、503/重试和无横向溢出验收，三张截图已留存。
+- [x] 完成 PostgreSQL 16 约束/并发与组织治理合成 ETL 的 dry/apply/幂等/对账/回滚，真实旧 schema/脱敏样本仍保持外部门禁。
+- [x] 在 repair 基线加当前工作树上运行 25 项总验收，25/25 exit 0；等待正常提交、推送并在 clean SHA 复验。
 
 - [x] 读取用户全量 V2 目标和四份既有总控文档。
 - [x] 核对 Git：发现旧验收绑定 `23fa781`，当前代码已推进到 `d9c0b0b`。
@@ -51,29 +61,29 @@
 - [x] 将已落地基础合同 5 份 delta 同步主规格并归档 `2026-08-13-implement-lease-contract`，消除合同 V2 增量基线缺口。
 - [x] 完成 `implement-contract-lifecycle-v2` proposal/design、10 份 delta specs 和 102 项任务；change strict 与全量 OpenSpec 49/49 PASS。
 
-## 最新机器证据
+## 最新机器证据（组织治理工作树）
 
 | 项 | 结果 |
 | --- | --- |
-| 精确提交报告 | `infra/local-staging/out/acceptance_20260813_195020.json`（gitignored，本机），21/21 PASS |
-| 时间/提交 | 2026-08-13 19:45:07–19:50:20 +08:00；313740 ms；`8adcd77e782db47a466ba0759ac04ffaae488b1b` |
-| PostgreSQL 16 | fresh base→`j6e24f9a1c08` PASS；head→-1→head PASS |
-| pytest | 166 passed，1 dependency deprecation warning |
-| 前端 | lint PASS；typecheck PASS；Vitest 4 passed；production build PASS |
-| Playwright | 32 passed / 0 failed / 0 skipped；其中 CRM 6 条，覆盖主链、公海、管理操作、只读、409/503 恢复与平板键盘 |
-| OpenAPI | 4 runtime/YAML contract tests + YAML strict PASS；CRM V2 20 个路径方法进入精确契约 |
-| OpenSpec | strict 38 passed / 0 failed |
-| ETL | core fast + acceptance、Identity、Asset、CRM 均 PASS；CRM 为 5/4/4/1/1 且对账、幂等、PII 隔离、rollback 全绿；真实旧数据未演练 |
-| 备份恢复 | PASS，dump 883310 bytes，restore 52 tables |
-| 扩展 secrets scan | PASS，545 tracked/untracked non-ignored files |
-| runner SHA256 | `747C954458394D6D9F8CE4B9355DB849C3859A2199C7090386334311D3887EC3` |
+| 工作树报告 | `infra/local-staging/out/acceptance_20260814_125003.json`（gitignored，本机），25/25 PASS；追踪副本在本纵切证据目录 |
+| 时间/基线 | 2026-08-14 12:43:27–12:50:03 +08:00；395489 ms；Git HEAD `37d7cf7` 加当前整改 diff |
+| PostgreSQL 16 | fresh base→`n0c68d3e5f42` PASS；head→-1→head PASS；唯一 head |
+| pytest | 253 passed，1 dependency deprecation warning |
+| 前端 | lint PASS；typecheck PASS；Vitest 6 passed；production build PASS |
+| Playwright | 43 passed / 0 failed / 0 skipped；组织治理 3 条覆盖桌面真实旅程、平板只读与移动 503/重试 |
+| OpenAPI | 7 runtime/YAML contract tests + YAML strict PASS |
+| OpenSpec | strict 50 passed / 0 failed |
+| ETL | core fast + acceptance、Identity、Asset、CRM、Contract、Organization Governance 均 PASS；组织治理 1/2/3/2/2/2 对账、幂等、无授权行/原始 PII、rollback 全绿；真实旧数据未演练 |
+| 性能 | 1000 请求、并发 25、p95 356.22 ms、118.296 RPS、0% 错误，门槛 PASS |
+| 备份恢复 | PASS，dump 985808 bytes，restore 65 tables |
+| 扩展 secrets scan | PASS，650 tracked/untracked non-ignored files |
 
 ## 已确认的产品级阻塞
 
 - `apps/employee-mobile` 不存在；员工移动端未实现。
 - `apps/tenant-miniprogram` 不存在；租户微信小程序未实现。
 - `analytics`、`ai_assist`、`finance`、`tenant_ops` 仍是未挂载的空响应或 stub，不能计为能力。
-- 资产与租控本次定义范围已闭合；集团层、GIS/CAD/BIM 地图与更深组合经营分析仍未实现。
+- 资产与租控本次定义范围已闭合；集团/区域/园区归属治理已闭合；GIS/CAD/BIM 地图与更深组合经营分析仍未实现。
 - CRM/锁房本次定义范围已形成代码与本地验收；真实外部渠道接入、企微回调/自动触达、意向审批、AI 评分及真实旧数据迁移仍未完成，合同变更链、自动计费/对账催缴、IoT/巡检、HR/供应链、完整驾驶舱也未闭环。
 - 外部短信/微信/邮件/OSS/支付/签章/发票/IoT 无真实凭据，生产联调均 `NOT_LIVE`。
 - ETL 只验证合成 fixture；缺少经授权的脱敏旧库快照、字段闭合签字和新旧结果对账。
@@ -81,10 +91,10 @@
 
 ## 下一恢复点
 
-1. 提交本地合同基础规格归档与 V2 规划检查点；远端推送等待用户明确授权 GitHub 目标，不绕过安全门禁。
-2. 按 tasks 1.4→8 实现处置映射、schema/version、费用计划、审批文档、变更/占用、退租结算和查询 API。
-3. 随后完成 PC 工作台、合成 ETL、OpenAPI/E2E/全量精确 SHA 验收；真实资金、签章、旧数据与生产继续外部门禁。
-4. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档。
+1. 正常 commit/push `complete-platform-organization-governance`，在 clean SHA 复跑总闸门并回填交付提交。
+2. 创建并实施完整审批中心/审计中心的下一垂直切片，继续关闭组合能力 1。
+3. 建设事件驱动待办、规则/定时任务和多角色可配置工作台，继续关闭组合能力 2。
+4. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 
 ## 不可变安全约束
 

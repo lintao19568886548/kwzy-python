@@ -315,3 +315,55 @@ def test_lease_compatibility_contract_cannot_bypass_v2_governance() -> None:
     assert "increase_rate" not in create_properties
     assert "expected_version" in update_schema["required"]
     assert "charges" in update_schema["properties"]
+
+
+def test_organization_governance_openapi_matches_every_runtime_method() -> None:
+    """Controlled YAML and mounted FastAPI routes must expose the same vertical slice."""
+
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    paths = document["paths"]
+    runtime_paths = create_app().openapi()["paths"]
+    expected_methods = {
+        "/system/organization-governance/hierarchy": {"get"},
+        "/system/organization-governance/groups": {"post"},
+        "/system/organization-governance/groups/{group_id}": {"patch"},
+        "/system/organization-governance/regions": {"post"},
+        "/system/organization-governance/regions/{region_id}": {"patch"},
+        "/system/organization-governance/park-assignments": {"post"},
+        "/system/organization-governance/parks/{park_id}/assignment-history": {"get"},
+        "/system/organization-governance/positions": {"get", "post"},
+        "/system/organization-governance/positions/{position_id}": {"patch"},
+        "/system/organization-governance/user-assignments": {"get", "post"},
+        "/system/organization-governance/user-assignments/{assignment_id}/end": {
+            "post"
+        },
+        "/system/organization-governance/protected-fields": {"get"},
+        "/system/organization-governance/field-policies": {"get", "put"},
+    }
+    for path, methods in expected_methods.items():
+        assert path in paths, f"organization-governance path absent from YAML: {path}"
+        assert methods <= {key.lower() for key in paths[path]}, path
+        runtime_path = "/api/v1" + path
+        assert runtime_path in runtime_paths, f"runtime route absent: {runtime_path}"
+        assert methods <= {key.lower() for key in runtime_paths[runtime_path]}, path
+
+    schemas = document["components"]["schemas"]
+    assert set(schemas["FieldAccessPolicyUpsert"]["properties"]["access_mode"]["enum"]) == {
+        "VISIBLE",
+        "MASKED",
+        "HIDDEN",
+    }
+    assert schemas["FieldAccessPolicyUpsert"]["properties"]["resource_type"]["enum"] == [
+        "USER"
+    ]
+    assert schemas["FieldAccessPolicyUpsert"]["properties"]["field_name"]["enum"] == [
+        "phone"
+    ]
+    assert {"region_id", "park_id"} <= set(
+        schemas["RegionParkAssignmentCommand"]["required"]
+    )
+    assert {"user_id", "position_id"} <= set(
+        schemas["UserPositionAssignmentCreate"]["required"]
+    )

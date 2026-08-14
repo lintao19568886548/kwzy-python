@@ -21,6 +21,7 @@ tags:
   - name: Payments
   - name: Collection
   - name: WorkItems
+  - name: OrganizationGovernance
   - name: Leads
   - name: AI
 
@@ -3292,6 +3293,237 @@ paths:
       operationId: listIntegrationOutbox
       security: [{ bearerAuth: [] }]
       responses: { '200': { description: OK } }
+  /system/organization-governance/hierarchy:
+    get:
+      tags: [OrganizationGovernance]
+      summary: 查询集团、区域与当前园区归属树
+      operationId: organizationGovernanceHierarchy
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /system/organization-governance/groups:
+    post:
+      tags: [OrganizationGovernance]
+      summary: 创建经营集团
+      operationId: organizationGovernanceCreateGroup
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrganizationGroupCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /system/organization-governance/groups/{group_id}:
+    patch:
+      tags: [OrganizationGovernance]
+      summary: 更新或停用经营集团
+      operationId: organizationGovernanceUpdateGroup
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/GroupId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrganizationGroupUpdate' }
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /system/organization-governance/regions:
+    post:
+      tags: [OrganizationGovernance]
+      summary: 创建经营区域
+      operationId: organizationGovernanceCreateRegion
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrganizationRegionCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /system/organization-governance/regions/{region_id}:
+    patch:
+      tags: [OrganizationGovernance]
+      summary: 更新或停用经营区域
+      operationId: organizationGovernanceUpdateRegion
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/RegionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrganizationRegionUpdate' }
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /system/organization-governance/park-assignments:
+    post:
+      tags: [OrganizationGovernance]
+      summary: 调整园区所属区域并保留历史
+      operationId: organizationGovernanceAssignPark
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegionParkAssignmentCommand' }
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /system/organization-governance/parks/{park_id}/assignment-history:
+    get:
+      tags: [OrganizationGovernance]
+      summary: 查询园区调区历史
+      operationId: organizationGovernanceParkHistory
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ParkIdPath'
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /system/organization-governance/positions:
+    get:
+      tags: [OrganizationGovernance]
+      summary: 查询岗位主档
+      operationId: organizationGovernanceListPositions
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [OrganizationGovernance]
+      summary: 创建岗位主档
+      operationId: organizationGovernanceCreatePosition
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PositionCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /system/organization-governance/positions/{position_id}:
+    patch:
+      tags: [OrganizationGovernance]
+      summary: 更新或停用岗位主档
+      operationId: organizationGovernanceUpdatePosition
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/PositionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PositionUpdate' }
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /system/organization-governance/user-assignments:
+    get:
+      tags: [OrganizationGovernance]
+      summary: 查询用户任职与历史
+      operationId: organizationGovernanceListUserAssignments
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: user_id
+          schema: { type: integer, format: int64, minimum: 1 }
+        - in: query
+          name: current_only
+          schema: { type: boolean, default: false }
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [OrganizationGovernance]
+      summary: 创建有效期用户任职
+      operationId: organizationGovernanceAssignUserPosition
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserPositionAssignmentCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /system/organization-governance/user-assignments/{assignment_id}/end:
+    post:
+      tags: [OrganizationGovernance]
+      summary: 结束当前任职
+      operationId: organizationGovernanceEndUserPosition
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/AssignmentId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserPositionAssignmentEnd' }
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /system/organization-governance/protected-fields:
+    get:
+      tags: [OrganizationGovernance]
+      summary: 查询可配置的受保护字段白名单
+      operationId: organizationGovernanceListProtectedFields
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /system/organization-governance/field-policies:
+    get:
+      tags: [OrganizationGovernance]
+      summary: 查询角色字段访问策略
+      operationId: organizationGovernanceListFieldPolicies
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    put:
+      tags: [OrganizationGovernance]
+      summary: 创建或更新角色字段访问策略
+      operationId: organizationGovernanceUpsertFieldPolicy
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FieldAccessPolicyUpsert' }
+      responses:
+        '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -3377,6 +3609,26 @@ components:
         minLength: 1
         maxLength: 128
       description: 写操作幂等键（payments 创建、bills issue 等必须支持；1–128 字符，不作为授权边界）
+    GroupId:
+      name: group_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+    RegionId:
+      name: region_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+    PositionId:
+      name: position_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+    AssignmentId:
+      name: assignment_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
 
   responses:
     ApiOkResponse:
@@ -3384,6 +3636,21 @@ components:
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ApiOk' }
+    OrganizationGovernanceOK:
+      description: 组织治理统一成功响应
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/OrganizationGovernanceEnvelope' }
+    Forbidden:
+      description: 动作权限、园区范围或租户边界拒绝
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Conflict:
+      description: 生命周期、有效期或并发唯一约束冲突
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
 
   schemas:
     # ----- 统一响应 envelope（P0-3）-----
@@ -3402,6 +3669,108 @@ components:
         code: { type: string, example: VALIDATION_ERROR }
         message: { type: string }
         data: { type: object, nullable: true }
+
+    OrganizationGovernanceEnvelope:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: { type: string, example: OK }
+        message: { type: string }
+        data:
+          description: 按端点返回层级、主档、历史或策略对象
+
+    OrganizationLifecycleStatus:
+      type: string
+      enum: [ACTIVE, DISABLED]
+
+    OrganizationGroupCreate:
+      type: object
+      required: [code, name]
+      properties:
+        code: { type: string, minLength: 1, maxLength: 64, pattern: '^[A-Za-z0-9_.-]+$' }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        sort_order: { type: integer, minimum: -100000, maximum: 100000, default: 0 }
+        remark: { type: string, maxLength: 500, nullable: true }
+
+    OrganizationGroupUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 128 }
+        status: { $ref: '#/components/schemas/OrganizationLifecycleStatus' }
+        sort_order: { type: integer, minimum: -100000, maximum: 100000 }
+        remark: { type: string, maxLength: 500, nullable: true }
+
+    OrganizationRegionCreate:
+      allOf:
+        - $ref: '#/components/schemas/OrganizationGroupCreate'
+        - type: object
+          required: [group_id]
+          properties:
+            group_id: { type: integer, format: int64, minimum: 1 }
+
+    OrganizationRegionUpdate:
+      allOf:
+        - $ref: '#/components/schemas/OrganizationGroupUpdate'
+        - type: object
+          properties:
+            group_id: { type: integer, format: int64, minimum: 1 }
+
+    RegionParkAssignmentCommand:
+      type: object
+      required: [region_id, park_id]
+      properties:
+        region_id: { type: integer, format: int64, minimum: 1 }
+        park_id: { type: integer, format: int64, minimum: 1 }
+        effective_from: { type: string, format: date-time, nullable: true }
+        reason: { type: string, maxLength: 500, nullable: true }
+
+    PositionCreate:
+      type: object
+      required: [code, name]
+      properties:
+        code: { type: string, minLength: 1, maxLength: 64, pattern: '^[A-Za-z0-9_.-]+$' }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        org_unit_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        sort_order: { type: integer, minimum: -100000, maximum: 100000, default: 0 }
+        responsibilities: { type: string, maxLength: 5000, nullable: true }
+
+    PositionUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 128 }
+        org_unit_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        clear_org_unit: { type: boolean, default: false }
+        status: { $ref: '#/components/schemas/OrganizationLifecycleStatus' }
+        sort_order: { type: integer, minimum: -100000, maximum: 100000 }
+        responsibilities: { type: string, maxLength: 5000, nullable: true }
+
+    UserPositionAssignmentCreate:
+      type: object
+      required: [user_id, position_id]
+      properties:
+        user_id: { type: integer, format: int64, minimum: 1 }
+        position_id: { type: integer, format: int64, minimum: 1 }
+        park_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        starts_at: { type: string, format: date-time, nullable: true }
+        is_primary: { type: boolean, default: false }
+        remark: { type: string, maxLength: 500, nullable: true }
+
+    UserPositionAssignmentEnd:
+      type: object
+      properties:
+        ends_at: { type: string, format: date-time, nullable: true }
+        remark: { type: string, maxLength: 500, nullable: true }
+
+    FieldAccessPolicyUpsert:
+      type: object
+      required: [role_id, resource_type, field_name, access_mode]
+      properties:
+        role_id: { type: integer, format: int64, minimum: 1 }
+        resource_type: { type: string, enum: [USER] }
+        field_name: { type: string, enum: [phone] }
+        access_mode: { type: string, enum: [VISIBLE, MASKED, HIDDEN] }
+        mask_strategy: { type: string, enum: [PHONE], default: PHONE }
+        status: { $ref: '#/components/schemas/OrganizationLifecycleStatus' }
 
     LeaseVersionCommandV2:
       type: object

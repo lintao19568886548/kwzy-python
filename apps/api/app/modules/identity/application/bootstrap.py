@@ -27,6 +27,7 @@ from app.infrastructure.database.models.identity import (
     User,
     UserRole,
 )
+from app.infrastructure.database.models.organization_governance import FieldAccessPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +86,10 @@ DEFAULT_PERMISSIONS = (
     ("identity.dict.write", "维护字典", "identity"),
     ("identity.param.read", "查看系统参数", "identity"),
     ("identity.param.write", "维护系统参数", "identity"),
+    ("identity.org_governance.read", "查看组织治理", "identity"),
+    ("identity.org_governance.write", "维护组织治理", "identity"),
+    ("identity.field_policy.read", "查看字段策略", "identity"),
+    ("identity.field_policy.write", "维护字段策略", "identity"),
 )
 
 
@@ -158,6 +163,28 @@ def ensure_default_tenant(session: Session) -> Tenant | None:
                 tenant_id=tenant.id,
                 role_id=role.id,
                 permission_id=star.id,
+            )
+        )
+
+    # 本地 ADMIN 的手机号查看是显式数据库策略；`*` 动作权限本身不绕过字段门禁。
+    admin_phone_policy = session.scalars(
+        select(FieldAccessPolicy).where(
+            FieldAccessPolicy.tenant_id == tenant.id,
+            FieldAccessPolicy.role_id == role.id,
+            FieldAccessPolicy.resource_type == "USER",
+            FieldAccessPolicy.field_name == "phone",
+        )
+    ).first()
+    if admin_phone_policy is None:
+        session.add(
+            FieldAccessPolicy(
+                tenant_id=tenant.id,
+                role_id=role.id,
+                resource_type="USER",
+                field_name="phone",
+                access_mode="VISIBLE",
+                mask_strategy="PHONE",
+                status="ACTIVE",
             )
         )
 

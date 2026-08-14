@@ -21,6 +21,9 @@ from app.core.security_headers import SecurityHeadersMiddleware
 from app.infrastructure.database.session import SessionLocal
 from app.modules.identity.application.bootstrap import ensure_default_tenant
 from app.modules.identity.interface.api import router as identity_router
+from app.modules.identity.interface.organization_governance_api import (
+    router as organization_governance_router,
+)
 from app.modules.park_property.interface.api import router as park_router
 from app.modules.party.interface.api import router as party_router
 from app.modules.lease.interface.api import router as lease_router
@@ -84,6 +87,7 @@ def create_app() -> FastAPI:
 
     prefix = settings.api_v1_prefix
     app.include_router(identity_router, prefix=prefix)
+    app.include_router(organization_governance_router, prefix=prefix)
     app.include_router(park_router, prefix=prefix)
     app.include_router(party_router, prefix=prefix)
     app.include_router(lease_router, prefix=prefix)

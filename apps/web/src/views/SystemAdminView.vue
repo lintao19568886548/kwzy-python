@@ -2,8 +2,9 @@
 import { onMounted, ref } from "vue";
 import { http } from "@/api/http";
 import type { Envelope } from "@/api/types";
+import OrganizationGovernancePanel from "@/components/OrganizationGovernancePanel.vue";
 
-type Tab = "org" | "users" | "roles" | "menus" | "dict" | "param";
+type Tab = "governance" | "org" | "users" | "roles" | "menus" | "dict" | "param";
 type OrgRow = { id: number; code: string; name: string; status: string };
 type ParamRow = {
   id: number;
@@ -76,7 +77,7 @@ type MenuForm = {
   permission_code: string;
 };
 
-const tab = ref<Tab>("org");
+const tab = ref<Tab>("governance");
 const error = ref("");
 const loading = ref(false);
 const saving = ref(false);
@@ -508,7 +509,8 @@ onMounted(async () => {
       <h2 data-testid="system-title">系统管理</h2>
       <p class="muted">用户、角色、动作权限、菜单与园区范围独立授权；安全变更即时撤销旧会话。</p>
       <nav class="tabs" data-testid="system-tabs" aria-label="系统管理分类">
-        <button type="button" data-testid="tab-org" :class="{ on: tab === 'org' }" @click="tab = 'org'">组织</button>
+        <button type="button" data-testid="tab-governance" :class="{ on: tab === 'governance' }" @click="tab = 'governance'">组织治理</button>
+        <button type="button" data-testid="tab-org" :class="{ on: tab === 'org' }" @click="tab = 'org'">部门树</button>
         <button type="button" data-testid="tab-users" :class="{ on: tab === 'users' }" @click="tab = 'users'">用户</button>
         <button type="button" data-testid="tab-roles" :class="{ on: tab === 'roles' }" @click="tab = 'roles'">角色</button>
         <button type="button" data-testid="tab-menus" :class="{ on: tab === 'menus' }" @click="tab = 'menus'">菜单</button>
@@ -518,6 +520,10 @@ onMounted(async () => {
       <p v-if="loading" class="muted" role="status">加载中…</p>
       <p v-if="error" class="error" data-testid="system-error" role="alert">{{ error }}</p>
       <p v-if="success" class="ok" data-testid="system-success" role="status">{{ success }}</p>
+    </div>
+
+    <div v-show="tab === 'governance'" class="card panel">
+      <OrganizationGovernancePanel />
     </div>
 
     <div v-show="tab === 'org'" class="card panel">
@@ -567,10 +573,11 @@ onMounted(async () => {
       </form>
       <div class="table-wrap">
         <table class="table" data-testid="user-table">
-          <thead><tr><th>用户名</th><th>角色</th><th>园区范围</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th>用户名</th><th>手机号（服务端策略）</th><th>角色</th><th>园区范围</th><th>状态</th><th>操作</th></tr></thead>
           <tbody>
             <tr v-for="user in users" :key="user.id" :data-testid="`user-row-${user.username}`">
               <td data-testid="user-name-cell">{{ user.username }}</td>
+              <td data-testid="user-phone-projected">{{ Object.prototype.hasOwnProperty.call(user, "phone") ? user.phone || "—" : "字段已隐藏" }}</td>
               <td>{{ user.role_ids.length }}</td>
               <td>{{ scopeMode(user) }}<span v-if="user.park_ids.length"> ({{ user.park_ids.length }})</span></td>
               <td data-testid="user-status-cell">{{ user.status }}</td>
@@ -666,8 +673,8 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.stack { display: grid; gap: 1rem; }
-.panel { padding: 1rem; }
+.stack { display: grid; gap: 1rem; min-width: 0; }
+.panel { min-width: 0; padding: 1rem; }
 .tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin: .75rem 0; }
 .tabs button { border: 1px solid var(--border); background: #fff; border-radius: 8px; padding: .45rem .8rem; cursor: pointer; }
 .tabs button.on { background: var(--primary-soft); color: var(--primary); font-weight: 600; }

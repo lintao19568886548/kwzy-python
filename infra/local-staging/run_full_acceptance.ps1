@@ -124,6 +124,11 @@ try {
     & $Py (Join-Path $Root "tools\etl\run_contract_etl_drill.py") --database-url $pgUrl --out $contractReport
   }
 
+  Step "organization_governance_etl_acceptance" {
+    $organizationGovernanceReport = Join-Path $ReportDir "organization_governance_etl\organization_governance_etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_organization_governance_etl_drill.py") --database-url $pgUrl --out $organizationGovernanceReport
+  }
+
   Step "http_performance_seed" {
     & $Py (Join-Path $Root "scripts\e2e_seed.py")
   }
@@ -311,6 +316,7 @@ $summary = [ordered]@{
   asset_etl = (Join-Path $ReportDir "asset_etl\asset_etl.json")
   crm_etl = (Join-Path $ReportDir "crm_etl\crm_etl.json")
   contract_etl = (Join-Path $ReportDir "contract_etl\contract_etl.json")
+  organization_governance_etl = (Join-Path $ReportDir "organization_governance_etl\organization_governance_etl.json")
   http_performance = (Join-Path $ReportDir "performance\http-performance.json")
   backup = (Join-Path $ReportDir "backup")
 }

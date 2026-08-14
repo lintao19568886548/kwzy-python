@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import AppError
 from app.core.security import hash_password, password_policy_violation, verify_password
 from app.infrastructure.database.audit import AuditRecorder
+from app.modules.identity.application.organization_governance_service import FieldAccessService
 from app.modules.identity.infrastructure.identity_admin_repository import (
     IdentityAdminRepository,
 )
@@ -20,11 +21,16 @@ UTC = timezone.utc
 
 class UserAdminService:
     def __init__(self, session: Session, ctx: TenantContext | None = None) -> None:
+        self.ctx = ctx
         self.repo = IdentityAdminRepository(session)
         self.audit = AuditRecorder(session, ctx) if ctx is not None else None
+        self.field_access = FieldAccessService(session, ctx) if ctx is not None else None
 
     def list_users(self, *, tenant_id: int) -> list[dict]:
-        return [self._to_dict(u) for u in self.repo.list_users(tenant_id)]
+        rows = [self._to_dict(u) for u in self.repo.list_users(tenant_id)]
+        if self.field_access is None:
+            return rows
+        return self.field_access.project_many("USER", rows)
 
     def create_user(
         self,
