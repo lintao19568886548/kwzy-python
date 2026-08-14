@@ -2,7 +2,7 @@
 
 > 日期：2026-08-15（Asia/Shanghai，滚动更新）
 > 结论：**BLOCKED（已实现范围条件通过，全产品未完成）**
-> 最新精确提交闭环：档案、电子签章与印章治理；`83697f99d3ca3b55f726b8ae2db246347d0919e8` 的 35/35 全量门禁通过并正常推送
+> 最新精确提交闭环：档案、电子签章与印章治理；`b04d738bc75e865e1c6bfb180e93dc9b95109cf3` 的 36/36 全量门禁通过并正常推送
 > 上一 clean-SHA：设施设备、周巡检与 IoT `e28678b5785b7f8bf03141bd7cffbd162932315b`（35/35，已正常推送）
 > 历史 clean-SHA：租户服务/工单 `ffa72e2531396997cfe24ef1b1e42526cd4735fe`、应收 `1a11cfe08b8d2b800c7121d7462995ebb75eb75d`、Party `36805823ad2e88311b9744e9e720b282b7cc74c8`
 > 本报告滚动记录自治重建；下文早期 repair 数字如与“最新闭环增量”冲突，以最新机器报告与能力矩阵为准。
@@ -13,7 +13,7 @@
 
 本轮新增前向迁移 `a3d91f6a7b75`，并在其已应用后使用 `b4ea2c7d8f86` 前向硬化，没有修改历史。PostgreSQL 16 fresh base→head、唯一 `current == heads`、b4→a3→b4、metadata、复合租户/园区外键、唯一/检查/索引、档号/处置/用印并发和幂等均通过。安全审查关闭了高风险用印申请人/最终审批人/执行人未分离、执行幂等键未绑定完整命令、沙箱 Lease 伪造法律 `SIGNED` 与附件完整性边界；显式 override 必须有独立权限和审计原因。
 
-精确提交 `83697f9` 全量脚本 35/35 步 exit 0、633,962 ms：366 pytest（190.59 s）、15 租户 worker 零失败、全部合成 ETL、21/21 档案真实 HTTP、1000 请求/并发 25 性能 p95 298.74 ms、141.422 RPS、0 错误、1,595,724 bytes/146 表备份删除恢复、前端 ESLint/vue-tsc/6 Vitest/147 modules production build、61 Playwright、15 OpenAPI 契约及 YAML strict、OpenSpec strict 102/102、1,039 文件 secrets scan 和资源清理全部通过。档案/印章/签章 runtime/YAML 33 个方法精确一致；机器报告为 `evidence/records-signature-seal-governance/acceptance-clean-83697f9.json`。
+精确提交 `b04d738` 全量脚本 36/36 步 exit 0、609,589 ms：366 pytest（188.68 s）、15 租户 worker零失败、全部合成 ETL、21/21 档案真实 HTTP、1000 请求/并发 25 性能 p95 240.541 ms、146.259 RPS、0 错误、1,595,978 bytes/146 表备份删除恢复、前端 ESLint/vue-tsc/6 Vitest/147 modules production build、61 Playwright、15 OpenAPI 契约及 YAML strict、OpenSpec strict 102/102、1,041 文件 secrets scan 和资源清理全部通过。档案/印章/签章 runtime/YAML 33 个方法精确一致；机器报告为 `evidence/records-signature-seal-governance/acceptance-clean-b04d738.json`。
 
 全量浏览器先后真实暴露并关闭两个 P1：共享库多 DRAFT 信封让全局“发送”定位歧义，改为精确信封行；Party 企业画像在列表刷新前提前提示成功，紧接着提交关系因共享 `saving` 状态静默丢失，成功提示改到 `await load()` 后。其后视觉复核又关闭 390px 页签/六列表格依赖横向滚动的问题：页签三等分，档案/信封表改为字段完整卡片，并加入边界断言。三张人工截图覆盖桌面/平板签章真相和 390px 档案离线重试，无假数据、乱码、遮挡或横向溢出。
 
@@ -63,12 +63,12 @@ Party 的 9 份 delta 已智能合并到主规格并归档为 `2026-08-14-comple
 
 | 项 | 当前独立核验结果 |
 | --- | --- |
-| 分支 / 精确 HEAD | `feat/full-rebuild-completion` / `83697f99d3ca3b55f726b8ae2db246347d0919e8` |
-| 实现与修复提交 | `95fa44d` 档案/签章/印章业务；`89c83b2` 信封行定位回归；`83697f9` Party 保存就绪竞态修复 |
+| 分支 / 精确 HEAD | `feat/full-rebuild-completion` / `b04d738bc75e865e1c6bfb180e93dc9b95109cf3` |
+| 实现与修复提交 | `95fa44d` 档案/签章/印章业务；`89c83b2` 信封行定位回归；`83697f9` Party 保存就绪竞态；`b04d738` 移动无截断与初版证据 |
 | 远程同步 | 精确 HEAD 已正常、非 force 推送至 `origin/feat/full-rebuild-completion`；本轮未触达 main |
 | 工作树保护 | 全量 Playwright 重生成的其他纵切 24 张截图属于既有用户修改，保持未暂存且不删除/不还原；本轮只提交档案证据、总控文档和 OpenSpec 收尾 |
 | 运行入口 | API `uvicorn app.main:app`；PC `npm run dev` / `npm run build`；员工移动端和租户小程序无目录/启动方式 |
-| 环境与敏感文件 | `.env.example` 三处均为非生产占位；1,039 个 tracked/untracked non-ignored 文件扫描 0 hits；未自动连接生产 |
+| 环境与敏感文件 | `.env.example` 三处均为非生产占位；1,041 个 tracked/untracked non-ignored 文件扫描 0 hits；未自动连接生产 |
 | 生产授权 | `NOT_AUTHORIZED / NOT_EXECUTED`；真实 provider、不可逆迁移和生产部署继续等待独立人工授权 |
 
 ## 1. 初始 repair 基线（历史证据）
@@ -89,7 +89,7 @@ Party 的 9 份 delta 已智能合并到主规格并归档为 `2026-08-14-comple
 | 应用入口 | API：`uvicorn app.main:app`；PC：`npm run dev` / `npm run build`；生产示例见 `infra/production` |
 | 三端事实 | PC 位于 `apps/web`；员工移动端、租户小程序无应用目录和启动方式 |
 
-环境样例为 `apps/api/.env.example`、`infra/postgres-test/.env.example`、`infra/production/production.env.example`。最新精确提交复验的敏感文件名检查与 1,039 文件内容扫描通过；未发现被跟踪的真实密钥、Token、密码、数据库文件或 PII。样例值均为明确的非生产占位。
+环境样例为 `apps/api/.env.example`、`infra/postgres-test/.env.example`、`infra/production/production.env.example`。最新精确提交复验的敏感文件名检查与 1,041 文件内容扫描通过；未发现被跟踪的真实密钥、Token、密码、数据库文件或 PII。样例值均为明确的非生产占位。
 
 ## 2. 整改提交内容
 
@@ -136,7 +136,7 @@ pwsh -NoProfile -File infra/local-staging/run_full_acceptance.ps1
 
 ## 4. 测试和耗时
 
-当前档案精确 SHA `83697f9` 全量验收为 35/35 步、366 pytest、61 条 Playwright、3 文件/6 Vitest、147 modules production build、15 条 OpenAPI 契约及 YAML strict、OpenSpec strict 102/102、1,039 文件 secrets scan 0 hits，耗时 633,962 ms。档案 21/21 真实 HTTP、PG 并发与职责分离/幂等回归通过；归档前 41/41 任务。下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
+当前档案精确 SHA `b04d738` 全量验收为 36/36 步、366 pytest、61 条 Playwright、3 文件/6 Vitest、147 modules production build、15 条 OpenAPI 契约及 YAML strict、OpenSpec strict 102/102、1,041 文件 secrets scan 0 hits，耗时 609,589 ms。档案 21/21 真实 HTTP、PG 并发与职责分离/幂等回归通过；归档前 41/41 任务。下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
 
 精确实现 SHA `a9267d4` 的完整脚本从 11:33:05 到 11:38:53，总耗时 348,122 ms，24/24 步 exit 0。
 
@@ -170,7 +170,7 @@ pwsh -NoProfile -File infra/local-staging/run_full_acceptance.ps1
 
 合同合成数据结果：2 Parties、3 Contracts、3 Versions、4 Units、3 Charges、3 Schedules、2 Documents、2 Reminders、1 Quarantine；占用面积 221.50、押金 27,000、费用 8,800；重复与孤儿均为 0，报告不持久化原始 PII。
 
-当前档案精确 `83697f9` 全量验收使用 `pg_dump -Fc` 生成 1,595,724 bytes dump；删除并重建临时恢复库后 `pg_restore`，恢复 146 张表并再次删除恢复库。档案合成迁移为 2 分类/2 档案/2 版本/2 隔离，伪造印章、保管、提供方和事件为 0。临时 dump 按安全策略未提交 Git。
+当前档案精确 `b04d738` 全量验收使用 `pg_dump -Fc` 生成 1,595,978 bytes dump；删除并重建临时恢复库后 `pg_restore`，恢复 146 张表并再次删除恢复库。档案合成迁移为 2 分类/2 档案/2 版本/2 隔离，伪造印章、保管、提供方和事件为 0。临时 dump 按安全策略未提交 Git。
 
 真实旧库仍不可验：未取得经授权 schema dump/脱敏快照，无法证明真实字段/枚举/PII 映射、全量金额面积、CDC、停写、切换和回切。故结论只能是：
 
@@ -182,10 +182,10 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 
 最新全量脚本真实 loopback HTTP 使用登录后的 12 个工作台、事件、合同、Party、资产、档案、印章和签章接口，1000 请求、并发 25、预热 40：
 
-- 0 failures，错误率 0.0%，141.422 req/s。
-- p50 163.41 ms，p95 298.74 ms，p99 338.048 ms，max 363.359 ms。
+- 0 failures，错误率 0.0%，146.259 req/s。
+- p50 162.934 ms，p95 240.541 ms，p99 321.62 ms，max 354.246 ms。
 - 门槛 p95 ≤ 500 ms、错误率 ≤ 1%、吞吐 ≥ 20 req/s，结果 PASS。
-- 档案专项真实 HTTP 为 21/21 阶段、881.27 ms，验证跨租户隔离、沙箱投递和外部提供方 fail-closed；全量精确提交报告保存在 `evidence/records-signature-seal-governance/acceptance-clean-83697f9.json`。
+- 档案专项真实 HTTP 为 21/21 阶段、926.41 ms，验证跨租户隔离、沙箱投递和外部提供方 fail-closed；全量精确提交报告保存在 `evidence/records-signature-seal-governance/acceptance-clean-b04d738.json`。
 
 生产契约提供显式 PG QueuePool 上限/超时/回收、`/health/ready`、非 root 镜像、只读文件系统、tmpfs、drop all capabilities 和 no-new-privileges。API 镜像用户为 `kwzy`，Web 为 UID `101`。
 
@@ -209,7 +209,7 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 | API/OpenAPI 漂移 | 已修复，15/15 契约、档案/印章/签章 33 个 runtime/YAML 方法对和 YAML strict 通过 |
 | Application→ORM / Router 查 DB | 应收审查发现的 Application 直接构造 ORM已下沉 repository factory；架构回归测试和人工检索未发现当前已实现纵切新增违规 |
 | 默认管理员/开发免鉴权/弱 JWT | 生产/预发 fail-closed；本地测试账号只用于隔离验收 |
-| 密钥/Token/DB/PII | 精确提交复验 tracked + untracked non-ignored 1,039 文件扫描通过、0 hits；既有 clean-SHA 证据继续有效；企业证件只保留指纹与掩码，应收账号只保留掩码，档案合成 fixture 无真实 PII/密钥，环境样例为非生产占位 |
+| 密钥/Token/DB/PII | 精确提交复验 tracked + untracked non-ignored 1,041 文件扫描通过、0 hits；既有 clean-SHA 证据继续有效；企业证件只保留指纹与掩码，应收账号只保留掩码，档案合成 fixture 无真实 PII/密钥，环境样例为非生产占位 |
 | 历史迁移/多 head | 未修改历史迁移；新增修复迁移；唯一 head |
 | 外部集成虚假完成 | 文档和运行时均区分 fake/local、fail-closed 与 live verified |
 

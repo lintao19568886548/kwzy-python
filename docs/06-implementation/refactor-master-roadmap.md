@@ -1,7 +1,7 @@
 # 瞰维智管 V2 全量重建主路线图
 
 > 更新时间：2026-08-15（Asia/Shanghai）
-> 当前独立验收基线：档案/签章/印章闭环精确提交 `83697f99d3ca3b55f726b8ae2db246347d0919e8` 的 35/35 后端/前端/浏览器/性能/迁移门禁通过并正常推送；设施设备/周巡检/IoT `e28678b5785b7f8bf03141bd7cffbd162932315b` 证据继续有效
+> 当前独立验收基线：档案/签章/印章闭环精确提交 `b04d738bc75e865e1c6bfb180e93dc9b95109cf3` 的 36/36 后端/前端/浏览器/性能/迁移门禁通过并正常推送；设施设备/周巡检/IoT `e28678b5785b7f8bf03141bd7cffbd162932315b` 证据继续有效
 > 当前完成分支：`feat/full-rebuild-completion`，从 repair 推送记录 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建；三条本地 safety ref 已保留。
 > 总体状态：**BLOCKED — 已实现纵切通过，不等于三端、旧系统和全业务完成。**
 
@@ -39,7 +39,7 @@
 7. `2026-08-14-complete-receivables-collection-lifecycle`：实现 `500efa5` 与 N+1/手机无截断修复 `1a11cfe` 已正常推送；唯一 head `w9f57b2c4d31`，clean-SHA 335 后端、真实 PG16/HTTP、2 条应收浏览器、p95 352.701 ms、合成 ETL、备份恢复和依赖审计通过；45/45 任务、8 份主规格同步、归档后 OpenSpec strict 85/85 和归档暂存树 915 文件 secrets scan 通过，纵切关闭。
 8. `2026-08-15-complete-tenant-service-work-order-lifecycle`：实现 `ffa72e2` 已正常推送；唯一 head `y1b79d4e6f53`，精确提交 342 后端、59 浏览器、25 个 runtime/YAML 方法、1000/25 p95 302.333 ms/132.87 RPS/0 错误、1,383,498 bytes/114 表备份恢复、合成工单 ETL 与 942 文件密钥扫描通过；39/39 任务、8 份主规格同步和归档后 strict 93/93，纵切关闭。
 9. `2026-08-14-complete-facility-device-inspection-iot`：实现 `00aaab6`，权限/浏览器竞态及证据稳定性修复至 `e28678b`，均正常推送；唯一 head `z2c80e5f6a64`，精确提交 352 后端、60 浏览器、32 个 runtime/YAML 方法、1000/25 p95 320.076 ms/135.6 RPS/0 错误、1,495,479 bytes/130 表备份恢复、设施合成 ETL 与 982 文件密钥扫描通过；39/39 任务、8 份主规格同步、归档后 strict 101/101，本地产品纵切关闭，真实 IoT/旧数据仍保持 NOT_CONNECTED/BLOCKED。
-10. `2026-08-15-complete-records-signature-seal-governance`：实现 `95fa44d`，浏览器精确定位修复 `89c83b2`、Party 保存就绪竞态修复 `83697f9`，均正常推送；唯一 head `b4ea2c7d8f86`，精确提交 366 后端、61 浏览器、33 个 runtime/YAML 方法、21/21 真实 HTTP、1000/25 p95 298.74 ms/141.422 RPS/0 错误、1,595,724 bytes/146 表备份恢复、合成档案 ETL 与 1,039 文件密钥扫描通过；本地产品纵切关闭，合法电子签 live/真实旧数据仍保持 NOT_CONNECTED/BLOCKED。
+10. `2026-08-15-complete-records-signature-seal-governance`：实现 `95fa44d`，浏览器精确定位修复 `89c83b2`、Party 保存就绪竞态修复 `83697f9`、移动页签/表格无截断修复与证据提交 `b04d738`，均正常推送；唯一 head `b4ea2c7d8f86`，精确提交 36/36、366 后端、61 浏览器、33 个 runtime/YAML 方法、21/21 真实 HTTP、1000/25 p95 240.541 ms/146.259 RPS/0 错误、1,595,978 bytes/146 表备份恢复、合成档案 ETL 与 1,041 文件密钥扫描通过；本地产品纵切关闭，合法电子签 live/真实旧数据仍保持 NOT_CONNECTED/BLOCKED。
 11. 下一业务纵切按证据顺序关闭 HR，再处理供应链、园企服务、驾驶舱、AI/集成。
 12. 建设员工移动端与租户微信小程序并完成真实 API/数据库/浏览器（或小程序运行器）旅程，不能用 WebView 壳或本地 JSON 替代。
 13. 数据负责人/DBA 提供经授权旧 schema dump 与脱敏快照；在隔离 PG16 重跑全量/增量/中断/回滚/对账。

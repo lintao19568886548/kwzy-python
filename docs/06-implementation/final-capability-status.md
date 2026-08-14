@@ -1,7 +1,7 @@
 # 瞰维智管 V2 当前能力状态
 
 > 更新时间：2026-08-15（Asia/Shanghai）
-> 最新已完成纵切：档案、电子签章与印章治理；精确提交 `83697f99d3ca3b55f726b8ae2db246347d0919e8` 全门禁已通过并正常推送
+> 最新已完成纵切：档案、电子签章与印章治理；精确提交 `b04d738bc75e865e1c6bfb180e93dc9b95109cf3` 全门禁已通过并正常推送
 > 完整报告：`independent-final-acceptance-report-20260814.md`
 > 能力权威表：`full-rebuild-traceability-matrix.md`
 
@@ -20,7 +20,7 @@
 
 租户服务/工单精确提交 `ffa72e2` 全验收已通过 33/33 步、342 pytest、真实 PG16、59 条全量 Playwright、前端 lint/typecheck/6 Vitest/production build、OpenAPI 13/13+YAML strict、OpenSpec 86/86、1000/25 性能（p95 302.333 ms、132.87 RPS、0 错误）、1,383,498 bytes/114 表备份恢复、工单合成 ETL 和 942 文件 secrets scan。机器报告为 `evidence/tenant-service-work-order-lifecycle/acceptance-clean-ffa72e2.json`；39/39 OpenSpec 任务、8 份主规格同步和归档后 strict 93/93 通过。真实旧 `repair_order` 与供应商接入仍按证据保持阻塞/未连接。
 
-档案/签章/印章精确提交 `83697f9` 全验收已通过 35/35 步、366 pytest、真实 PG16、61 条全量 Playwright、前端 lint/typecheck/6 Vitest/production build、OpenAPI 15/15+YAML strict、OpenSpec 102/102、1000/25 性能（p95 298.74 ms、141.422 RPS、0 错误）、1,595,724 bytes/146 表备份恢复、21/21 真实 HTTP、档案合成 ETL和 1,039 文件 secrets scan。机器报告为 `evidence/records-signature-seal-governance/acceptance-clean-83697f9.json`；合法电子签/CA/时间戳/存证、真实印章设备及真实旧档案/二进制迁移没有凭据或授权，不计 live 完成。
+档案/签章/印章精确提交 `b04d738` 全验收已通过 36/36 步、366 pytest、真实 PG16、61 条全量 Playwright、前端 lint/typecheck/6 Vitest/production build、OpenAPI 15/15+YAML strict、OpenSpec 102/102、1000/25 性能（p95 240.541 ms、146.259 RPS、0 错误）、1,595,978 bytes/146 表备份恢复、21/21 真实 HTTP、档案合成 ETL和 1,041 文件 secrets scan。机器报告为 `evidence/records-signature-seal-governance/acceptance-clean-b04d738.json`；合法电子签/CA/时间戳/存证、真实印章设备及真实旧档案/二进制迁移没有凭据或授权，不计 live 完成。
 
 ## 不能外推为完成的范围
 

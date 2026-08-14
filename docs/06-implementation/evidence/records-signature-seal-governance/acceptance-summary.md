@@ -2,7 +2,7 @@
 
 > 日期：2026-08-15（Asia/Shanghai）
 > 分支：`feat/full-rebuild-completion`
-> 证据性质：精确提交 `83697f99d3ca3b55f726b8ae2db246347d0919e8` 的全量验收；机器报告 `acceptance-clean-83697f9.json`。
+> 证据性质：精确提交 `b04d738bc75e865e1c6bfb180e93dc9b95109cf3` 的全量验收；机器报告 `acceptance-clean-b04d738.json`。
 > 产品结论：本地 API + PC 档案/签章/印章纵切 `IMPLEMENTED_AND_VERIFIED`；合法电子签厂商 live、真实旧库/二进制迁移未验收，全项目仍 `BLOCKED`。
 
 ## 已验证闭环
@@ -19,18 +19,18 @@
 
 | 门禁 | 结果 |
 | --- | --- |
-| 全量脚本 | 35/35 步 exit 0，633,962 ms；HEAD `83697f99d3ca3b55f726b8ae2db246347d0919e8` |
-| PostgreSQL / Alembic | PostgreSQL 16；fresh base→`b4ea2c7d8f86`；唯一 `current == heads`；down `b4→a3→b4`；1,595,724 bytes / 146 表备份删除恢复 |
-| 后端 | 366 passed / 0 failed，190.59 s；错误级 Ruff 通过 |
+| 全量脚本 | 36/36 步 exit 0，609,589 ms；HEAD `b04d738bc75e865e1c6bfb180e93dc9b95109cf3` |
+| PostgreSQL / Alembic | PostgreSQL 16；fresh base→`b4ea2c7d8f86`；唯一 `current == heads`；down `b4→a3→b4`；1,595,978 bytes / 146 表备份删除恢复 |
+| 后端 | 366 passed / 0 failed，188.68 s；错误级 Ruff 通过 |
 | worker | Workbench 与 FacilityOps 多租户扫描通过，0 failed |
 | 前端 | ESLint 0 warning；vue-tsc 通过；3 文件/6 Vitest；147 modules production build；仅有非阻塞 586.57 kB chunk 提示 |
 | 浏览器 | 61 Playwright / 0 failed / 0 skipped；真实 PG16 + FastAPI + production Vite；全角色/响应式真栈通过 |
 | OpenAPI | 15/15 契约测试及 YAML OpenAPI 3.1 strict；档案/印章/签章 runtime/YAML 33 个方法精确一致 |
 | OpenSpec | 精确实现提交 strict 102/102；归档前 41/41 任务（同步归档结果见总状态文档） |
-| 性能 | 登录后 1000 请求、并发 25、预热 40；p95 298.74 ms、141.422 RPS、0% 错误 |
+| 性能 | 登录后 1000 请求、并发 25、预热 40；p95 240.541 ms、146.259 RPS、0% 错误 |
 | 合成迁移 | 2 分类、2 档案、2 版本、2 隔离；dry/interruption/apply/reapply/reconcile/rollback 全部通过；伪造印章、保管、提供方和事件均为 0 |
-| 档案真实 HTTP | 21/21 阶段通过，881.27 ms；外部签章 `NOT_CONNECTED`；`production_contacted=false` |
-| 密钥扫描 | tracked + untracked non-ignored 1,039 文件，0 hits |
+| 档案真实 HTTP | 21/21 阶段通过，926.41 ms；外部签章 `NOT_CONNECTED`；`production_contacted=false` |
+| 密钥扫描 | tracked + untracked non-ignored 1,041 文件，0 hits |
 
 ## 独立验收中发现并关闭
 

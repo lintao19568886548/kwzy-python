@@ -7,8 +7,8 @@
 | 更新时间 | 2026-08-15（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | `83697f99d3ca3b55f726b8ae2db246347d0919e8`：档案/签章/印章 35/35 精确提交全验收，366 后端、61 浏览器、前端四门禁、OpenAPI/OpenSpec、1000/25 性能、备份恢复和合成迁移通过 |
-| 远程同步 | 实现及修复至 `83697f99d3ca3b55f726b8ae2db246347d0919e8` 已正常推送到 `origin/feat/full-rebuild-completion`；未 force、未触达 main |
+| 已验证 HEAD | `b04d738bc75e865e1c6bfb180e93dc9b95109cf3`：档案/签章/印章 36/36 精确提交全验收，366 后端、61 浏览器、前端四门禁、OpenAPI/OpenSpec、1000/25 性能、备份恢复和合成迁移通过 |
+| 远程同步 | 实现、修复与初版证据至 `b04d738bc75e865e1c6bfb180e93dc9b95109cf3` 已正常推送到 `origin/feat/full-rebuild-completion`；未 force、未触达 main |
 | 工作树 | 本轮档案证据、总控文档和 OpenSpec 收尾待提交；24 张其他纵切被全量 Playwright 重生成的视觉证据保持未暂存，不得删除、还原或混入本轮提交 |
 | Alembic | 唯一 head `b4ea2c7d8f86`；PG16 fresh head、`current == heads`、`b4→a3→b4`、146 表备份删除恢复通过；既有已应用 `a3d91f6a7b75` 未修改，硬化使用前向 `b4` |
 | 当前阶段 | 独立验收为 11 implemented / 1 blocked / 8 missing；组合能力 1–10、13 已关闭本地产品范围，完整项目仍 `CONDITIONAL/BLOCKED` |
@@ -23,7 +23,7 @@
 - [x] 完成无密钥提供方真相、信封/参与人/事件、授权重放安全沙箱投递和 live fail-closed；Lease 沙箱不再伪造法律 `SIGNED`。
 - [x] 关闭高风险用印申请/最终审批/执行职责分离、执行命令指纹幂等、档案 E2E 多目标定位、Party 保存成功就绪竞态和 390px 页签/表格截断五类 P1，并加入 API/PG/浏览器防回归。
 - [x] 重建 PC 档案/签章/印章工作区，覆盖桌面、平板、390px、权限/冲突/离线/重试；三张截图逐张人工复核。
-- [x] 精确 `83697f9` 全门禁 35/35：PG16 fresh/down-up/唯一 head，366 pytest，61 Playwright，前端 lint/typecheck/6 Vitest/build，15 OpenAPI+YAML strict，102 OpenSpec，21/21 真实 HTTP，1000/25 p95 298.74 ms/141.422 RPS/0 错误，1,595,724 bytes/146 表备份恢复，1,039 文件 secrets scan；合成 ETL 为 2 分类/2 档案/2 版本/2 隔离且无伪造印章、提供方或事件。
+- [x] 精确 `b04d738` 全门禁 36/36：PG16 fresh/down-up/唯一 head，366 pytest，61 Playwright，前端 lint/typecheck/6 Vitest/build，15 OpenAPI+YAML strict，102 OpenSpec，21/21 真实 HTTP，1000/25 p95 240.541 ms/146.259 RPS/0 错误，1,595,978 bytes/146 表备份恢复，1,041 文件 secrets scan；合成 ETL 为 2 分类/2 档案/2 版本/2 隔离且无伪造印章、提供方或事件。
 
 - [x] 独立取证旧消防/电梯/变压器/厂务设备 CRUD 和现仓缺口，明确物理删除、自由字符串、匿名默认租户及“界面有 IoT 不等于真实接入”的风险边界。
 - [x] 新增 `z2c80e5f6a64` 单一前向迁移与 16 张设施表，完成受控设备台账/历史/退役依赖保护、不可变模板版本、周计划和确定性任务。
@@ -134,7 +134,7 @@
 
 ## 最新机器证据（档案/签章/印章精确 SHA）
 
-版本化报告 `docs/06-implementation/evidence/records-signature-seal-governance/acceptance-clean-83697f9.json` 精确对应 `83697f99d3ca3b55f726b8ae2db246347d0919e8`：35/35 步、633,962 ms、0 failed；PG16 唯一 head `b4ea2c7d8f86`、366 pytest、61 Playwright、33 个 runtime/YAML 方法、前端四门禁、21/21 真实 HTTP、1000/25 p95 298.74 ms/141.422 RPS/0 错误、档案合成 ETL、1,595,724 bytes/146 表备份恢复、102 OpenSpec 和 1,039 文件 secrets scan 通过。
+版本化报告 `docs/06-implementation/evidence/records-signature-seal-governance/acceptance-clean-b04d738.json` 精确对应 `b04d738bc75e865e1c6bfb180e93dc9b95109cf3`：36/36 步、609,589 ms、0 failed；PG16 唯一 head `b4ea2c7d8f86`、366 pytest、61 Playwright、33 个 runtime/YAML 方法、前端四门禁、21/21 真实 HTTP、1000/25 p95 240.541 ms/146.259 RPS/0 错误、档案合成 ETL、1,595,978 bytes/146 表备份恢复、102 OpenSpec 和 1,041 文件 secrets scan 通过。
 
 ## 历史机器证据（设施设备/巡检/IoT 精确 SHA）
 
