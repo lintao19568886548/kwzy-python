@@ -1,6 +1,8 @@
 # Full local staging acceptance from clean-ish state.
 # Any mandatory step failure => non-zero exit. Do not swallow failures.
 $ErrorActionPreference = "Stop"
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $Root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if (-not (Test-Path (Join-Path $Root "apps\api"))) {
   $Root = "D:\重构python\kwzy-python"
@@ -14,19 +16,38 @@ New-Item -ItemType Directory -Force -Path $ReportDir | Out-Null
 $report = @()
 $globalStart = Get-Date
 $composeFile = Join-Path $Root "infra\postgres-test\compose.yaml"
-$pgUrl = "postgresql+psycopg://kwzy_party_test:kwzy_test_local_only@127.0.0.1:55432/kwzy_party_test"
+$pgEnvFile = Join-Path $Root "infra\postgres-test\.env"
+if (-not (Test-Path -LiteralPath $pgEnvFile)) {
+  throw "missing gitignored local test database env: $pgEnvFile"
+}
+$pgSettings = @{}
+foreach ($line in Get-Content -LiteralPath $pgEnvFile) {
+  $trimmed = $line.Trim()
+  if (-not $trimmed -or $trimmed.StartsWith("#") -or -not $trimmed.Contains("=")) { continue }
+  $pair = $trimmed.Split("=", 2)
+  $pgSettings[$pair[0].Trim()] = $pair[1].Trim()
+}
+$pgUser = [string]$pgSettings["POSTGRES_USER"]
+$pgPassword = [string]$pgSettings["POSTGRES_PASSWORD"]
+$pgDatabase = [string]$pgSettings["POSTGRES_DB"]
+$pgPort = [string]$pgSettings["POSTGRES_PORT"]
+if (-not $pgUser -or -not $pgPassword -or -not $pgDatabase -or -not $pgPort) {
+  throw "local PostgreSQL .env is missing a required POSTGRES_* value"
+}
+$pgUrl = "postgresql+psycopg://$([uri]::EscapeDataString($pgUser)):$([uri]::EscapeDataString($pgPassword))@127.0.0.1:$pgPort/$pgDatabase"
 
 function Step($name, $scriptBlock) {
   $sw = [System.Diagnostics.Stopwatch]::StartNew()
   $code = 0
-  $out = ""
+  $captured = [System.Collections.Generic.List[string]]::new()
   $global:LASTEXITCODE = 0
   try {
-    $out = & $scriptBlock 2>&1 | Out-String
+    & $scriptBlock 2>&1 | ForEach-Object { $captured.Add("$_") }
   } catch {
     $code = 1
-    $out = "$_"
+    $captured.Add("$_")
   }
+  $out = $captured -join "`n"
   $sw.Stop()
   if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) { $code = $LASTEXITCODE }
   $entry = [ordered]@{
@@ -48,7 +69,28 @@ function Assert-NativeSuccess($label) {
   }
 }
 
-$env:POSTGRES_PASSWORD = "kwzy_test_local_only"
+function Assert-AlembicSingleCurrentHead {
+  $heads = @(& $Alembic heads)
+  Assert-NativeSuccess "alembic heads"
+  $headLines = @($heads | Where-Object { $_.Trim() })
+  if ($headLines.Count -ne 1 -or $headLines[0] -notmatch '^([0-9a-z]+)\s+\(head\)$') {
+    throw "expected exactly one Alembic head, got: $($headLines -join '; ')"
+  }
+  $headRevision = $Matches[1]
+
+  $current = @(& $Alembic current)
+  Assert-NativeSuccess "alembic current"
+  $currentLines = @($current | Where-Object { $_.Trim() })
+  $expected = '^' + [regex]::Escape($headRevision) + '\s+\(head\)$'
+  if ($currentLines.Count -ne 1 -or $currentLines[0] -notmatch $expected) {
+    throw "Alembic current does not equal the unique head ${headRevision}: $($currentLines -join '; ')"
+  }
+  "ALEMBIC_UNIQUE_CURRENT_HEAD=PASS revision=$headRevision"
+}
+
+$env:POSTGRES_PASSWORD = $pgPassword
+$env:PYTHONUTF8 = "1"
+$env:PYTHONIOENCODING = "utf-8"
 $env:TEST_DATABASE_URL = $pgUrl
 $env:POSTGRES_TEST_URL = $pgUrl
 $env:ETL_DATABASE_URL = $pgUrl
@@ -84,12 +126,7 @@ try {
     & $Py -c "from app.core.config import get_settings; get_settings.cache_clear()"
     & $Alembic upgrade head
     Assert-NativeSuccess "alembic upgrade head"
-    $heads = & $Alembic heads
-    Assert-NativeSuccess "alembic heads"
-    if (($heads | Measure-Object).Count -ne 1 -and ($heads -join " ") -notmatch "\(head\)") {
-      # alembic heads prints one line with (head)
-    }
-    $heads
+    Assert-AlembicSingleCurrentHead
     Pop-Location
   }
 
@@ -98,6 +135,17 @@ try {
     & $Alembic downgrade -1
     Assert-NativeSuccess "alembic downgrade -1"
     & $Alembic upgrade head
+    Assert-NativeSuccess "alembic re-upgrade head"
+    Assert-AlembicSingleCurrentHead
+    Pop-Location
+  }
+
+  Step "backend_ruff_error_rules" {
+    # The legacy tree still has style-modernization findings. Error-level Ruff
+    # rules are a hard gate for every backend module and test.
+    Push-Location $Api
+    & $Py -m ruff check --select E4,E7,E9,F app tests
+    Assert-NativeSuccess "backend Ruff error rules"
     Pop-Location
   }
 
@@ -130,6 +178,11 @@ try {
   Step "asset_etl_acceptance" {
     $assetReport = Join-Path $ReportDir "asset_etl\asset_etl.json"
     & $Py (Join-Path $Root "tools\etl\run_asset_etl_drill.py") --database-url $pgUrl --out $assetReport
+  }
+
+  Step "asset_portfolio_etl_acceptance" {
+    $assetPortfolioReport = Join-Path $ReportDir "asset_portfolio_etl\asset-portfolio-etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_asset_portfolio_etl_drill.py") --database-url $pgUrl --out $assetPortfolioReport
   }
 
   Step "crm_etl_acceptance" {
@@ -201,6 +254,12 @@ try {
         --base-url "http://127.0.0.1:8010/api/v1" `
         --username "admin" --password "admin123" `
         --output (Join-Path $perfDir "workbench-automation-http-journey.json")
+      Assert-NativeSuccess "workbench automation HTTP journey"
+      & $Py (Join-Path $Root "scripts\asset_portfolio_http_journey.py") `
+        --base-url "http://127.0.0.1:8010/api/v1" `
+        --username "admin" --password "admin123" `
+        --output (Join-Path $perfDir "asset-portfolio-http-journey.json")
+      Assert-NativeSuccess "asset portfolio HTTP journey"
     } finally {
       Remove-Item Env:PERF_PASSWORD -ErrorAction SilentlyContinue
       if ($apiProc -and -not $apiProc.HasExited) {
@@ -360,6 +419,7 @@ $summary = [ordered]@{
   etl_acceptance = (Join-Path $ReportDir "etl_acceptance")
   identity_etl = (Join-Path $ReportDir "identity_etl\identity_etl.json")
   asset_etl = (Join-Path $ReportDir "asset_etl\asset_etl.json")
+  asset_portfolio_etl = (Join-Path $ReportDir "asset_portfolio_etl\asset-portfolio-etl.json")
   crm_etl = (Join-Path $ReportDir "crm_etl\crm_etl.json")
   contract_etl = (Join-Path $ReportDir "contract_etl\contract_etl.json")
   organization_governance_etl = (Join-Path $ReportDir "organization_governance_etl\organization_governance_etl.json")
@@ -368,6 +428,7 @@ $summary = [ordered]@{
   http_performance = (Join-Path $ReportDir "performance\http-performance.json")
   approval_audit_http = (Join-Path $ReportDir "performance\approval-audit-http-journey.json")
   workbench_automation_http = (Join-Path $ReportDir "performance\workbench-automation-http-journey.json")
+  asset_portfolio_http = (Join-Path $ReportDir "performance\asset-portfolio-http-journey.json")
   backup = (Join-Path $ReportDir "backup")
 }
 $summary | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding utf8

@@ -80,6 +80,10 @@ class BuildingMapper:
             address=model.address or "",
             description=model.description,
             attributes=model.attributes_json,
+            geometry=model.geometry_json,
+            geometry_type=model.geometry_type,
+            coordinate_reference=model.coordinate_reference,
+            geometry_version=model.geometry_version,
             is_deleted=bool(model.is_deleted),
             created_at=model.created_at,
             updated_at=model.updated_at,
@@ -100,6 +104,10 @@ class BuildingMapper:
             address=entity.address,
             description=entity.description,
             attributes_json=entity.attributes,
+            geometry_json=entity.geometry,
+            geometry_type=entity.geometry_type,
+            coordinate_reference=entity.coordinate_reference,
+            geometry_version=entity.geometry_version,
             is_deleted=entity.is_deleted,
         )
 
@@ -115,6 +123,10 @@ class BuildingMapper:
         model.address = entity.address
         model.description = entity.description
         model.attributes_json = entity.attributes
+        model.geometry_json = entity.geometry
+        model.geometry_type = entity.geometry_type
+        model.coordinate_reference = entity.coordinate_reference
+        model.geometry_version = entity.geometry_version
         model.is_deleted = entity.is_deleted
         return model
 
@@ -145,6 +157,7 @@ class UnitMapper:
             base_rent_price=model.base_rent_price,
             status=model.status,
             attributes=model.attributes_json,
+            asset_template_version_id=model.asset_template_version_id,
             is_deleted=bool(model.is_deleted),
             created_at=model.created_at,
             updated_at=model.updated_at,
@@ -171,6 +184,7 @@ class UnitMapper:
         model.base_rent_price = entity.base_rent_price
         model.status = entity.status
         model.attributes_json = entity.attributes
+        model.asset_template_version_id = entity.asset_template_version_id
         model.is_deleted = entity.is_deleted
         return model
 
@@ -196,5 +210,6 @@ class UnitMapper:
             base_rent_price=entity.base_rent_price,
             status=entity.status,
             attributes_json=entity.attributes,
+            asset_template_version_id=entity.asset_template_version_id,
             is_deleted=entity.is_deleted,
         )

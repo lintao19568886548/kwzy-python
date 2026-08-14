@@ -39,9 +39,7 @@ def _ensure_role(
     perm_codes: list[str],
     all_parks: bool = True,
 ) -> Role:
-    role = db.scalars(
-        select(Role).where(Role.tenant_id == tenant_id, Role.code == code)
-    ).first()
+    role = db.scalars(select(Role).where(Role.tenant_id == tenant_id, Role.code == code)).first()
     if role is None:
         role = Role(
             tenant_id=tenant_id,
@@ -63,11 +61,7 @@ def _ensure_role(
             )
         ).first()
         if exists is None:
-            db.add(
-                RolePermission(
-                    tenant_id=tenant_id, role_id=role.id, permission_id=perm.id
-                )
-            )
+            db.add(RolePermission(tenant_id=tenant_id, role_id=role.id, permission_id=perm.id))
     return role
 
 
@@ -101,9 +95,7 @@ def _ensure_user(
         user.status = "ACTIVE"
         db.add(user)
     ur = db.scalars(
-        select(UserRole).where(
-            UserRole.user_id == user.id, UserRole.role_id == role.id
-        )
+        select(UserRole).where(UserRole.user_id == user.id, UserRole.role_id == role.id)
     ).first()
     if ur is None:
         db.add(UserRole(tenant_id=tenant_id, user_id=user.id, role_id=role.id))
@@ -133,9 +125,7 @@ def main() -> int:
 
         # Always reset admin password for deterministic E2E
         admin_pwd = (
-            os.environ.get("LOCAL_ADMIN_PASSWORD")
-            or settings.local_admin_password
-            or "admin123"
+            os.environ.get("LOCAL_ADMIN_PASSWORD") or settings.local_admin_password or "admin123"
         ).strip() or "admin123"
         _ensure_user(
             db,
@@ -186,7 +176,7 @@ def main() -> int:
             tenant_id=tenant.id,
             code="E2E_ASSET_VIEWER",
             name="E2E资产只读",
-            perm_codes=["park:read", "unit:read"],
+            perm_codes=["park:read", "unit:read", "asset.template.read"],
             all_parks=True,
         )
         _ensure_user(
@@ -302,9 +292,7 @@ def main() -> int:
             db.add(park)
             db.flush()
         building = db.scalars(
-            select(Building).where(
-                Building.tenant_id == tenant.id, Building.park_id == park.id
-            )
+            select(Building).where(Building.tenant_id == tenant.id, Building.park_id == park.id)
         ).first()
         if building is None:
             building = Building(

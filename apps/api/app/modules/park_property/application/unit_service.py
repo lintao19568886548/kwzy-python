@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from app.core.business_logging import log_business_success
 from app.core.errors import AppError
 from app.infrastructure.database.audit import AuditRecorder
+from app.modules.park_property.application.asset_template_service import AssetTemplateService
 from app.modules.park_property.domain.entities import BuildingEntity, UnitEntity
 from app.modules.park_property.domain.states import (
     assert_unit_status,
@@ -29,8 +30,8 @@ from app.modules.park_property.domain.states import (
 from app.modules.park_property.infrastructure.building_repository import BuildingRepository
 from app.modules.park_property.infrastructure.mappers import BuildingMapper, UnitMapper
 from app.modules.park_property.infrastructure.park_repository import ParkRepository
-from app.modules.park_property.infrastructure.unit_repository import UnitRepository
 from app.modules.park_property.infrastructure.unit_lineage_repository import UnitLineageRepository
+from app.modules.park_property.infrastructure.unit_repository import UnitRepository
 from app.shared.tenant_context import TenantContext
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,7 @@ class UnitService:
         self.building_repo = BuildingRepository(session, ctx)
         self.lineages = UnitLineageRepository(session, ctx)
         self.audit = AuditRecorder(session, ctx)
+        self.templates = AssetTemplateService(session, ctx)
 
     def list_units(
         self,
@@ -121,6 +123,11 @@ class UnitService:
         if existing:
             raise AppError("同一楼栋下单元编码已存在", code="UNIT_CODE_DUP", status_code=400)
 
+        template, template_version, attributes = self.templates.resolve_and_validate(
+            template_version_id=data.get("asset_template_version_id"),
+            usage_type=data.get("usage_type") or "FACTORY",
+            attributes=data.get("attributes") or {},
+        )
         entity = UnitEntity(
             tenant_id=self.ctx.tenant_id,
             park_id=park_id,
@@ -128,14 +135,15 @@ class UnitService:
             logical_id=str(uuid4()),
             code=code,
             name=name,
-            usage_type=str(data.get("usage_type") or "FACTORY").upper(),
+            usage_type=template.category,
             billing_unit=str(data.get("billing_unit") or "SQM").upper(),
             available_from=data.get("available_from"),
             rentable_area=Decimal(str(data.get("rentable_area") or 0)),
             used_area=Decimal(str(data.get("used_area") or 0)),
             base_rent_price=Decimal(str(data.get("base_rent_price") or 0)),
             status=status,
-            attributes=data.get("attributes"),
+            attributes=attributes,
+            asset_template_version_id=template_version.id,
         )
         model = UnitMapper.new_model(entity)
         self.repo.add(model)
@@ -267,6 +275,11 @@ class UnitService:
         source.lock_version += 1
         self.repo.save(source)
         self.session.flush()
+        template, template_version, attributes = self.templates.resolve_and_validate(
+            template_version_id=data.get("asset_template_version_id") or source.asset_template_version_id,
+            usage_type=data.get("usage_type") or source.usage_type,
+            attributes=data.get("attributes", source.attributes_json) or {},
+        )
         entity = UnitEntity(
             tenant_id=source.tenant_id,
             park_id=source.park_id,
@@ -278,14 +291,15 @@ class UnitService:
             lock_version=1,
             code=code,
             name=str(data.get("name") or source.name).strip(),
-            usage_type=str(data.get("usage_type") or source.usage_type).upper(),
+            usage_type=template.category,
             billing_unit=str(data.get("billing_unit") or source.billing_unit).upper(),
             available_from=data.get("available_from", source.available_from),
             rentable_area=Decimal(str(data.get("rentable_area") or source.rentable_area)),
             used_area=Decimal("0"),
             base_rent_price=Decimal(str(data.get("base_rent_price") if data.get("base_rent_price") is not None else source.base_rent_price)),
             status="VACANT",
-            attributes=data.get("attributes", source.attributes_json),
+            attributes=attributes,
+            asset_template_version_id=template_version.id,
         )
         target = UnitMapper.new_model(entity)
         try:
@@ -318,6 +332,14 @@ class UnitService:
         codes = [str(item["code"]).strip().upper() for item in targets]
         if len(codes) != len(set(codes)):
             raise AppError("拆分目标编码重复", code="UNIT_CODE_CONFLICT", status_code=409)
+        validated_targets = []
+        for item in targets:
+            template, template_version, attributes = self.templates.resolve_and_validate(
+                template_version_id=item.get("asset_template_version_id") or source.asset_template_version_id,
+                usage_type=item.get("usage_type") or source.usage_type,
+                attributes=item.get("attributes", source.attributes_json) or {},
+            )
+            validated_targets.append((template, template_version, attributes))
         operation_id = str(uuid4())
         now = datetime.utcnow()
         source.valid_to = now
@@ -327,7 +349,8 @@ class UnitService:
         self.session.flush()
         created = []
         try:
-            for item, area, code in zip(targets, areas, codes):
+            for item, area, code, template_data in zip(targets, areas, codes, validated_targets):
+                template, template_version, attributes = template_data
                 target = UnitMapper.new_model(
                     UnitEntity(
                         tenant_id=source.tenant_id,
@@ -337,14 +360,15 @@ class UnitService:
                         valid_from=now,
                         code=code,
                         name=str(item["name"]).strip(),
-                        usage_type=str(item.get("usage_type") or source.usage_type).upper(),
+                        usage_type=template.category,
                         billing_unit=source.billing_unit,
                         available_from=source.available_from,
                         rentable_area=area,
                         used_area=Decimal("0"),
                         base_rent_price=Decimal(str(item.get("base_rent_price") if item.get("base_rent_price") is not None else source.base_rent_price)),
                         status="VACANT",
-                        attributes=source.attributes_json,
+                        attributes=attributes,
+                        asset_template_version_id=template_version.id,
                     )
                 )
                 self.repo.add(target)
@@ -394,6 +418,19 @@ class UnitService:
         first = sources[0]
         if any(source.park_id != first.park_id or source.building_id != first.building_id for source in sources):
             raise AppError("合并来源必须属于同一园区和空间", code="UNIT_MERGE_INCOMPATIBLE", status_code=400)
+        requested_template_id = data.get("asset_template_version_id")
+        source_template_ids = {source.asset_template_version_id for source in sources}
+        if requested_template_id is None and len(source_template_ids) != 1:
+            raise AppError(
+                "合并来源模板不一致，请显式选择目标模板",
+                code="UNIT_TEMPLATE_INCOMPATIBLE",
+                status_code=409,
+            )
+        template, template_version, attributes = self.templates.resolve_and_validate(
+            template_version_id=requested_template_id or first.asset_template_version_id,
+            usage_type=data.get("usage_type") or first.usage_type,
+            attributes=data.get("attributes", first.attributes_json) or {},
+        )
         operation_id = str(uuid4())
         now = datetime.utcnow()
         total = sum((Decimal(str(source.rentable_area)) for source in sources), Decimal("0"))
@@ -412,14 +449,15 @@ class UnitService:
                 valid_from=now,
                 code=str(data["code"]).strip().upper(),
                 name=str(data["name"]).strip(),
-                usage_type=str(data.get("usage_type") or first.usage_type).upper(),
+                usage_type=template.category,
                 billing_unit=first.billing_unit,
                 available_from=first.available_from,
                 rentable_area=total,
                 used_area=Decimal("0"),
                 base_rent_price=Decimal(str(data.get("base_rent_price") if data.get("base_rent_price") is not None else first.base_rent_price)),
                 status="VACANT",
-                attributes=first.attributes_json,
+                attributes=attributes,
+                asset_template_version_id=template_version.id,
             )
         )
         try:
@@ -539,6 +577,7 @@ class UnitService:
             "base_rent_price": float(entity.base_rent_price or 0),
             "status": entity.status,
             "attributes": entity.attributes,
+            "asset_template_version_id": entity.asset_template_version_id,
             "created_at": entity.created_at.isoformat() if entity.created_at else None,
             "updated_at": entity.updated_at.isoformat() if entity.updated_at else None,
         }

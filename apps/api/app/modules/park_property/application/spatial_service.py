@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
 from app.infrastructure.database.audit import AuditRecorder
+from app.modules.park_property.domain.asset_templates import validate_geometry
 from app.modules.park_property.domain.entities import BuildingEntity
 from app.modules.park_property.infrastructure.building_repository import BuildingRepository
 from app.modules.park_property.infrastructure.mappers import BuildingMapper
@@ -65,6 +66,16 @@ class SpatialService:
         parent = self._parent(park_id, int(parent_id) if parent_id is not None else None)
         self._validate_parent(node_type, parent)
         self._assert_unique(park_id, parent.id if parent else None, code)
+        geometry = None
+        geometry_type = None
+        coordinate_reference = None
+        if data.get("geometry") is not None:
+            try:
+                geometry, geometry_type, coordinate_reference = validate_geometry(
+                    data["geometry"], data.get("coordinate_reference")
+                )
+            except ValueError as exc:
+                raise AppError(str(exc), code="SPACE_GEOMETRY_INVALID", status_code=400) from exc
         entity = BuildingEntity(
             tenant_id=self.ctx.tenant_id,
             park_id=park_id,
@@ -78,6 +89,10 @@ class SpatialService:
             address=str(data.get("address") or ""),
             description=data.get("description"),
             attributes=data.get("attributes"),
+            geometry=geometry,
+            geometry_type=geometry_type,
+            coordinate_reference=coordinate_reference,
+            geometry_version=1,
         )
         model = BuildingMapper.new_model(entity)
         try:
@@ -101,6 +116,7 @@ class SpatialService:
         if model is None:
             raise AppError("空间节点不存在", code="SPACE_NOT_FOUND", status_code=404)
         entity = BuildingMapper.to_entity(model)
+        expected_geometry_version = data.pop("expected_geometry_version", None)
         parent_id = data.get("parent_id", entity.parent_id)
         parent = self._parent(entity.park_id, int(parent_id) if parent_id is not None else None)
         node_type = self._node_type(data.get("node_type") or entity.node_type)
@@ -134,6 +150,34 @@ class SpatialService:
             entity.description = data["description"]
         if "attributes" in data:
             entity.attributes = data["attributes"]
+        if "geometry" in data:
+            if expected_geometry_version is None:
+                raise AppError(
+                    "更新几何必须提供 expected_geometry_version",
+                    code="SPACE_GEOMETRY_VERSION_REQUIRED",
+                    status_code=400,
+                )
+            if int(expected_geometry_version) != int(entity.geometry_version):
+                raise AppError(
+                    "空间几何版本已变化",
+                    code="SPACE_GEOMETRY_VERSION_CONFLICT",
+                    status_code=409,
+                )
+            if data["geometry"] is None:
+                entity.geometry = None
+                entity.geometry_type = None
+                entity.coordinate_reference = None
+            else:
+                try:
+                    geometry, geometry_type, crs = validate_geometry(
+                        data["geometry"], data.get("coordinate_reference") or entity.coordinate_reference
+                    )
+                except ValueError as exc:
+                    raise AppError(str(exc), code="SPACE_GEOMETRY_INVALID", status_code=400) from exc
+                entity.geometry = geometry
+                entity.geometry_type = geometry_type
+                entity.coordinate_reference = crs
+            entity.geometry_version += 1
         BuildingMapper.apply_entity(model, entity)
         try:
             self.repo.save(model)
@@ -272,6 +316,10 @@ class SpatialService:
             "address": entity.address,
             "description": entity.description,
             "attributes": entity.attributes,
+            "geometry": entity.geometry,
+            "geometry_type": entity.geometry_type,
+            "coordinate_reference": entity.coordinate_reference,
+            "geometry_version": entity.geometry_version,
             "created_at": entity.created_at.isoformat() if entity.created_at else None,
             "updated_at": entity.updated_at.isoformat() if entity.updated_at else None,
         }

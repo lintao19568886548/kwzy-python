@@ -2,21 +2,16 @@
 
 from __future__ import annotations
 
-import pytest
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.security import create_access_token, hash_password
 from app.infrastructure.database.models.identity import (
-    Permission,
-    Role,
-    RolePermission,
     Tenant,
     User,
-    UserRole,
 )
 from app.modules.park_property.application.park_service import ParkService
 from app.shared.tenant_context import ParkScopeMode, TenantContext
-from sqlalchemy import select
 
 
 def _admin_headers() -> dict:

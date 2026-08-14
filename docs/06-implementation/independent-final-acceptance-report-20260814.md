@@ -2,18 +2,20 @@
 
 > 日期：2026-08-14（Asia/Shanghai）
 > 结论：**BLOCKED（已实现范围条件通过，全产品未完成）**
-> 最新已验证实现提交：`fedc98efb7a33f39240216fbb861b57f6142649b`
-> 最新机器报告：`evidence/platform-workbench-automation/acceptance-clean-fedc98e.json`
-> 报告 SHA-256：`9AADD1D1D3AC2B8251DDB6384E8DD9E983CA9F66D967EE420D276A9C301EDB0D`
+> 最新工作树验收基线：`1b4d6aa5ed93d05e20591e45854eb3985e908827` + 资产模板/组合租控未提交变更；clean-SHA 复验待实现提交后执行
+> 最新机器报告：`evidence/platform-asset-portfolio-views/acceptance-worktree-20260814.json`
+> 报告 SHA-256：`6E2322C9C63F3FDAC4EE0A29B0EF1B3D17A3BF474C1EB121DADDE4DB3BD72C75`
 > 本报告滚动记录自治重建；下文早期 repair 数字如与“最新闭环增量”冲突，以最新机器报告与能力矩阵为准。
 
 ## 0. 最新闭环增量
 
-`feat/full-rebuild-completion` 已正常推送 `fedc98e`，未 force、未触达 main、未连接生产。该 clean-SHA 的完整脚本 28/28 步 exit 0，总耗时 485,199 ms：PG16 fresh base→唯一 head `p2e80a5b7c64`、down one/up、277 后端测试、5 租户 worker、全套合成 ETL、两条真实 HTTP 旅程、1,000 请求性能、备份删除/恢复、前端门禁、50 条 Playwright、9 条 OpenAPI strict、61 项 OpenSpec strict、741 文件 secrets scan 和资源清理均通过。
+资产模板/组合租控工作树完整脚本 30/30 步 exit 0，总耗时 619,403 ms：PG16 fresh base→q3→唯一 head `r4a02c7d9e86`、严格 current=heads、r4 down 到 q3 后再 up、全仓 Ruff 错误级规则、286 后端测试、7 租户 worker、全套合成 ETL、三条真实 HTTP 旅程、1,000 请求性能、备份删除/恢复、前端门禁、52 条 Playwright、10 条 OpenAPI strict、67 项 OpenSpec strict、780 文件 secrets scan 和资源清理均通过。未 force、未触达 main、未连接生产；实现提交和 clean-SHA 复验仍是本纵切剩余步骤。
 
-工作台纵切新增事务事件/消费者、受限版本化自动化规则、站内通知、持久调度与独立 worker、来源待办治理、用户/角色首页配置、实时 PC 工作台与自动化控制面。浏览器人工检查覆盖 1440×900 与 390×844，均无横向溢出和 console warning/error；自动化控制数据来自 PostgreSQL/真实 API。性能在不放宽门槛的前提下从暴露的 p95 946.484 ms 修至 clean-SHA p95 250.49 ms、146.018 RPS、0 错误。
+本纵切新增七类版本化业态模板、受限动态字段、精确 Unit 模板版本历史、复合租户外键、合法 Point/简单 Polygon/CRS，以及矩阵/真实几何示意地图/列表/空置/到期/分析。三张新截图人工复核无假底图、错误口径或移动端横向溢出；资产 22 阶段真实 HTTP 旅程覆盖 403/404/409、跨租户 IDOR 和原始记录对账。性能为 p95 260.28 ms、137.877 RPS、0 错误；商业 GIS/CAD/BIM 明确 `NOT_CONNECTED`。
 
-最新能力矩阵为 4 项 `IMPLEMENTED_AND_VERIFIED`、1 项 `BLOCKED`、15 项 `MISSING`。因此本报告仍是 `BLOCKED`，只是把组合能力“统一工作台和自动待办”从缺失关闭，绝不外推为移动端、小程序、全业务、真实旧数据迁移或生产完成。
+同条件首轮执行在性能步骤以 p95 2,928.855 ms 失败；该失败报告已作为 `acceptance-worktree-performance-transient-failure-20260814.json` 保留，未降低 500 ms 门槛。只有随后从空库完整复跑全部 30 步通过，才形成当前工作树 PASS 证据。
+
+最新能力矩阵为 5 项 `IMPLEMENTED_AND_VERIFIED`、1 项 `BLOCKED`、14 项 `MISSING`。因此本报告仍是 `BLOCKED`，只是把组合能力“资产模板、租控矩阵、拆分合并和历史”从缺失关闭，绝不外推为移动端、小程序、全业务、真实旧数据迁移或生产完成。
 
 ## 1. 初始 repair 基线（历史证据）
 
@@ -53,7 +55,7 @@
 唯一迁移链尾部为：
 
 ```text
-j6e24f9a1c08 -> k7f35a0b2d19 -> l8a46b1c3e20 -> m9b57c2d4e31 (head)
+j6e24f9a1c08 -> k7f35a0b2d19 -> l8a46b1c3e20 -> m9b57c2d4e31 -> n0c68d3e5f42 -> o1d79e4f6a53 -> p2e80a5b7c64 -> q3f91b6c8d75 -> r4a02c7d9e86 (head)
 ```
 
 精确 SHA 验收执行的关键命令：
@@ -71,13 +73,15 @@ pwsh -NoProfile -File infra/local-staging/run_full_acceptance.ps1
 
 结果：
 
-- 空库 base → head 通过，`current == heads == m9b57c2d4e31`；down one 再 up 通过。
-- 迁移后 59 张表、168 个外键、38 个唯一约束、253 个索引、13 个 boolean 列。
-- ORM metadata 与迁移契约测试通过；关键索引、外键、唯一性、boolean、时间戳 nullability 和序列 BigInteger 已复核。
+- 空库 base → head 通过，`current == heads == r4a02c7d9e86`；r4 down 到 q3 再 up 通过。
+- 备份恢复复核当前 84 张 public 表；核心表、索引、外键、唯一性和 boolean 契约由 metadata/PG 测试覆盖。
+- ORM metadata 与迁移契约测试通过；资产模板版本与 Unit 引用的复合租户外键由 PostgreSQL 直写越权回归证明生效。
 - 合同、租控锁房、收款/核销和 outbox 幂等的 PG 并发/竞态/回滚测试通过；库存域未实现，不能声称库存并发通过。
 - 禁止用 `create_all` 代替验收；完整脚本与 E2E seed 均以 Alembic 初始化。
 
 ## 4. 测试和耗时
+
+最新资产工作树报告为 30/30 步、286 pytest、52 Playwright、10 OpenAPI、67 OpenSpec、780 文件扫描；下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
 
 精确实现 SHA `a9267d4` 的完整脚本从 11:33:05 到 11:38:53，总耗时 348,122 ms，24/24 步 exit 0。
 
@@ -121,12 +125,12 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 
 ## 6. HTTP 性能、可靠性和运维
 
-真实 loopback HTTP 使用登录后的 4 个公共查询接口，1000 请求、并发 25、预热 40：
+最新真实 loopback HTTP 使用登录后的 7 个公共读写查询接口，1000 请求、并发 25、预热 40：
 
-- 0 failures，错误率 0.0%，141.36 req/s。
-- p50 145.961 ms，p95 280.422 ms，p99 321.082 ms，max 333.336 ms。
+- 0 failures，错误率 0.0%，137.877 req/s。
+- p50 171.107 ms，p95 260.28 ms，p99 283.741 ms，max 301.855 ms。
 - 门槛 p95 ≤ 500 ms、错误率 ≤ 1%、吞吐 ≥ 20 req/s，结果 PASS。
-- 性能报告 SHA-256：`A13D9450E5D11C084FAA1E1A586687EA8BF96F828E4C08947322A98FFAAA883B`。
+- 性能报告保存在 `evidence/platform-asset-portfolio-views/http-performance-worktree.json`。
 
 生产契约提供显式 PG QueuePool 上限/超时/回收、`/health/ready`、非 root 镜像、只读文件系统、tmpfs、drop all capabilities 和 no-new-privileges。API 镜像用户为 `kwzy`，Web 为 UID `101`。
 
@@ -147,10 +151,10 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 | 静态假图表 | `analytics` 未挂载且无真实驾驶舱，计 `MISSING` |
 | 未挂 router | 12 个真实 router 均挂载；`ai_assist`、`analytics` 未挂载并计缺失 |
 | 前端本地 JSON/假按钮 | 未发现业务页读取本地 JSON；关键合同/租控按钮由真实 HTTP/E2E 覆盖 |
-| API/OpenAPI 漂移 | 已修复，6/6 契约与 YAML strict 通过 |
+| API/OpenAPI 漂移 | 已修复，10/10 契约与 YAML strict 通过 |
 | Application→ORM / Router 查 DB | 架构回归测试和人工检索未发现新增违规 |
 | 默认管理员/开发免鉴权/弱 JWT | 生产/预发 fail-closed；本地测试账号只用于隔离验收 |
-| 密钥/Token/DB/PII | 621 文件扫描通过；环境样例为非生产占位 |
+| 密钥/Token/DB/PII | 780 文件扫描通过；环境样例为非生产占位 |
 | 历史迁移/多 head | 未修改历史迁移；新增修复迁移；唯一 head |
 | 外部集成虚假完成 | 文档和运行时均区分 fake/local、fail-closed 与 live verified |
 
@@ -158,15 +162,15 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 
 ## 8. 三端、角色和 UI
 
-PC 真实浏览器验证使用 PostgreSQL、FastAPI、生产 Vite 构建和真实 HTTP；40 条 Playwright 无 skip。额外人工浏览器检查覆盖 1280px、768×1024、390×844，页面无横向溢出，合同治理抽屉、租控矩阵数据态和路由滚动复位通过；控制台 error/warn 为 0。截图位于 `evidence/independent-final-audit/`。
+PC 真实浏览器验证使用 PostgreSQL、FastAPI、生产 Vite 构建和真实 HTTP；52 条 Playwright 无 skip。新资产证据人工复核覆盖桌面地图/分析与 390×844 手机离线态，当前导航完整可见、页面无横向溢出；既有合同/组织/审批/工作台证据继续保留。截图位于 `evidence/platform-asset-portfolio-views/` 等受信目录。
 
 可验证角色切片包括系统管理员、受限用户、资产查看者、招商查看者、合同查看/提交/审批角色，以及基础财务/工单操作。决策管理层、区域/园区经理、完整招商/财务/物业岗位只能算窄功能证据；企业租户管理员与企业员工没有对应端，不能验收。
 
-高级浅色后台、合同/租控响应式切片、全局搜索/快捷命令入口、右侧 AI 助手入口以及用户→角色→服务器默认的首页组件配置已有真实证据；首页工作项提供受限原单深链。深色经营驾驶舱、完整指标口径下钻、多园区比较、地图/分析切换及两端离线/重试仍未完成。员工移动端和租户小程序没有启动方式或 E2E。
+高级浅色后台、合同/租控响应式切片、租控矩阵/几何地图/列表/空置/到期/分析、全局搜索/快捷命令入口、右侧 AI 助手入口以及用户→角色→服务器默认的首页组件配置已有真实证据；首页工作项提供受限原单深链。深色经营驾驶舱、完整会计指标口径下钻、多园区比较和两端仍未完成；资产分析仅是挂牌经营视图，不冒充驾驶舱或会计收入。员工移动端和租户小程序没有启动方式或 E2E。
 
 ## 9. 旧系统与外部集成
 
-旧 Java 证据仓静态规模为 54 Controllers、约 484 HTTP mappings、316 Vue 文件、30 SQL DDL 表。当前 Python 仓库缺少两端且仍有 15 个组合能力为 `MISSING`，因此旧系统替代为 `BLOCKED`。
+旧 Java 证据仓静态规模为 54 Controllers、约 484 HTTP mappings、316 Vue 文件、30 SQL DDL 表。当前 Python 仓库缺少两端且仍有 14 个组合能力为 `MISSING`，因此旧系统替代为 `BLOCKED`。
 
 | 集成组 | 代码状态 | 真实状态 |
 | --- | --- | --- |
@@ -184,7 +188,7 @@ PC 真实浏览器验证使用 PostgreSQL、FastAPI、生产 Vite 构建和真�
 | 级别 | 未关闭数 | 项目 |
 | --- | --- | --- |
 | P0 | 0 | 当前证据未发现 P0 |
-| P1 | 6 | 员工移动端；租户小程序；15 项能力矩阵缺失的产品闭环；真实旧数据迁移；外部适配器完整性/真实联调；远程预发监控容量灾备 |
+| P1 | 6 | 员工移动端；租户小程序；14 项能力矩阵缺失的产品闭环；真实旧数据迁移；外部适配器完整性/真实联调；远程预发监控容量灾备 |
 | P2 | 0 | 本轮可在当前权限内修复的 P2 已关闭；上游 TestClient 弃用提示记为 INFO |
 
 没有任何 `APPROVED_DEFERRED` 或 `APPROVED_RETIRED`。建议责任人不是虚构姓名：
@@ -197,7 +201,7 @@ PC 真实浏览器验证使用 PostgreSQL、FastAPI、生产 Vite 构建和真�
 
 ## 11. 最终判定
 
-能力矩阵汇总为 4 项 `IMPLEMENTED_AND_VERIFIED`、1 项 `BLOCKED`、15 项 `MISSING`。完整细节见 `full-rebuild-traceability-matrix.md`。因为 P1 不为 0、两端缺失、真实迁移和旧系统替代未完成，完成分支不得合并 main。
+能力矩阵汇总为 5 项 `IMPLEMENTED_AND_VERIFIED`、1 项 `BLOCKED`、14 项 `MISSING`。完整细节见 `full-rebuild-traceability-matrix.md`。因为 P1 不为 0、两端缺失、真实迁移和旧系统替代未完成，完成分支不得合并 main。
 
 ```text
 KWZY_INDEPENDENT_ACCEPTANCE=CONDITIONAL_IMPLEMENTED_SCOPE_ONLY

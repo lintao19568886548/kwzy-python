@@ -2,17 +2,22 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database.session import get_db
+from app.modules.park_property.application.asset_template_service import AssetTemplateService
 from app.modules.park_property.application.park_service import ParkService
 from app.modules.park_property.application.rent_control_service import RentControlService
 from app.modules.park_property.application.spatial_service import SpatialService
 from app.modules.park_property.application.unit_service import UnitService
 from app.modules.park_property.interface.schemas import (
+    AssetTemplateCreate,
+    AssetTemplateDraftUpdate,
+    ExpectedVersionCommand,
     ParkCreate,
     ParkUpdate,
     SpatialCreate,
@@ -56,6 +61,91 @@ def _rent_control_service(
     ctx: TenantContext = Depends(get_tenant_context),
 ) -> RentControlService:
     return RentControlService(db, ctx)
+
+
+def _asset_template_service(
+    db: Session = Depends(get_db),
+    ctx: TenantContext = Depends(get_tenant_context),
+) -> AssetTemplateService:
+    return AssetTemplateService(db, ctx)
+
+
+@router.get(
+    "/asset-templates",
+    dependencies=[Depends(require_permissions("asset.template.read"))],
+)
+def list_asset_templates(svc: AssetTemplateService = Depends(_asset_template_service)) -> dict:
+    return ok(svc.list_templates())
+
+
+@router.post(
+    "/asset-templates",
+    dependencies=[Depends(require_permissions("asset.template.write"))],
+)
+def create_asset_template(
+    body: AssetTemplateCreate,
+    svc: AssetTemplateService = Depends(_asset_template_service),
+) -> dict:
+    return ok(svc.create(body.model_dump()), message="created")
+
+
+@router.get(
+    "/asset-templates/{template_id}",
+    dependencies=[Depends(require_permissions("asset.template.read"))],
+)
+def get_asset_template(
+    template_id: int,
+    svc: AssetTemplateService = Depends(_asset_template_service),
+) -> dict:
+    return ok(svc.get_template(template_id))
+
+
+@router.put(
+    "/asset-templates/{template_id}/draft",
+    dependencies=[Depends(require_permissions("asset.template.write"))],
+)
+def update_asset_template_draft(
+    template_id: int,
+    body: AssetTemplateDraftUpdate,
+    svc: AssetTemplateService = Depends(_asset_template_service),
+) -> dict:
+    return ok(svc.update_draft(template_id, body.model_dump(exclude_unset=True)), message="updated")
+
+
+@router.post(
+    "/asset-templates/{template_id}/publish",
+    dependencies=[Depends(require_permissions("asset.template.write"))],
+)
+def publish_asset_template(
+    template_id: int,
+    body: ExpectedVersionCommand,
+    svc: AssetTemplateService = Depends(_asset_template_service),
+) -> dict:
+    return ok(svc.publish(template_id, body.expected_version), message="published")
+
+
+@router.post(
+    "/asset-templates/{template_id}/drafts",
+    dependencies=[Depends(require_permissions("asset.template.write"))],
+)
+def new_asset_template_draft(
+    template_id: int,
+    body: ExpectedVersionCommand,
+    svc: AssetTemplateService = Depends(_asset_template_service),
+) -> dict:
+    return ok(svc.new_draft(template_id, body.expected_version), message="draft_created")
+
+
+@router.post(
+    "/asset-templates/{template_id}/retire",
+    dependencies=[Depends(require_permissions("asset.template.write"))],
+)
+def retire_asset_template(
+    template_id: int,
+    body: ExpectedVersionCommand,
+    svc: AssetTemplateService = Depends(_asset_template_service),
+) -> dict:
+    return ok(svc.retire(template_id, body.expected_version), message="retired")
 
 
 @router.get("/parks", dependencies=[Depends(require_permissions("park:read"))])
@@ -192,6 +282,70 @@ def rent_control_matrix(
     svc: RentControlService = Depends(_rent_control_service),
 ) -> dict:
     return ok(svc.matrix(park_id=park_id, space_id=space_id, status=status, usage_type=usage_type, keyword=keyword))
+
+
+@router.get(
+    "/rent-control/map",
+    dependencies=[Depends(require_permissions("unit:read"))],
+)
+def rent_control_map(
+    park_id: Optional[int] = None,
+    space_id: Optional[int] = None,
+    status: Optional[str] = None,
+    usage_type: Optional[str] = None,
+    keyword: Optional[str] = None,
+    svc: RentControlService = Depends(_rent_control_service),
+) -> dict:
+    return ok(svc.map_projection(park_id=park_id, space_id=space_id, status=status, usage_type=usage_type, keyword=keyword))
+
+
+@router.get(
+    "/rent-control/vacancies",
+    dependencies=[Depends(require_permissions("unit:read"))],
+)
+def rent_control_vacancies(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+    as_of: Optional[date] = None,
+    park_id: Optional[int] = None,
+    space_id: Optional[int] = None,
+    status: Optional[str] = None,
+    usage_type: Optional[str] = None,
+    keyword: Optional[str] = None,
+    svc: RentControlService = Depends(_rent_control_service),
+) -> dict:
+    return ok(svc.vacancies(page=page, page_size=page_size, as_of=as_of, park_id=park_id, space_id=space_id, status=status, usage_type=usage_type, keyword=keyword))
+
+
+@router.get(
+    "/rent-control/expiries",
+    dependencies=[Depends(require_permissions("unit:read"))],
+)
+def rent_control_expiries(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+    date_from: Optional[date] = None,
+    days: int = Query(90, ge=1, le=366),
+    park_id: Optional[int] = None,
+    space_id: Optional[int] = None,
+    svc: RentControlService = Depends(_rent_control_service),
+) -> dict:
+    return ok(svc.expiries(page=page, page_size=page_size, date_from=date_from, days=days, park_id=park_id, space_id=space_id))
+
+
+@router.get(
+    "/rent-control/analysis",
+    dependencies=[Depends(require_permissions("unit:read"))],
+)
+def rent_control_analysis(
+    park_id: Optional[int] = None,
+    space_id: Optional[int] = None,
+    status: Optional[str] = None,
+    usage_type: Optional[str] = None,
+    keyword: Optional[str] = None,
+    svc: RentControlService = Depends(_rent_control_service),
+) -> dict:
+    return ok(svc.analysis(park_id=park_id, space_id=space_id, status=status, usage_type=usage_type, keyword=keyword))
 
 
 @router.get(

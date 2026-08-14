@@ -50,7 +50,14 @@ from app.infrastructure.database.models.organization_governance import (
     RegionParkAssignment,
     UserPositionAssignment,
 )
-from app.infrastructure.database.models.park_property import Building, Park, Unit, UnitLineage
+from app.infrastructure.database.models.park_property import (
+    AssetTemplate,
+    AssetTemplateVersion,
+    Building,
+    Park,
+    Unit,
+    UnitLineage,
+)
 from app.infrastructure.database.models.party import (
     Party,
     PartyAddress,
@@ -111,6 +118,8 @@ __all__ = [
     "Building",
     "Unit",
     "UnitLineage",
+    "AssetTemplate",
+    "AssetTemplateVersion",
     "Party",
     "PartyRole",
     "PartyParkRelation",

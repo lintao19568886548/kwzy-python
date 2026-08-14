@@ -9,9 +9,12 @@ from uuid import uuid4
 
 from sqlalchemy import (
     JSON,
+    Boolean,
+    CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     Numeric,
@@ -95,6 +98,10 @@ class Building(Base, PrimaryKeyMixin, SoftDeleteMixin, TimestampMixin):
     address: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     attributes_json: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    geometry_json: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    geometry_type: Mapped[Optional[str]] = mapped_column(String(16), nullable=True)
+    coordinate_reference: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    geometry_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
     park: Mapped["Park"] = relationship(back_populates="buildings")
     units: Mapped[List["Unit"]] = relationship(back_populates="building")
@@ -118,6 +125,11 @@ class Unit(Base, PrimaryKeyMixin, SoftDeleteMixin, TimestampMixin):
             sqlite_where=text("valid_to IS NULL AND is_deleted = 0"),
         ),
         Index("ix_units_logical_version", "logical_id", "version_no"),
+        ForeignKeyConstraint(
+            ["tenant_id", "asset_template_version_id"],
+            ["asset_template_versions.tenant_id", "asset_template_versions.id"],
+            name="fk_units_tenant_asset_template_version",
+        ),
     )
 
     tenant_id: Mapped[int] = mapped_column(
@@ -155,6 +167,9 @@ class Unit(Base, PrimaryKeyMixin, SoftDeleteMixin, TimestampMixin):
     )
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="VACANT")
     attributes_json: Mapped[Optional[dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    asset_template_version_id: Mapped[Optional[int]] = mapped_column(
+        FK_TYPE, nullable=True, index=True
+    )
 
     park: Mapped["Park"] = relationship(back_populates="units")
     building: Mapped["Building"] = relationship(back_populates="units")
@@ -186,3 +201,70 @@ class UnitLineage(Base, PrimaryKeyMixin, TimestampMixin):
     target_unit_id: Mapped[int] = mapped_column(
         FK_TYPE, ForeignKey("units.id"), nullable=False, index=True
     )
+
+
+class AssetTemplate(Base, PrimaryKeyMixin, TimestampMixin):
+    __tablename__ = "asset_templates"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "code", name="uk_asset_template_code"),
+        UniqueConstraint("tenant_id", "id", name="uk_asset_template_tenant_id_id"),
+        CheckConstraint("status IN ('ACTIVE','RETIRED')", name="ck_asset_template_status"),
+        CheckConstraint("current_version >= 0", name="ck_asset_template_current_version"),
+        CheckConstraint("lock_version > 0", name="ck_asset_template_lock_version"),
+    )
+
+    tenant_id: Mapped[int] = mapped_column(
+        FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True
+    )
+    code: Mapped[str] = mapped_column(String(64), nullable=False)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    category: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="ACTIVE")
+    is_builtin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    current_version: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    lock_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    created_by: Mapped[Optional[int]] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
+    updated_by: Mapped[Optional[int]] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
+
+
+class AssetTemplateVersion(Base, PrimaryKeyMixin, TimestampMixin):
+    __tablename__ = "asset_template_versions"
+    __table_args__ = (
+        UniqueConstraint("template_id", "version", name="uk_asset_template_version"),
+        UniqueConstraint(
+            "tenant_id", "id", name="uk_asset_template_version_tenant_id_id"
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "template_id"],
+            ["asset_templates.tenant_id", "asset_templates.id"],
+            name="fk_asset_template_versions_tenant_template",
+        ),
+        CheckConstraint(
+            "status IN ('DRAFT','PUBLISHED','RETIRED')",
+            name="ck_asset_template_version_status",
+        ),
+        CheckConstraint("version > 0", name="ck_asset_template_version_positive"),
+        Index(
+            "uk_asset_template_one_draft",
+            "template_id",
+            unique=True,
+            postgresql_where=text("status = 'DRAFT'"),
+            sqlite_where=text("status = 'DRAFT'"),
+        ),
+    )
+
+    tenant_id: Mapped[int] = mapped_column(
+        FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True
+    )
+    template_id: Mapped[int] = mapped_column(
+        FK_TYPE, nullable=False, index=True
+    )
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="DRAFT")
+    field_schema_json: Mapped[list[dict[str, Any]]] = mapped_column(JSON, nullable=False, default=list)
+    defaults_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    schema_checksum: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_by: Mapped[Optional[int]] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
+    published_by: Mapped[Optional[int]] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
+    published_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)

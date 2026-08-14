@@ -1,0 +1,82 @@
+{
+  "started_at": "2026-08-14T10:35:18.845861+00:00",
+  "source_schema_version": "kwzy.asset-portfolio.synthetic.v1",
+  "schema": "etl_asset_portfolio_fixture",
+  "synthetic_only": true,
+  "readiness": "CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA",
+  "real_legacy_readiness": "BLOCKED_PENDING_AUTHORIZED_SCHEMA_AND_DESENSITIZED_SAMPLE",
+  "external_map_provider": "NOT_CONNECTED_LOCAL_SCHEMATIC",
+  "stages": {
+    "dry_run": {
+      "passed": true,
+      "errors": []
+    },
+    "interruption_recovery": {
+      "passed": true,
+      "partial_rows_after_rollback": 0
+    },
+    "first_apply": {
+      "passed": true,
+      "inserted": {
+        "templates": 8,
+        "versions": 9,
+        "spaces": 2,
+        "units": 2
+      }
+    },
+    "idempotent_reapply": {
+      "passed": true,
+      "inserted": {
+        "templates": 0,
+        "versions": 0,
+        "spaces": 0,
+        "units": 0
+      }
+    },
+    "reconciliation": {
+      "passed": true,
+      "counts": {
+        "templates": {
+          "source": 8,
+          "target": 8
+        },
+        "versions": {
+          "source": 9,
+          "target": 9
+        },
+        "spaces": {
+          "source": 2,
+          "target": 2
+        },
+        "units": {
+          "source": 2,
+          "target": 2
+        }
+      },
+      "areas": {
+        "rentable": {
+          "source": "208.00",
+          "target": "208.00"
+        },
+        "used": {
+          "source": "20.00",
+          "target": "20.00"
+        }
+      },
+      "checks": {
+        "template_checksum_mismatch": 0,
+        "unit_non_published_version": 0,
+        "invalid_geometry_crs": 0,
+        "unmapped_units": 1
+      }
+    },
+    "rollback": {
+      "passed": true,
+      "schema_exists_after": false,
+      "authorization_rows_unchanged": true
+    }
+  },
+  "finished_at": "2026-08-14T10:35:19.072594+00:00",
+  "exit_code": 0,
+  "result": "PASS"
+}

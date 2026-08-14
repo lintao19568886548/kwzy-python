@@ -39,8 +39,7 @@ def _iter_api_paths(app) -> set[str]:
     return {
         path
         for path in paths
-        if path
-        and ("/api/" in path or path.startswith(("/parties", "/parks", "/auth", "/units")))
+        if path and ("/api/" in path or path.startswith(("/parties", "/parks", "/auth", "/units")))
     }
 
 
@@ -110,9 +109,9 @@ def test_step1_runtime_paths_covered_by_openapi() -> None:
         "/attachments",
     )
     for marker in required_markers:
-        assert any(marker in p for p in paths) or any(
-            marker in p for p in runtime
-        ), f"missing coverage for {marker}"
+        assert any(marker in p for p in paths) or any(marker in p for p in runtime), (
+            f"missing coverage for {marker}"
+        )
 
     # 每个 runtime path 的路径模板应能在 openapi 中找到对应资源
     for rp in runtime:
@@ -127,10 +126,62 @@ def test_step1_runtime_paths_covered_by_openapi() -> None:
         if resource in {"/health", "/docs", "/redoc"}:
             continue
         found = any(
-            resource in op or resource in op.replace("/api/v1", "")
-            for op in openapi_with_prefix
+            resource in op or resource in op.replace("/api/v1", "") for op in openapi_with_prefix
         )
         assert found, f"runtime route {rp} not reflected in OpenAPI ({resource})"
+
+
+def test_asset_portfolio_openapi_matches_every_runtime_method() -> None:
+    """Asset-template lifecycle and every rent-control projection stay contract controlled."""
+
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    paths = document["paths"]
+    runtime_paths = create_app().openapi()["paths"]
+    expected_methods = {
+        "/asset-templates": {"get", "post"},
+        "/asset-templates/{template_id}": {"get"},
+        "/asset-templates/{template_id}/draft": {"put"},
+        "/asset-templates/{template_id}/publish": {"post"},
+        "/asset-templates/{template_id}/drafts": {"post"},
+        "/asset-templates/{template_id}/retire": {"post"},
+        "/rent-control/summary": {"get"},
+        "/rent-control/units": {"get"},
+        "/rent-control/matrix": {"get"},
+        "/rent-control/map": {"get"},
+        "/rent-control/vacancies": {"get"},
+        "/rent-control/expiries": {"get"},
+        "/rent-control/analysis": {"get"},
+        "/rent-control/units/{unit_id}": {"get"},
+    }
+    for path, methods in expected_methods.items():
+        assert path in paths, path
+        assert methods == {
+            key.lower()
+            for key in paths[path]
+            if key.lower() in {"get", "post", "put", "patch", "delete"}
+        }, path
+        runtime_path = "/api/v1" + path
+        assert runtime_path in runtime_paths, runtime_path
+        assert methods == {
+            key.lower()
+            for key in runtime_paths[runtime_path]
+            if key.lower() in {"get", "post", "put", "patch", "delete"}
+        }, runtime_path
+
+    schemas = document["components"]["schemas"]
+    for name in (
+        "AssetTemplateField",
+        "AssetTemplateCreate",
+        "AssetTemplateDraftUpdate",
+        "ExpectedVersionCommand",
+        "GeoJsonGeometry",
+    ):
+        assert name in schemas, name
+    assert schemas["AssetTemplateCreate"]["additionalProperties"] is False
+    assert schemas["AssetTemplateDraftUpdate"]["required"] == ["expected_version"]
+    assert schemas["GeoJsonGeometry"]["additionalProperties"] is False
 
 
 def test_approval_audit_center_openapi_matches_runtime_methods_and_schemas() -> None:
@@ -199,7 +250,15 @@ def test_approval_audit_center_openapi_matches_runtime_methods_and_schemas() -> 
         for parameter in controlled_paths["/approvals"]["get"]["parameters"]
         if isinstance(parameter, dict) and "name" in parameter
     }
-    assert {"park_id", "status", "biz_type", "priority", "mine", "created_from", "created_to"} <= approval_query_names
+    assert {
+        "park_id",
+        "status",
+        "biz_type",
+        "priority",
+        "mine",
+        "created_from",
+        "created_to",
+    } <= approval_query_names
     assert set(schemas["AuditIntegrityState"]["enum"]) == {
         "VERIFIED",
         "FAILED",
@@ -249,9 +308,7 @@ def test_investment_crm_v2_openapi_matches_runtime_and_legacy_stage_mapping() ->
     assert "FOLLOWING" not in current_stages
     assert "CONTACTING" in current_stages
     assert "FOLLOWING" in accepted_filters
-    assert schemas["LeadStageFilter"]["x-legacy-value-mapping"] == {
-        "FOLLOWING": "CONTACTING"
-    }
+    assert schemas["LeadStageFilter"]["x-legacy-value-mapping"] == {"FOLLOWING": "CONTACTING"}
     for command in (
         "LeadUpdate",
         "LeadActivityCreate",
@@ -377,9 +434,7 @@ def test_lease_compatibility_contract_cannot_bypass_v2_governance() -> None:
         assert "200" not in responses
 
     list_parameters = {
-        item["name"]
-        for item in paths["/leases"]["get"]["parameters"]
-        if "name" in item
+        item["name"] for item in paths["/leases"]["get"]["parameters"] if "name" in item
     }
     assert {"approval_status", "change_status", "exit_status"} <= list_parameters
 
@@ -412,9 +467,7 @@ def test_organization_governance_openapi_matches_every_runtime_method() -> None:
         "/system/organization-governance/positions": {"get", "post"},
         "/system/organization-governance/positions/{position_id}": {"patch"},
         "/system/organization-governance/user-assignments": {"get", "post"},
-        "/system/organization-governance/user-assignments/{assignment_id}/end": {
-            "post"
-        },
+        "/system/organization-governance/user-assignments/{assignment_id}/end": {"post"},
         "/system/organization-governance/protected-fields": {"get"},
         "/system/organization-governance/field-policies": {"get", "put"},
     }
@@ -431,18 +484,10 @@ def test_organization_governance_openapi_matches_every_runtime_method() -> None:
         "MASKED",
         "HIDDEN",
     }
-    assert schemas["FieldAccessPolicyUpsert"]["properties"]["resource_type"]["enum"] == [
-        "USER"
-    ]
-    assert schemas["FieldAccessPolicyUpsert"]["properties"]["field_name"]["enum"] == [
-        "phone"
-    ]
-    assert {"region_id", "park_id"} <= set(
-        schemas["RegionParkAssignmentCommand"]["required"]
-    )
-    assert {"user_id", "position_id"} <= set(
-        schemas["UserPositionAssignmentCreate"]["required"]
-    )
+    assert schemas["FieldAccessPolicyUpsert"]["properties"]["resource_type"]["enum"] == ["USER"]
+    assert schemas["FieldAccessPolicyUpsert"]["properties"]["field_name"]["enum"] == ["phone"]
+    assert {"region_id", "park_id"} <= set(schemas["RegionParkAssignmentCommand"]["required"])
+    assert {"user_id", "position_id"} <= set(schemas["UserPositionAssignmentCreate"]["required"])
 
 
 def test_workbench_automation_openapi_matches_every_runtime_method() -> None:

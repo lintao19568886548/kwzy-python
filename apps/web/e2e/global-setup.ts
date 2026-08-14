@@ -15,12 +15,37 @@ const REPO_ROOT = path.resolve(WEB_ROOT, "../..");
 const API_ROOT = path.join(REPO_ROOT, "apps", "api");
 const STATE_FILE = path.join(WEB_ROOT, "e2e", ".stack-state.json");
 const LOG_DIR = path.join(WEB_ROOT, "test-results", "stack-logs");
+const PG_ENV_FILE = path.join(REPO_ROOT, "infra", "postgres-test", ".env");
 
 const API_PORT = Number(process.env.E2E_API_PORT || 8010);
 const WEB_PORT = Number(process.env.E2E_WEB_PORT || 4173);
+
+function localPgConfig() {
+  if (!fs.existsSync(PG_ENV_FILE)) {
+    throw new Error(`missing gitignored local PostgreSQL env: ${PG_ENV_FILE}`);
+  }
+  const values: Record<string, string> = {};
+  for (const rawLine of fs.readFileSync(PG_ENV_FILE, "utf8").split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#") || !line.includes("=")) continue;
+    const separator = line.indexOf("=");
+    values[line.slice(0, separator).trim()] = line.slice(separator + 1).trim();
+  }
+  const user = values.POSTGRES_USER;
+  const password = values.POSTGRES_PASSWORD;
+  const database = values.POSTGRES_DB;
+  const port = values.POSTGRES_PORT;
+  if (!user || !password || !database || !port) {
+    throw new Error("local PostgreSQL .env is missing a required POSTGRES_* value");
+  }
+  return { user, password, database, port };
+}
+
+const PG_CONFIG = localPgConfig();
 const PG_URL =
   process.env.E2E_DATABASE_URL ||
-  "postgresql+psycopg://kwzy_party_test:kwzy_test_local_only@127.0.0.1:55432/kwzy_party_test";
+  `postgresql+psycopg://${encodeURIComponent(PG_CONFIG.user)}:${encodeURIComponent(PG_CONFIG.password)}` +
+    `@127.0.0.1:${PG_CONFIG.port}/${encodeURIComponent(PG_CONFIG.database)}`;
 
 function py(): string {
   const win = path.join(API_ROOT, ".venv", "Scripts", "python.exe");
@@ -104,7 +129,13 @@ export default async function globalSetup(_config: FullConfig) {
   const composeFile = path.join(REPO_ROOT, "infra", "postgres-test", "compose.yaml");
   execSync(`docker compose -f "${composeFile}" up -d`, {
     cwd: REPO_ROOT,
-    env: { ...process.env, POSTGRES_PASSWORD: "kwzy_test_local_only" },
+    env: {
+      ...process.env,
+      POSTGRES_USER: PG_CONFIG.user,
+      POSTGRES_PASSWORD: PG_CONFIG.password,
+      POSTGRES_DB: PG_CONFIG.database,
+      POSTGRES_PORT: PG_CONFIG.port,
+    },
     stdio: "inherit",
     shell: true,
   });

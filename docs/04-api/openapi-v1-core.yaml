@@ -610,6 +610,108 @@ paths:
       responses:
         '200': { description: OK }
 
+  /asset-templates:
+    get:
+      tags: [Units]
+      summary: 查询当前租户的资产模板及版本
+      operationId: listAssetTemplates
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Units]
+      summary: 创建资产模板草稿
+      operationId: createAssetTemplate
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssetTemplateCreate' }
+      responses:
+        '200': { description: Created }
+        '409': { description: 模板编码冲突 }
+
+  /asset-templates/{template_id}:
+    parameters:
+      - $ref: '#/components/parameters/AssetTemplateIdPath'
+    get:
+      tags: [Units]
+      summary: 查询资产模板及其不可变版本链
+      operationId: getAssetTemplate
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: OK }
+        '404': { description: 模板不存在或不属于当前租户 }
+
+  /asset-templates/{template_id}/draft:
+    parameters:
+      - $ref: '#/components/parameters/AssetTemplateIdPath'
+    put:
+      tags: [Units]
+      summary: 以乐观锁更新当前模板草稿
+      operationId: updateAssetTemplateDraft
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssetTemplateDraftUpdate' }
+      responses:
+        '200': { description: Updated }
+        '409': { description: 版本冲突或当前版本不是草稿 }
+
+  /asset-templates/{template_id}/publish:
+    parameters:
+      - $ref: '#/components/parameters/AssetTemplateIdPath'
+    post:
+      tags: [Units]
+      summary: 发布不可变资产模板版本
+      operationId: publishAssetTemplate
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExpectedVersionCommand' }
+      responses:
+        '200': { description: Published }
+        '409': { description: 版本冲突或当前版本不是草稿 }
+
+  /asset-templates/{template_id}/drafts:
+    parameters:
+      - $ref: '#/components/parameters/AssetTemplateIdPath'
+    post:
+      tags: [Units]
+      summary: 从已发布版本派生下一草稿
+      operationId: createAssetTemplateDraft
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExpectedVersionCommand' }
+      responses:
+        '200': { description: Draft created }
+        '409': { description: 版本冲突或存在未关闭草稿 }
+
+  /asset-templates/{template_id}/retire:
+    parameters:
+      - $ref: '#/components/parameters/AssetTemplateIdPath'
+    post:
+      tags: [Units]
+      summary: 停用资产模板但保留历史版本引用
+      operationId: retireAssetTemplate
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ExpectedVersionCommand' }
+      responses:
+        '200': { description: Retired }
+        '409': { description: 版本冲突 }
+
   /units:
     get:
       tags: [Units]
@@ -793,6 +895,78 @@ paths:
       tags: [Units]
       summary: 按空间分组的租控矩阵
       operationId: rentControlMatrix
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/RentControlParkId'
+        - $ref: '#/components/parameters/RentControlSpaceId'
+        - $ref: '#/components/parameters/RentControlStatus'
+        - $ref: '#/components/parameters/RentControlUsageType'
+        - $ref: '#/components/parameters/RentControlKeyword'
+      responses:
+        '200': { description: OK }
+
+  /rent-control/map:
+    get:
+      tags: [Units]
+      summary: 基于真实空间坐标的租控 GeoJSON 投影
+      description: 返回供应商中立的 GeoJSON；未配置外部底图时明确报告 LOCAL_SCHEMATIC，不伪造外部 GIS 完成状态。
+      operationId: rentControlMap
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/RentControlParkId'
+        - $ref: '#/components/parameters/RentControlSpaceId'
+        - $ref: '#/components/parameters/RentControlStatus'
+        - $ref: '#/components/parameters/RentControlUsageType'
+        - $ref: '#/components/parameters/RentControlKeyword'
+      responses:
+        '200': { description: OK }
+
+  /rent-control/vacancies:
+    get:
+      tags: [Units]
+      summary: 空置与部分空置明细
+      operationId: rentControlVacancies
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/RentControlParkId'
+        - $ref: '#/components/parameters/RentControlSpaceId'
+        - $ref: '#/components/parameters/RentControlStatus'
+        - $ref: '#/components/parameters/RentControlUsageType'
+        - $ref: '#/components/parameters/RentControlKeyword'
+        - name: as_of
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200': { description: OK }
+
+  /rent-control/expiries:
+    get:
+      tags: [Units]
+      summary: 合同到期预警明细
+      operationId: rentControlExpiries
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/RentControlParkId'
+        - $ref: '#/components/parameters/RentControlSpaceId'
+        - name: date_from
+          in: query
+          schema: { type: string, format: date }
+        - name: days
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 366, default: 90 }
+      responses:
+        '200': { description: OK }
+
+  /rent-control/analysis:
+    get:
+      tags: [Units]
+      summary: 按业态与空间聚合的出租分析
+      description: 询租价潜力只作为非会计口径运营指标，不替代合同或账单收入。
+      operationId: rentControlAnalysis
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/RentControlParkId'
@@ -4787,6 +4961,11 @@ components:
       in: path
       required: true
       schema: { type: integer, format: int64 }
+    AssetTemplateIdPath:
+      name: template_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
     RentControlParkId:
       name: park_id
       in: query
@@ -5527,6 +5706,8 @@ components:
         address: { type: string }
         description: { type: string, nullable: true }
         attributes: { type: object, additionalProperties: true, nullable: true }
+        geometry: { $ref: '#/components/schemas/GeoJsonGeometry' }
+        coordinate_reference: { type: string, enum: [LOCAL, WGS84, GCJ02, BD09], nullable: true }
     SpatialUpdate:
       type: object
       properties:
@@ -5539,6 +5720,73 @@ components:
         address: { type: string }
         description: { type: string, nullable: true }
         attributes: { type: object, additionalProperties: true, nullable: true }
+        geometry: { $ref: '#/components/schemas/GeoJsonGeometry' }
+        coordinate_reference: { type: string, enum: [LOCAL, WGS84, GCJ02, BD09], nullable: true }
+        expected_geometry_version: { type: integer, minimum: 1, nullable: true }
+
+    GeoJsonGeometry:
+      type: object
+      nullable: true
+      description: 供应商中立的受限 GeoJSON Point 或简单 Polygon。
+      required: [type, coordinates]
+      additionalProperties: false
+      properties:
+        type: { type: string, enum: [Point, Polygon] }
+        coordinates:
+          type: array
+          description: Point 为 [x,y]；Polygon 为单闭合外环 [[[x,y],...]]。
+          items: {}
+
+    AssetTemplateField:
+      type: object
+      required: [key, label, type]
+      additionalProperties: false
+      properties:
+        key: { type: string, pattern: '^[a-z][a-z0-9_]{0,63}$' }
+        label: { type: string, maxLength: 128 }
+        type: { type: string, enum: [TEXT, NUMBER, BOOLEAN, ENUM] }
+        required: { type: boolean, default: false }
+        unit: { type: string, maxLength: 32 }
+        min: { type: number }
+        max: { type: number }
+        options:
+          type: array
+          maxItems: 50
+          items: { type: string, maxLength: 128 }
+    AssetTemplateCreate:
+      type: object
+      required: [code, name, category]
+      additionalProperties: false
+      properties:
+        code: { type: string, minLength: 1, maxLength: 64 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        category: { type: string, enum: [FACTORY, WAREHOUSE, SHOP, OFFICE, DORMITORY, PARKING, PUBLIC_SPACE] }
+        description: { type: string, maxLength: 1000, nullable: true }
+        fields:
+          type: array
+          maxItems: 32
+          items: { $ref: '#/components/schemas/AssetTemplateField' }
+        defaults: { type: object, additionalProperties: true }
+    AssetTemplateDraftUpdate:
+      type: object
+      required: [expected_version]
+      additionalProperties: false
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        category: { type: string, enum: [FACTORY, WAREHOUSE, SHOP, OFFICE, DORMITORY, PARKING, PUBLIC_SPACE] }
+        description: { type: string, maxLength: 1000, nullable: true }
+        fields:
+          type: array
+          maxItems: 32
+          items: { $ref: '#/components/schemas/AssetTemplateField' }
+        defaults: { type: object, additionalProperties: true }
+    ExpectedVersionCommand:
+      type: object
+      required: [expected_version]
+      additionalProperties: false
+      properties:
+        expected_version: { type: integer, minimum: 1 }
 
     Unit:
       type: object
@@ -5553,6 +5801,7 @@ components:
         base_rent_price: { type: number }
         status: { type: string }
         attributes: { type: object, additionalProperties: true }
+        asset_template_version_id: { type: integer, format: int64, nullable: true }
     UnitCreate:
       type: object
       required: [park_id, building_id, code, name]
@@ -5568,6 +5817,7 @@ components:
         available_from: { type: string, format: date, nullable: true }
         status: { type: string, enum: [VACANT, RESERVED, MAINTENANCE, INACTIVE], default: VACANT }
         attributes: { type: object, additionalProperties: true }
+        asset_template_version_id: { type: integer, format: int64, minimum: 1, nullable: true }
     UnitUpdate:
       type: object
       properties:
@@ -5591,6 +5841,7 @@ components:
         available_from: { type: string, format: date, nullable: true }
         base_rent_price: { type: number, minimum: 0 }
         attributes: { type: object, additionalProperties: true, nullable: true }
+        asset_template_version_id: { type: integer, format: int64, minimum: 1, nullable: true }
     UnitSplitTarget:
       type: object
       required: [code, name, rentable_area]
@@ -5600,6 +5851,8 @@ components:
         rentable_area: { type: number, exclusiveMinimum: 0 }
         usage_type: { type: string, nullable: true }
         base_rent_price: { type: number, minimum: 0, nullable: true }
+        asset_template_version_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        attributes: { type: object, additionalProperties: true, nullable: true }
     UnitSplitRequest:
       type: object
       required: [unit_id, expected_lock_version, targets]
@@ -5628,6 +5881,8 @@ components:
         name: { type: string, maxLength: 128 }
         usage_type: { type: string, nullable: true }
         base_rent_price: { type: number, minimum: 0, nullable: true }
+        asset_template_version_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        attributes: { type: object, additionalProperties: true, nullable: true }
     UnitPage:
       type: object
       properties:

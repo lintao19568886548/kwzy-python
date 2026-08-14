@@ -11,14 +11,23 @@ from uuid import uuid4
 
 import pytest
 from sqlalchemy import create_engine, func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
 from app.core.errors import AppError
+from app.infrastructure.database.models.identity import Tenant
 from app.infrastructure.database.models.lease import LeaseContract, LeaseContractUnit
-from app.infrastructure.database.models.park_property import Unit, UnitLineage
+from app.infrastructure.database.models.park_property import (
+    AssetTemplate,
+    AssetTemplateVersion,
+    Building,
+    Unit,
+    UnitLineage,
+)
 from app.infrastructure.database.models.party import Party
 from app.modules.identity.application.bootstrap import ensure_default_tenant
 from app.modules.lease.application.lease_service import LeaseService
+from app.modules.park_property.application.asset_template_service import AssetTemplateService
 from app.modules.park_property.application.park_service import ParkService
 from app.modules.park_property.application.spatial_service import SpatialService
 from app.modules.park_property.application.unit_service import UnitService
@@ -119,6 +128,181 @@ def test_pg_root_space_code_concurrency_is_database_enforced() -> None:
     engine.dispose()
 
 
+def test_pg_concurrent_first_request_bootstraps_one_builtin_template_set() -> None:
+    engine, Session = _factory(_require_pg_url())
+    suffix = uuid4().hex[:10]
+    with Session() as session:
+        tenant = Tenant(code=f"asset-bootstrap-{suffix}", name="资产模板并发租户")
+        session.add(tenant)
+        session.commit()
+        tenant_id = int(tenant.id)
+    barrier = threading.Barrier(2)
+
+    def bootstrap() -> tuple[str, int]:
+        with Session() as session:
+            barrier.wait(timeout=15)
+            rows = AssetTemplateService(session, _ctx(tenant_id)).list_templates()
+            return ("ok", len(rows))
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda _: bootstrap(), range(2)))
+    assert results == [("ok", 7), ("ok", 7)]
+    with Session() as session:
+        assert (
+            session.scalar(
+                select(func.count())
+                .select_from(AssetTemplate)
+                .where(AssetTemplate.tenant_id == tenant_id)
+            )
+            == 7
+        )
+        assert (
+            session.scalar(
+                select(func.count())
+                .select_from(AssetTemplateVersion)
+                .where(AssetTemplateVersion.tenant_id == tenant_id)
+            )
+            == 7
+        )
+    engine.dispose()
+
+
+def test_pg_database_rejects_cross_tenant_asset_references() -> None:
+    engine, Session = _factory(_require_pg_url())
+    first_tenant_id = _tenant(Session)
+    suffix = uuid4().hex[:10]
+    with Session() as session:
+        second_tenant = Tenant(code=f"asset-isolation-{suffix}", name="资产隔离租户")
+        session.add(second_tenant)
+        session.commit()
+        second_tenant_id = int(second_tenant.id)
+
+    with Session() as session:
+        AssetTemplateService(session, _ctx(first_tenant_id)).list_templates()
+    with Session() as session:
+        AssetTemplateService(session, _ctx(second_tenant_id)).list_templates()
+    with Session() as session:
+        first_office = session.scalar(
+            select(AssetTemplateVersion)
+            .join(AssetTemplate, AssetTemplate.id == AssetTemplateVersion.template_id)
+            .where(
+                AssetTemplate.tenant_id == first_tenant_id,
+                AssetTemplate.code == "OFFICE",
+                AssetTemplateVersion.status == "PUBLISHED",
+            )
+        )
+        assert first_office is not None
+        cross_tenant_version = AssetTemplateVersion(
+            tenant_id=second_tenant_id,
+            template_id=first_office.template_id,
+            version=999,
+            status="PUBLISHED",
+            field_schema_json=[],
+            defaults_json={},
+            schema_checksum="0" * 64,
+        )
+        session.add(cross_tenant_version)
+        with pytest.raises(IntegrityError):
+            session.commit()
+
+    second_seed = _seed_unit(Session, second_tenant_id)
+    with Session() as session:
+        first_office_id = session.scalar(
+            select(AssetTemplateVersion.id)
+            .join(AssetTemplate, AssetTemplate.id == AssetTemplateVersion.template_id)
+            .where(
+                AssetTemplate.tenant_id == first_tenant_id,
+                AssetTemplate.code == "OFFICE",
+                AssetTemplateVersion.status == "PUBLISHED",
+            )
+        )
+        second_unit = session.get(Unit, second_seed["unit_id"])
+        assert first_office_id is not None and second_unit is not None
+        second_unit.asset_template_version_id = int(first_office_id)
+        with pytest.raises(IntegrityError):
+            session.commit()
+    engine.dispose()
+
+
+def test_pg_template_publish_and_geometry_updates_have_one_winner() -> None:
+    engine, Session = _factory(_require_pg_url())
+    tenant_id = _tenant(Session)
+    suffix = uuid4().hex[:10].upper()
+    with Session() as session:
+        template = AssetTemplateService(session, _ctx(tenant_id)).create(
+            {
+                "code": f"PG-OFFICE-{suffix}",
+                "name": "并发办公模板",
+                "category": "OFFICE",
+                "fields": [],
+            }
+        )
+    barrier = threading.Barrier(2)
+
+    def publish() -> tuple[str, str | None]:
+        with Session() as session:
+            try:
+                barrier.wait(timeout=15)
+                AssetTemplateService(session, _ctx(tenant_id)).publish(
+                    int(template["id"]), int(template["lock_version"])
+                )
+                return ("ok", None)
+            except AppError as exc:
+                session.rollback()
+                return ("err", exc.code)
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        publish_results = list(pool.map(lambda _: publish(), range(2)))
+    assert sum(state == "ok" for state, _ in publish_results) == 1
+    assert [code for state, code in publish_results if state == "err"] == [
+        "ASSET_TEMPLATE_VERSION_CONFLICT"
+    ]
+
+    with Session() as session:
+        ctx = _ctx(tenant_id)
+        park = ParkService(session, ctx).create_park({"name": f"几何并发园-{suffix}"})
+        space = SpatialService(session, ctx).create(
+            {
+                "park_id": park["id"],
+                "code": f"GEO-{suffix}",
+                "name": "几何并发楼",
+                "node_type": "BUILDING",
+                "geometry": {"type": "Point", "coordinates": [1, 1]},
+                "coordinate_reference": "LOCAL",
+            }
+        )
+    geometry_barrier = threading.Barrier(2)
+
+    def update_geometry(x: int) -> tuple[str, str | None]:
+        with Session() as session:
+            try:
+                geometry_barrier.wait(timeout=15)
+                SpatialService(session, _ctx(tenant_id)).update(
+                    int(space["id"]),
+                    {
+                        "geometry": {"type": "Point", "coordinates": [x, x]},
+                        "coordinate_reference": "LOCAL",
+                        "expected_geometry_version": 1,
+                    },
+                )
+                return ("ok", None)
+            except AppError as exc:
+                session.rollback()
+                return ("err", exc.code)
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        geometry_results = list(pool.map(update_geometry, [2, 3]))
+    assert sum(state == "ok" for state, _ in geometry_results) == 1
+    assert [code for state, code in geometry_results if state == "err"] == [
+        "SPACE_GEOMETRY_VERSION_CONFLICT"
+    ]
+    with Session() as session:
+        stored = session.get(Building, int(space["id"]))
+        assert stored is not None and stored.geometry_version == 2
+        assert stored.geometry_json["coordinates"] in ([2.0, 2.0], [3.0, 3.0])
+    engine.dispose()
+
+
 def test_pg_concurrent_split_has_one_winner_and_complete_lineage() -> None:
     engine, Session = _factory(_require_pg_url())
     tenant_id = _tenant(Session)
@@ -134,8 +318,16 @@ def test_pg_concurrent_split_has_one_winner_and_complete_lineage() -> None:
                         "unit_id": seed["unit_id"],
                         "expected_lock_version": 1,
                         "targets": [
-                            {"code": f"{tag}-A-{seed['unit_id']}", "name": f"{tag}A", "rentable_area": 40},
-                            {"code": f"{tag}-B-{seed['unit_id']}", "name": f"{tag}B", "rentable_area": 60},
+                            {
+                                "code": f"{tag}-A-{seed['unit_id']}",
+                                "name": f"{tag}A",
+                                "rentable_area": 40,
+                            },
+                            {
+                                "code": f"{tag}-B-{seed['unit_id']}",
+                                "name": f"{tag}B",
+                                "rentable_area": 60,
+                            },
                         ],
                     }
                 )
@@ -195,9 +387,7 @@ def test_pg_concurrent_structural_version_has_one_winner() -> None:
     assert sum(state == "ok" for state, _ in results) == 1
     assert [code for state, code in results if state == "err"] == ["UNIT_VERSION_CONFLICT"]
     with Session() as session:
-        versions = session.scalars(
-            select(Unit).where(Unit.supersedes_id == seed["unit_id"])
-        ).all()
+        versions = session.scalars(select(Unit).where(Unit.supersedes_id == seed["unit_id"])).all()
         assert len(versions) == 1 and versions[0].version_no == 2
     engine.dispose()
 
@@ -252,11 +442,14 @@ def test_pg_concurrent_merge_has_one_winner_and_rollback_is_atomic() -> None:
         ).all()
         assert len(current) == 1
         assert Decimal(str(current[0].rentable_area)) == Decimal("100.00")
-        assert session.scalar(
-            select(func.count()).select_from(UnitLineage).where(
-                UnitLineage.target_unit_id == current[0].id
+        assert (
+            session.scalar(
+                select(func.count())
+                .select_from(UnitLineage)
+                .where(UnitLineage.target_unit_id == current[0].id)
             )
-        ) == 2
+            == 2
+        )
 
     rollback_seed = _seed_unit(Session, tenant_id)
     with Session() as session:
@@ -284,14 +477,20 @@ def test_pg_concurrent_merge_has_one_winner_and_rollback_is_atomic() -> None:
     with Session() as session:
         source = session.get(Unit, rollback_seed["unit_id"])
         assert source is not None and source.valid_to is None and source.status == "VACANT"
-        assert session.scalar(
-            select(func.count()).select_from(Unit).where(Unit.code == f"ROLLBACK-OK-{suffix}")
-        ) == 0
-        assert session.scalar(
-            select(func.count()).select_from(UnitLineage).where(
-                UnitLineage.source_unit_id == rollback_seed["unit_id"]
+        assert (
+            session.scalar(
+                select(func.count()).select_from(Unit).where(Unit.code == f"ROLLBACK-OK-{suffix}")
             )
-        ) == 0
+            == 0
+        )
+        assert (
+            session.scalar(
+                select(func.count())
+                .select_from(UnitLineage)
+                .where(UnitLineage.source_unit_id == rollback_seed["unit_id"])
+            )
+            == 0
+        )
     engine.dispose()
 
 
@@ -380,9 +579,9 @@ def test_pg_split_and_lease_activation_are_serialized() -> None:
         source = session.get(Unit, seed["unit_id"])
         lineage_count = int(
             session.scalar(
-                select(func.count()).select_from(UnitLineage).where(
-                    UnitLineage.source_unit_id == seed["unit_id"]
-                )
+                select(func.count())
+                .select_from(UnitLineage)
+                .where(UnitLineage.source_unit_id == seed["unit_id"])
             )
             or 0
         )

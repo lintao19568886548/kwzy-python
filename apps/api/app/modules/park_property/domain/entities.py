@@ -59,6 +59,10 @@ class BuildingEntity:
     address: str = ""
     description: Optional[str] = None
     attributes: Optional[dict[str, Any]] = None
+    geometry: Optional[dict[str, Any]] = None
+    geometry_type: Optional[str] = None
+    coordinate_reference: Optional[str] = None
+    geometry_version: int = 1
     id: Optional[int] = None
     is_deleted: bool = False
     created_at: Optional[datetime] = None
@@ -93,6 +97,7 @@ class UnitEntity:
     base_rent_price: Decimal = field(default_factory=lambda: Decimal("0"))
     status: str = "VACANT"
     attributes: Optional[dict[str, Any]] = None
+    asset_template_version_id: Optional[int] = None
     id: Optional[int] = None
     is_deleted: bool = False
     created_at: Optional[datetime] = None

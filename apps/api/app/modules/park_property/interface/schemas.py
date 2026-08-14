@@ -38,6 +38,7 @@ class UnitCreate(BaseModel):
     available_from: Optional[date] = None
     status: str = "VACANT"
     attributes: Optional[dict[str, Any]] = None
+    asset_template_version_id: Optional[int] = Field(default=None, ge=1)
 
 
 class UnitUpdate(BaseModel):
@@ -65,6 +66,8 @@ class SpatialCreate(BaseModel):
     address: str = ""
     description: Optional[str] = None
     attributes: Optional[dict[str, Any]] = None
+    geometry: Optional[dict[str, Any]] = None
+    coordinate_reference: Optional[str] = None
 
 
 class SpatialUpdate(BaseModel):
@@ -77,6 +80,9 @@ class SpatialUpdate(BaseModel):
     address: Optional[str] = None
     description: Optional[str] = None
     attributes: Optional[dict[str, Any]] = None
+    geometry: Optional[dict[str, Any]] = None
+    coordinate_reference: Optional[str] = None
+    expected_geometry_version: Optional[int] = Field(default=None, ge=1)
 
 
 class UnitVersionCreate(BaseModel):
@@ -90,6 +96,7 @@ class UnitVersionCreate(BaseModel):
     available_from: Optional[date] = None
     base_rent_price: Optional[float] = Field(default=None, ge=0)
     attributes: Optional[dict[str, Any]] = None
+    asset_template_version_id: Optional[int] = Field(default=None, ge=1)
 
 
 class UnitSplitTarget(BaseModel):
@@ -98,6 +105,8 @@ class UnitSplitTarget(BaseModel):
     rentable_area: float = Field(gt=0)
     usage_type: Optional[str] = None
     base_rent_price: Optional[float] = Field(default=None, ge=0)
+    asset_template_version_id: Optional[int] = Field(default=None, ge=1)
+    attributes: Optional[dict[str, Any]] = None
 
 
 class UnitSplitRequest(BaseModel):
@@ -117,3 +126,27 @@ class UnitMergeRequest(BaseModel):
     name: str = Field(min_length=1, max_length=128)
     usage_type: Optional[str] = None
     base_rent_price: Optional[float] = Field(default=None, ge=0)
+    asset_template_version_id: Optional[int] = Field(default=None, ge=1)
+    attributes: Optional[dict[str, Any]] = None
+
+
+class AssetTemplateCreate(BaseModel):
+    code: str = Field(min_length=1, max_length=64)
+    name: str = Field(min_length=1, max_length=128)
+    category: str
+    description: Optional[str] = Field(default=None, max_length=1000)
+    fields: list[dict[str, Any]] = Field(default_factory=list, max_length=32)
+    defaults: dict[str, Any] = Field(default_factory=dict)
+
+
+class AssetTemplateDraftUpdate(BaseModel):
+    expected_version: int = Field(ge=1)
+    name: Optional[str] = Field(default=None, min_length=1, max_length=128)
+    category: Optional[str] = None
+    description: Optional[str] = Field(default=None, max_length=1000)
+    fields: Optional[list[dict[str, Any]]] = Field(default=None, max_length=32)
+    defaults: Optional[dict[str, Any]] = None
+
+
+class ExpectedVersionCommand(BaseModel):
+    expected_version: int = Field(ge=1)

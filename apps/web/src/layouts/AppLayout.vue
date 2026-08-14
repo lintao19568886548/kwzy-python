@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
 const router = useRouter();
 const route = useRoute();
+const mainNav = ref<HTMLElement | null>(null);
 
 type NavItem = {
   to: string;
@@ -63,6 +64,16 @@ const navItems = computed(() =>
 
 const denied = computed(() => route.query.denied === "1");
 
+async function revealActiveNavItem() {
+  await nextTick();
+  if (!window.matchMedia("(max-width: 900px)").matches) return;
+  const activeLink = mainNav.value?.querySelector<HTMLElement>("a.router-link-active");
+  activeLink?.scrollIntoView({ behavior: "auto", block: "nearest", inline: "center" });
+}
+
+onMounted(revealActiveNavItem);
+watch(() => route.fullPath, revealActiveNavItem);
+
 async function logout() {
   await auth.logout();
   await router.push({ name: "login" });
@@ -73,7 +84,7 @@ async function logout() {
   <div class="shell" data-testid="app-shell">
     <aside class="side card">
       <div class="brand">KWZY 园区</div>
-      <nav data-testid="main-nav">
+      <nav ref="mainNav" data-testid="main-nav">
         <router-link
           v-for="item in navItems"
           :key="item.to"
@@ -157,11 +168,14 @@ nav a.router-link-active {
     flex-direction: row;
     gap: 0.25rem;
     overflow-x: auto;
+    scroll-padding-inline: 0.75rem;
+    scroll-snap-type: x proximity;
     scrollbar-width: thin;
   }
   nav a {
     flex: 0 0 auto;
     padding: 0.45rem 0.65rem;
+    scroll-snap-align: center;
     white-space: nowrap;
   }
   .side-foot {

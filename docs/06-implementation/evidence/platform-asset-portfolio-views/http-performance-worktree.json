@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-14T10:35:58.125624+00:00",
+  "target": "http://127.0.0.1:8010/api/v1",
+  "runtime": {
+    "requests": 1000,
+    "concurrency": 25,
+    "warmup": 40,
+    "endpoints": [
+      "GET /workbench/summary",
+      "GET /workbench/layout",
+      "GET /business-events?page=1&page_size=30",
+      "POST /business-events/dispatch?limit=10",
+      "GET /leases?page=1&page_size=50",
+      "GET /parties?page=1&page_size=50",
+      "GET /units?page=1&page_size=50"
+    ]
+  },
+  "thresholds": {
+    "max_p95_ms": 500.0,
+    "max_error_rate_percent": 1.0,
+    "min_requests_per_second": 20.0
+  },
+  "aggregate": {
+    "requests": 1000,
+    "failures": 0,
+    "error_rate_percent": 0.0,
+    "elapsed_seconds": 7.253,
+    "requests_per_second": 137.877,
+    "mean_ms": 179.299,
+    "p50_ms": 171.107,
+    "p95_ms": 260.28,
+    "p99_ms": 283.741,
+    "max_ms": 301.855,
+    "by_endpoint": {
+      "GET /business-events?page=1&page_size=30": {
+        "requests": 143,
+        "failures": 0,
+        "p50_ms": 160.816,
+        "p95_ms": 234.252,
+        "p99_ms": 275.559,
+        "max_ms": 280.186
+      },
+      "GET /leases?page=1&page_size=50": {
+        "requests": 143,
+        "failures": 0,
+        "p50_ms": 172.004,
+        "p95_ms": 259.811,
+        "p99_ms": 281.863,
+        "max_ms": 284.503
+      },
+      "GET /parties?page=1&page_size=50": {
+        "requests": 143,
+        "failures": 0,
+        "p50_ms": 175.279,
+        "p95_ms": 270.334,
+        "p99_ms": 291.852,
+        "max_ms": 301.855
+      },
+      "GET /units?page=1&page_size=50": {
+        "requests": 142,
+        "failures": 0,
+        "p50_ms": 173.607,
+        "p95_ms": 259.38,
+        "p99_ms": 278.892,
+        "max_ms": 295.789
+      },
+      "GET /workbench/layout": {
+        "requests": 143,
+        "failures": 0,
+        "p50_ms": 178.866,
+        "p95_ms": 270.96,
+        "p99_ms": 284.863,
+        "max_ms": 285.729
+      },
+      "GET /workbench/summary": {
+        "requests": 143,
+        "failures": 0,
+        "p50_ms": 184.708,
+        "p95_ms": 276.437,
+        "p99_ms": 287.742,
+        "max_ms": 290.548
+      },
+      "POST /business-events/dispatch?limit=10": {
+        "requests": 143,
+        "failures": 0,
+        "p50_ms": 158.293,
+        "p95_ms": 229.138,
+        "p99_ms": 266.064,
+        "max_ms": 276.224
+      }
+    },
+    "failure_examples": []
+  },
+  "gate": {
+    "passed": true,
+    "failures": []
+  }
+}

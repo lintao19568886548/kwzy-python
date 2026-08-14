@@ -78,7 +78,14 @@ class TenantContext:
         if not token_allows:
             return False
         sensitive = permission_code.startswith(
-            ("automation.", "scheduler.", "event.", "workbench.layout.", "notification.")
+            (
+                "automation.",
+                "scheduler.",
+                "event.",
+                "workbench.layout.",
+                "notification.",
+                "asset.template.",
+            )
         ) or permission_code in {"work_item:reassign", "work_item:override_source"}
         if not sensitive or self.database_permissions is None:
             return True

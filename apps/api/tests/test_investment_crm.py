@@ -502,7 +502,7 @@ def test_foreign_lock_blocks_independent_lease_activation(
 def test_funnel_reconciles_with_list_and_empty_range(client) -> None:
     headers = _h()
     park_id = _park(client, headers, "漏斗园")
-    first = _lead(
+    _lead(
         client,
         headers,
         park_id,

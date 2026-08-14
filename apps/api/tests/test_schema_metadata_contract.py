@@ -1,12 +1,23 @@
 """Regression guards for the migration/ORM schema contract."""
 
-from sqlalchemy import BigInteger
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    CheckConstraint,
+    ForeignKeyConstraint,
+    UniqueConstraint,
+)
 
-from app.infrastructure.database.base import Base
 from app.infrastructure.database import models as _models  # noqa: F401
-
+from app.infrastructure.database.base import Base
 
 EXPECTED_INDEXES = {
+    "asset_templates": {"ix_asset_templates_category", "ix_asset_templates_tenant_id"},
+    "asset_template_versions": {
+        "ix_asset_template_versions_template_id",
+        "ix_asset_template_versions_tenant_id",
+        "uk_asset_template_one_draft",
+    },
     "audit_logs": {"ix_audit_logs_resource", "ix_audit_logs_tenant_created_at"},
     "auth_security_events": {
         "ix_auth_security_events_client_window",
@@ -69,3 +80,49 @@ def test_created_at_nullability_matches_timestamp_mixin_contract() -> None:
 def test_number_sequence_uses_bigint_counter() -> None:
     next_val = Base.metadata.tables["number_sequences"].c.next_val
     assert isinstance(next_val.type, BigInteger)
+
+
+def test_asset_template_schema_has_boolean_keys_and_database_invariants() -> None:
+    templates = Base.metadata.tables["asset_templates"]
+    versions = Base.metadata.tables["asset_template_versions"]
+    units = Base.metadata.tables["units"]
+    buildings = Base.metadata.tables["buildings"]
+
+    assert isinstance(templates.c.is_builtin.type, Boolean)
+    assert not templates.c.is_builtin.nullable
+    assert not buildings.c.geometry_version.nullable
+    assert {
+        constraint.name
+        for constraint in templates.constraints
+        if isinstance(constraint, (CheckConstraint, UniqueConstraint))
+    } >= {
+        "uk_asset_template_code",
+        "uk_asset_template_tenant_id_id",
+        "ck_asset_template_status",
+        "ck_asset_template_current_version",
+        "ck_asset_template_lock_version",
+    }
+    assert {
+        constraint.name
+        for constraint in versions.constraints
+        if isinstance(constraint, (CheckConstraint, UniqueConstraint))
+    } >= {
+        "uk_asset_template_version",
+        "uk_asset_template_version_tenant_id_id",
+        "ck_asset_template_version_status",
+        "ck_asset_template_version_positive",
+    }
+    assert {
+        foreign_key.target_fullname
+        for foreign_key in units.c.asset_template_version_id.foreign_keys
+    } == {"asset_template_versions.id"}
+    assert {
+        constraint.name
+        for constraint in versions.constraints
+        if isinstance(constraint, ForeignKeyConstraint)
+    } >= {"fk_asset_template_versions_tenant_template"}
+    assert {
+        constraint.name
+        for constraint in units.constraints
+        if isinstance(constraint, ForeignKeyConstraint)
+    } >= {"fk_units_tenant_asset_template_version"}

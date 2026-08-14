@@ -75,6 +75,8 @@ DEFAULT_PERMISSIONS = (
     ("event.emit", "提交已注册业务事件", "workbench"),
     ("event.dispatch", "派发业务事件", "workbench"),
     ("event.replay", "重放死信事件", "workbench"),
+    ("asset.template.read", "查看资产业态模板", "park_property"),
+    ("asset.template.write", "维护资产业态模板", "park_property"),
     ("lead:read", "查看招商线索", "investment"),
     ("lead:write", "维护招商线索", "investment"),
     ("lead:convert", "转化招商线索", "investment"),

@@ -1,14 +1,14 @@
 # 瞰维智管 V2 独立验收能力矩阵
 
 > 审计日期：2026-08-14（Asia/Shanghai）
-> 最近完整 clean-SHA 证据：统一工作台/自动化提交 `fedc98efb7a33f39240216fbb861b57f6142649b`，28/28 总门禁通过；审批/审计 clean-SHA `13243b4488a79ee6eccfc505812b5315263d7c83` 仍保留。
+> 最近工作树证据：资产模板/组合租控报告 `evidence/platform-asset-portfolio-views/acceptance-worktree-20260814.json`，30/30 总门禁通过；clean-SHA 复验待实现提交后执行。统一工作台 clean-SHA `fedc98efb7a33f39240216fbb861b57f6142649b` 仍保留。
 > 判定规则：只使用 `IMPLEMENTED_AND_VERIFIED`、`APPROVED_RETIRED`、`APPROVED_DEFERRED`、`BLOCKED`、`MISSING`。子能力通过但组合需求未闭环时，组合项必须判为 `MISSING`；没有人工批准，不使用 retired/deferred。
 
 ## 当前整改纵切
 
 - 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
-- OpenSpec：组织治理、审批/审计与 `2026-08-14-complete-platform-workbench-automation` 均已同步主规格并归档；后者覆盖事件、规则、通知、调度、工作项治理、角色/个人布局、PC 和迁移证据。
-- 已关闭证据：组织/审批/审计；事务事件、有限重试/死信/replay、受限规则、通知、持久调度、来源工作项、多角色布局和 PC 控制面；PG16、HTTP、浏览器、性能和合成 ETL 均有独立证据。
+- OpenSpec：`complete-asset-portfolio-views` 已完成 proposal/design/specs/实现与工作树验收，待 clean-SHA 后同步主规格并归档；组织治理、审批/审计和工作台自动化已归档。
+- 已关闭证据：七类版本化业态模板、精确版本绑定、空间几何、矩阵/地图/列表/空置/到期/分析、拆并和历史；PG16、真实 HTTP、52 条浏览器、性能、备份恢复和合成 ETL 均有独立证据。
 - 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 
 ## 产品能力
@@ -17,7 +17,7 @@
 | --- | --- | --- | --- | --- |
 | 1 | 组织/RBAC/园区范围/审批/审计 | 集团/区域/园区历史归属、岗位任职、字段策略、会话/RBAC/园区 grant；版本化定义、ANY/ALL 多步实例、任务/委托/SLA、自审批门禁、幂等/并发、事务哈希审计、查询/校验/导出和 PC 真栈均通过 | — | `IMPLEMENTED_AND_VERIFIED` |
 | 2 | 统一工作台和自动待办 | 事务事件和消费者、受限版本化规则、通知、持久调度、独立 worker、来源待办、升级/改派、用户→角色→服务器布局、实时 PC 工作台/控制面；PG16/真实 HTTP/50 条浏览器/性能/合成 ETL 均通过 | — | `IMPLEMENTED_AND_VERIFIED` |
-| 3 | 资产模板、租控矩阵、拆分合并和历史 | 空间树、单元版本/血缘、拆并并发、矩阵/列表 UI 已验证 | 业态模板、地图/GIS/CAD/BIM、组合分析未完成 | `MISSING` |
+| 3 | 资产模板、租控矩阵、拆分合并和历史 | 七类内置及租户自定义模板、不可变发布版本、精确 Unit 版本绑定和复合租户外键；空间树/合法 Point/简单 Polygon、拆并血缘与并发；矩阵/真实几何示意地图/列表/空置/到期/分析及 PC 响应式真栈均通过 | 商业 GIS、CAD/BIM 和真实旧坐标迁移未获合同/数据，不作为本能力的伪完成声明 | `IMPLEMENTED_AND_VERIFIED` |
 | 4 | 招商线索、分配、公共池、跟进、带看和锁房 | 去重、人工分配/改派、公海、活动、匹配、限时锁房和转化有 PG/E2E | 自动分配、意向审批和外部渠道未完成 | `MISSING` |
 | 5 | 客户、租户、联系人和企业画像 | Party、联系人、地址、角色、园区关系已实现 | 完整企业画像、关联企业、受控证件/风险画像未完成 | `MISSING` |
 | 6 | 多出租单元、多费用合同 | 多单元、多费用、确定性履约计划、占用冲突、API/UI/PG 事务证据 | — | `IMPLEMENTED_AND_VERIFIED` |
@@ -36,14 +36,14 @@
 | 19 | 外部平台适配器 | SMS/通知/对象存储/签章有局部 fake/local/fail-closed 端口 | 银行、支付、税票、IoT、企微等多数适配器缺失；已有端口也未真实联调 | `MISSING` |
 | 20 | 数据迁移和切换 Runbook | PG16 合成 dry/apply/中断/幂等/对账/回滚和备份恢复通过 | 缺经授权旧 schema/脱敏快照、增量同步、停写切换与真实对账 | `BLOCKED` |
 
-汇总：`IMPLEMENTED_AND_VERIFIED=4`，`BLOCKED=1`，`MISSING=15`，`APPROVED_RETIRED=0`，`APPROVED_DEFERRED=0`。
+汇总：`IMPLEMENTED_AND_VERIFIED=5`，`BLOCKED=1`，`MISSING=14`，`APPROVED_RETIRED=0`，`APPROVED_DEFERRED=0`。
 
 ## 22 条关键旅程
 
 | # | 旅程 | 状态 | 说明 |
 | --- | --- | --- | --- |
 | 1 | 集团、区域、园区、角色、用户 | `IMPLEMENTED_AND_VERIFIED` | 集团/区域/园区历史归属、角色、用户、岗位任职及字段策略的 API/PG/浏览器旅程通过 |
-| 2 | 不同业态资产 | `MISSING` | 空间/单元可建，业态模板未完成 |
+| 2 | 不同业态资产 | `IMPLEMENTED_AND_VERIFIED` | FACTORY/WAREHOUSE/SHOP/OFFICE/DORMITORY/PARKING/PUBLIC_SPACE 七类版本化模板、动态字段和真实 HTTP/浏览器旅程通过 |
 | 3 | 拆分/合并及历史 | `IMPLEMENTED_AND_VERIFIED` | UI/API/PG 并发与血缘历史通过 |
 | 4 | 录入线索 | `IMPLEMENTED_AND_VERIFIED` | 真实 HTTP/UI/PG 通过 |
 | 5 | 自动分配与改派 | `MISSING` | 人工分配/改派通过，自动分配缺失 |
@@ -67,7 +67,7 @@
 
 ## 旧系统替代判定
 
-旧证据库 `D:\重构python\kwzg-Java-main` 的静态取证为 54 个 Controller、约 484 个 HTTP mapping、316 个 Vue 文件、30 张 SQL DDL 表。Python 仓库只有 API 与 PC Web 两个应用，且上表仍有 15 项组合能力缺失，因此：
+旧证据库 `D:\重构python\kwzg-Java-main` 的静态取证为 54 个 Controller、约 484 个 HTTP mapping、316 个 Vue 文件、30 张 SQL DDL 表。Python 仓库只有 API 与 PC Web 两个应用，且上表仍有 14 项组合能力缺失，因此：
 
 ```text
 KWZY_LEGACY_REPLACEMENT=BLOCKED

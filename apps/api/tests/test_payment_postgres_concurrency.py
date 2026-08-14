@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -16,7 +16,6 @@ from sqlalchemy import create_engine, select, text
 from sqlalchemy.orm import sessionmaker
 
 from app.core.errors import AppError
-from app.core.security import create_access_token
 from app.infrastructure.database.base import utc_now
 from app.infrastructure.database.models.billing import Bill, BillLine
 from app.infrastructure.database.models.collection import Payment, PaymentAllocation

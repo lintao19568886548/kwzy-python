@@ -7,15 +7,24 @@
 | 更新时间 | 2026-08-14（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | 工作台/自动化 clean-SHA `fedc98efb7a33f39240216fbb861b57f6142649b` 已完成 28/28 总门禁 |
-| 远程同步 | `feat/full-rebuild-completion` 与 `origin/feat/full-rebuild-completion` 已含工作台实现 `fedc98e` 和证据/主规格同步 `7741351`；本轮未 force、未触达 main；归档提交待推送 |
-| 工作树 | 归档与最终状态文本待提交；8 张既有领域截图被 clean-SHA E2E 刷新但因二进制归属保护保持未暂存，未删除、未还原、未提交 |
-| Alembic | 唯一 head `p2e80a5b7c64`；PG16 fresh upgrade 与 `head→-1→head` 通过，历史迁移未修改 |
-| 当前阶段 | 独立验收为 4 implemented / 1 blocked / 15 missing；组合能力 1、2、6、7 已关闭，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | 组织治理、审批/审计与 `2026-08-14-complete-platform-workbench-automation` 已同步并归档，归档后 strict 66/66；Identity 真实旧数据任务继续外部门禁 |
+| 已验证 HEAD | 资产组合工作树基于 `1b4d6aa5ed93d05e20591e45854eb3985e908827` 完成 30/30 总门禁；实现提交与 clean-SHA 复验待执行 |
+| 远程同步 | `feat/full-rebuild-completion` 与远端当前同步到 `1b4d6aa`；资产纵切未提交/未推送；本轮未 force、未触达 main |
+| 工作树 | 资产实现、OpenSpec、可信新证据待提交；8 张既有审批/组织截图因二进制归属保护保持未暂存，未删除、未还原、未提交 |
+| Alembic | 唯一 head `r4a02c7d9e86`；PG16 fresh q3→r4 与 `r4→q3→r4` 通过，已应用 q3 未修改 |
+| 当前阶段 | 独立验收为 5 implemented / 1 blocked / 14 missing；组合能力 1、2、3、6、7 已关闭，完整项目仍 `CONDITIONAL/BLOCKED` |
+| 当前 OpenSpec | `complete-asset-portfolio-views` 实现及工作树 strict 已通过，待 clean-SHA 后同步/归档；Identity 真实旧数据任务继续外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
+
+- [x] 独立复核旧 factory/floor/dormitory/rental manage 证据，明确统一可租单元替代与设施、商业 GIS/CAD/BIM、真实数据阻塞边界。
+- [x] 完成七类租户业态模板、受限字段语法、草稿/发布/新草稿/停用、不可变版本及数据库派生独立权限。
+- [x] 单元创建/结构版本/拆分/合并保留精确模板版本，空间 Point/Polygon/CRS 以乐观锁更新且不伪造外部底图。
+- [x] 完成矩阵、真实几何示意地图、列表、空置、到期和经营分析；挂牌潜力明确标注为非会计收入。
+- [x] 完成 `q3f91b6c8d75` 功能迁移及后续 `r4a02c7d9e86` 租户复合外键修复迁移、PG 并发/数据库越权拒绝、OpenAPI、22 阶段真实 HTTP、52 浏览器与三张人工复核截图。
+- [x] 提交前硬化关闭跨租户模板引用、模板/业态错配、空白草稿名、自交/退化多边形、维修/锁定单元误计空置；286 后端测试与全仓 Ruff 错误级规则通过。
+- [x] 完成资产组合 synthetic ETL 的 dry/interruption/apply/reapply/reconcile/rollback；真实旧 schema/脱敏样本仍保持 BLOCKED。
+- [x] 修复验收脚本的 PostgreSQL `.env` 读取、Alembic unique current head 硬断言、失败子命令输出保留及 UTF-8 运维日志。
 
 - [x] 独立取证旧 workspace/outbox/consume-log/站内通知/调度任务和当前 Python 缺口，发布替代/保留/阻塞处置与切换 Runbook。
 - [x] 新增业务事件/消费者、规则/不可变版本/执行、通知、调度定义/运行、工作台布局/组件 ORM，以及唯一前向迁移 `p2e80a5b7c64`。
@@ -107,7 +116,7 @@
 - `apps/employee-mobile` 不存在；员工移动端未实现。
 - `apps/tenant-miniprogram` 不存在；租户微信小程序未实现。
 - `analytics`、`ai_assist`、`finance`、`tenant_ops` 仍是未挂载的空响应或 stub，不能计为驾驶舱、AI、完整财务或租户服务；已实现的工作台自动化不外推这些能力。
-- 资产与租控本次定义范围已闭合；集团/区域/园区归属治理已闭合；GIS/CAD/BIM 地图与更深组合经营分析仍未实现。
+- 资产模板与组合租控本地产品范围已闭合；集团/区域/园区归属治理已闭合；商业 GIS/CAD/BIM 和真实旧坐标迁移未获合同/数据，保持 NOT_CONNECTED/BLOCKED_EXTERNAL。
 - CRM/锁房与合同 V2 定义范围已形成代码与本地验收；真实外部渠道、企微回调/自动触达、意向审批、AI 评分、自动计费/对账催缴、IoT/巡检、HR/供应链、完整驾驶舱和真实旧数据迁移仍未完成。
 - 外部短信/微信/邮件/OSS/支付/签章/发票/IoT 无真实凭据，生产联调均 `NOT_LIVE`。
 - ETL 只验证合成 fixture；缺少经授权的脱敏旧库快照、字段闭合签字和新旧结果对账。
@@ -115,8 +124,8 @@
 
 ## 下一恢复点
 
-1. 提交并正常推送工作台/自动化纵切，在精确 clean SHA 上重跑 28 项总闸门；复制 clean 报告后同步主规格并归档。
-2. 继续关闭能力矩阵剩余 15 个 `MISSING`，优先选择下一个能形成完整真实旅程的业务纵切。
+1. 提交并正常推送资产模板/组合租控纵切，在精确 clean SHA 上重跑 29 项总闸门；复制 clean 报告后同步主规格并归档。
+2. 继续关闭能力矩阵剩余 14 个 `MISSING`，优先选择下一个能形成完整真实旅程的业务纵切。
 3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 
 ## 不可变安全约束
