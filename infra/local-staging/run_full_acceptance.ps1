@@ -162,6 +162,12 @@ try {
     Pop-Location
   }
 
+  Step "facility_ops_worker_once" {
+    Push-Location $Api
+    & $Py -m app.workers.facility_ops --once
+    Pop-Location
+  }
+
   Step "etl_fast" {
     & $Py (Join-Path $Root "tools\etl\run_etl_drill.py") --profile fast --seed 42 --out-dir (Join-Path $ReportDir "etl_fast")
   }
@@ -223,6 +229,11 @@ try {
   Step "work_order_etl_acceptance" {
     $workOrderReport = Join-Path $ReportDir "work_order_etl\work-order-etl.json"
     & $Py (Join-Path $Root "tools\etl\run_work_order_etl_drill.py") --database-url $pgUrl --out $workOrderReport
+  }
+
+  Step "facility_device_etl_acceptance" {
+    $facilityDeviceReport = Join-Path $ReportDir "facility_device_etl\facility-device-etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_facility_device_etl_drill.py") --database-url $pgUrl --out $facilityDeviceReport
   }
 
   Step "http_performance_seed" {
@@ -448,6 +459,7 @@ $summary = [ordered]@{
   party_enterprise_etl = (Join-Path $ReportDir "party_enterprise_etl\party-enterprise-etl.json")
   receivables_etl = (Join-Path $ReportDir "receivables_etl\receivables-etl.json")
   work_order_etl = (Join-Path $ReportDir "work_order_etl\work-order-etl.json")
+  facility_device_etl = (Join-Path $ReportDir "facility_device_etl\facility-device-etl.json")
   http_performance = (Join-Path $ReportDir "performance\http-performance.json")
   approval_audit_http = (Join-Path $ReportDir "performance\approval-audit-http-journey.json")
   workbench_automation_http = (Join-Path $ReportDir "performance\workbench-automation-http-journey.json")

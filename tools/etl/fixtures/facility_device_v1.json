@@ -1,0 +1,71 @@
+{
+  "source": "synthetic-legacy-maintenance-v1",
+  "contains_real_customer_data": false,
+  "facility_records": [
+    {
+      "legacy_table": "firefighting",
+      "source_id": "fire-1001",
+      "park_ref": "park-a",
+      "device_code": "LEGACY-FIRE-1001",
+      "name": "合成消防泵一号",
+      "device_type": "消防设备",
+      "location": "A栋负一层泵房",
+      "status": "正常",
+      "manufacturer": "合成厂商甲",
+      "model_no": "SYN-F-01",
+      "last_check_time": "2026-01-05T09:00:00"
+    },
+    {
+      "legacy_table": "elevator",
+      "source_id": "elevator-2001",
+      "park_ref": "park-a",
+      "device_code": "LEGACY-ELEVATOR-2001",
+      "name": "合成客梯一号",
+      "device_type": "电梯",
+      "location": "B栋",
+      "status": "维修中",
+      "manufacturer": "合成厂商乙",
+      "model_no": "SYN-E-02",
+      "last_check_time": "2026-01-06T10:00:00"
+    },
+    {
+      "legacy_table": "transformer",
+      "source_id": "transformer-3001",
+      "park_ref": "park-b",
+      "device_code": "LEGACY-TRANSFORMER-3001",
+      "name": "合成变压器一号",
+      "device_type": "变压器",
+      "location": "配电房一",
+      "status": "已停用",
+      "manufacturer": "合成厂商丙",
+      "model_no": "SYN-T-03",
+      "last_check_time": "2025-12-30T08:30:00"
+    },
+    {
+      "legacy_table": "factory_maint",
+      "source_id": "factory-4001",
+      "park_ref": "park-b",
+      "device_code": "LEGACY-HVAC-4001",
+      "name": "合成空调机组一号",
+      "device_type": "空调",
+      "location": "C栋屋面",
+      "status": "正常",
+      "manufacturer": null,
+      "model_no": null,
+      "last_check_time": null
+    },
+    {
+      "legacy_table": "firefighting",
+      "source_id": "fire-unknown-type",
+      "park_ref": "park-a",
+      "device_code": "LEGACY-UNKNOWN-1",
+      "name": "合成未知设备",
+      "device_type": "未映射类别",
+      "location": "待确认",
+      "status": "正常",
+      "manufacturer": null,
+      "model_no": null,
+      "last_check_time": null
+    }
+  ]
+}

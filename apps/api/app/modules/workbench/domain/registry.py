@@ -88,6 +88,7 @@ SAFE_DEEP_LINK_PREFIXES: Final[tuple[str, ...]] = (
     "/approvals",
     "/leads",
     "/work-orders",
+    "/facility-operations",
     "/collection",
 )
 

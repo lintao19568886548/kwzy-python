@@ -17,6 +17,7 @@ import ApprovalsView from "@/views/ApprovalsView.vue";
 import ParksView from "@/views/ParksView.vue";
 import RentControlView from "@/views/RentControlView.vue";
 import ForbiddenView from "@/views/ForbiddenView.vue";
+import FacilityOperationsView from "@/views/FacilityOperationsView.vue";
 
 const routes: RouteRecordRaw[] = [
   { path: "/login", name: "login", component: LoginView, meta: { public: true } },
@@ -77,6 +78,19 @@ const routes: RouteRecordRaw[] = [
         name: "parks",
         component: ParksView,
         meta: { permission: "park:read" },
+      },
+      {
+        path: "facility-operations",
+        name: "facility-operations",
+        component: FacilityOperationsView,
+        meta: {
+          permissionAny: [
+            "facility_device:read",
+            "inspection:read",
+            "inspection:execute",
+            "iot:alarm_read",
+          ],
+        },
       },
       {
         path: "rent-control",

@@ -21,6 +21,7 @@ tags:
   - name: Payments
   - name: Collection
   - name: TenantService
+  - name: FacilityManagement
   - name: WorkItems
   - name: OrganizationGovernance
   - name: Approvals
@@ -6183,6 +6184,396 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
 
+  /facility-devices:
+    get:
+      tags: [FacilityManagement]
+      summary: 分页查询租户园区范围内设备台账
+      operationId: listFacilityDevices
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses: { '200': { description: OK } }
+    post:
+      tags: [FacilityManagement]
+      summary: 创建统一设备台账记录
+      operationId: createFacilityDevice
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FacilityDeviceCreate' }
+      responses: { '200': { description: OK } }
+
+  /facility-devices/{device_id}:
+    parameters:
+      - { name: device_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+    get:
+      tags: [FacilityManagement]
+      summary: 查询设备及不可变变更历史
+      operationId: getFacilityDevice
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    put:
+      tags: [FacilityManagement]
+      summary: 乐观锁更新设备
+      operationId: updateFacilityDevice
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FacilityDeviceUpdate' }
+      responses: { '200': { description: OK } }
+
+  /facility-devices/{device_id}/retire:
+    post:
+      tags: [FacilityManagement]
+      summary: 退役设备并保留历史
+      operationId: retireFacilityDevice
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: device_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FacilityExpectedReason' }
+      responses: { '200': { description: OK } }
+
+  /inspection-templates:
+    get:
+      tags: [FacilityManagement]
+      summary: 查询版本化巡检模板
+      operationId: listInspectionTemplates
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [FacilityManagement]
+      summary: 创建巡检模板及 v1 草稿
+      operationId: createInspectionTemplate
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InspectionTemplateCreateV2' }
+      responses: { '200': { description: OK } }
+
+  /inspection-templates/{template_id}/versions:
+    post:
+      tags: [FacilityManagement]
+      summary: 新增不可变巡检模板版本
+      operationId: addInspectionTemplateVersion
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: template_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InspectionTemplateVersionCreateV2' }
+      responses: { '200': { description: OK } }
+
+  /inspection-template-versions/{version_id}/publish:
+    post:
+      tags: [FacilityManagement]
+      summary: 发布模板版本并退役原发布版本
+      operationId: publishInspectionTemplateVersion
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: version_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FacilityExpectedVersion' }
+      responses: { '200': { description: OK } }
+
+  /inspection-schedules:
+    get:
+      tags: [FacilityManagement]
+      summary: 查询周巡检计划
+      operationId: listInspectionSchedules
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [FacilityManagement]
+      summary: 创建周巡检计划
+      operationId: createInspectionSchedule
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InspectionScheduleCreate' }
+      responses: { '200': { description: OK } }
+
+  /inspection-schedules/{schedule_id}/retire:
+    post:
+      tags: [FacilityManagement]
+      summary: 退役巡检计划
+      operationId: retireInspectionSchedule
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: schedule_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FacilityExpectedReason' }
+      responses: { '200': { description: OK } }
+
+  /inspection-schedules/{schedule_id}/pause:
+    post:
+      tags: [FacilityManagement]
+      summary: 暂停巡检计划并阻止后续任务生成
+      operationId: pauseInspectionSchedule
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: schedule_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FacilityExpectedReason' }
+      responses: { '200': { description: OK } }
+
+  /inspection-schedules/{schedule_id}/resume:
+    post:
+      tags: [FacilityManagement]
+      summary: 恢复已暂停巡检计划
+      operationId: resumeInspectionSchedule
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: schedule_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FacilityExpectedReason' }
+      responses: { '200': { description: OK } }
+
+  /inspection-tasks/generate:
+    post:
+      tags: [FacilityManagement]
+      summary: 幂等生成当前周巡检任务快照
+      operationId: generateInspectionTasks
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FacilitySweepRequest' }
+      responses: { '200': { description: OK } }
+
+  /inspection-tasks/sweep-missed:
+    post:
+      tags: [FacilityManagement]
+      summary: 扫描逾期巡检并按计划转工单
+      operationId: sweepMissedInspectionTasks
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FacilitySweepRequest' }
+      responses: { '200': { description: OK } }
+
+  /inspection-tasks:
+    get:
+      tags: [FacilityManagement]
+      summary: 查询数据范围内巡检任务
+      operationId: listInspectionTasks
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+
+  /inspection-tasks/{task_id}:
+    get:
+      tags: [FacilityManagement]
+      summary: 查询巡检快照、结果、异常与时间线
+      operationId: getInspectionTask
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: task_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses: { '200': { description: OK } }
+
+  /inspection-tasks/{task_id}/start:
+    post:
+      tags: [FacilityManagement]
+      summary: 幂等开始巡检
+      operationId: startInspectionTask
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: task_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 128 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FacilityExpectedVersion' }
+      responses: { '200': { description: OK } }
+
+  /inspection-tasks/{task_id}/reassign:
+    post:
+      tags: [FacilityManagement]
+      summary: 乐观锁改派巡检
+      operationId: reassignInspectionTask
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: task_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InspectionReassign' }
+      responses: { '200': { description: OK } }
+
+  /inspection-tasks/{task_id}/submit:
+    post:
+      tags: [FacilityManagement]
+      summary: 按任务快照幂等提交全部巡检结果
+      operationId: submitInspectionTask
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: task_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 128 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InspectionSubmit' }
+      responses: { '200': { description: OK } }
+
+  /inspection-exceptions/{exception_id}/promote:
+    post:
+      tags: [FacilityManagement]
+      summary: 将巡检异常幂等转为治理工单
+      operationId: promoteInspectionException
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: exception_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FacilityReason' }
+      responses: { '200': { description: OK } }
+
+  /iot-providers:
+    get:
+      tags: [FacilityManagement]
+      summary: 查询 IoT 提供方及真实连接状态
+      operationId: listIoTProviders
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [FacilityManagement]
+      summary: 登记 IoT 提供方；HTTP 默认 NOT_CONNECTED
+      operationId: createIoTProvider
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IoTProviderCreateV2' }
+      responses: { '200': { description: OK } }
+
+  /iot-device-bindings:
+    get:
+      tags: [FacilityManagement]
+      summary: 查询 IoT 设备绑定
+      operationId: listIoTDeviceBindings
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [FacilityManagement]
+      summary: 创建唯一有效 IoT 设备绑定
+      operationId: createIoTDeviceBinding
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IoTBindingCreate' }
+      responses: { '200': { description: OK } }
+
+  /iot-device-bindings/{binding_id}/retire:
+    post:
+      tags: [FacilityManagement]
+      summary: 退役 IoT 设备绑定并保留历史
+      operationId: retireIoTDeviceBinding
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: binding_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FacilityExpectedReason' }
+      responses: { '200': { description: OK } }
+
+  /iot-alarm-events/ingest:
+    post:
+      tags: [FacilityManagement]
+      summary: 接收授权沙箱或已验证提供方告警事件
+      operationId: ingestIoTAlarmEvent
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IoTAlarmIngestV2' }
+      responses: { '200': { description: OK } }
+
+  /iot-alarms/sweep-escalations:
+    post:
+      tags: [FacilityManagement]
+      summary: 幂等扫描严重告警升级
+      operationId: sweepIoTAlarmEscalations
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FacilitySweepRequest' }
+      responses: { '200': { description: OK } }
+
+  /iot-alarms:
+    get:
+      tags: [FacilityManagement]
+      summary: 查询数据范围内 IoT 告警
+      operationId: listIoTAlarms
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+
+  /iot-alarms/{alarm_id}:
+    get:
+      tags: [FacilityManagement]
+      summary: 查询告警来源事件、升级与工单关联
+      operationId: getIoTAlarm
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: alarm_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses: { '200': { description: OK } }
+
+  /iot-alarms/{alarm_id}/{target}:
+    post:
+      tags: [FacilityManagement]
+      summary: 确认、解决或关闭 IoT 告警
+      operationId: transitionIoTAlarm
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: alarm_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+        - { name: target, in: path, required: true, schema: { type: string, enum: [acknowledge, resolve, close] } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IoTAlarmTransition' }
+      responses: { '200': { description: OK } }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -9236,3 +9627,174 @@ components:
       required:
       - expected_version
       title: WorkbenchVersionCommand
+    FacilityDeviceCreate:
+      type: object
+      additionalProperties: false
+      required: [park_id, device_code, name, device_type, location]
+      properties:
+        park_id: { type: integer, minimum: 1 }
+        unit_id: { type: [integer, 'null'], minimum: 1 }
+        device_code: { type: string, minLength: 1, maxLength: 64 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        device_type: { type: string, enum: [FIRE, ELEVATOR, TRANSFORMER, ELECTRICAL, HVAC, WATER, SECURITY, CUSTOM] }
+        location: { type: string, minLength: 1, maxLength: 255 }
+        criticality: { type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL], default: MEDIUM }
+        manufacturer: { type: [string, 'null'], maxLength: 128 }
+        model_no: { type: [string, 'null'], maxLength: 128 }
+        serial_no: { type: [string, 'null'], maxLength: 128 }
+        commissioned_on: { type: [string, 'null'], format: date-time }
+        warranty_expires_on: { type: [string, 'null'], format: date-time }
+        properties: { type: object, additionalProperties: true, maxProperties: 30 }
+    FacilityDeviceUpdate:
+      type: object
+      additionalProperties: false
+      required: [expected_version, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+        unit_id: { type: [integer, 'null'], minimum: 1 }
+        name: { type: [string, 'null'], minLength: 1, maxLength: 128 }
+        location: { type: [string, 'null'], minLength: 1, maxLength: 255 }
+        criticality: { type: [string, 'null'], enum: [LOW, MEDIUM, HIGH, CRITICAL, null] }
+        status: { type: [string, 'null'], enum: [ACTIVE, MAINTENANCE, null] }
+        manufacturer: { type: [string, 'null'], maxLength: 128 }
+        model_no: { type: [string, 'null'], maxLength: 128 }
+        serial_no: { type: [string, 'null'], maxLength: 128 }
+        properties: { type: [object, 'null'], additionalProperties: true, maxProperties: 30 }
+    FacilityExpectedVersion:
+      type: object
+      additionalProperties: false
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+    FacilityExpectedReason:
+      type: object
+      additionalProperties: false
+      required: [expected_version, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    FacilityReason:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    InspectionTemplateItemV2:
+      type: object
+      additionalProperties: false
+      required: [item_code, label, result_type]
+      properties:
+        item_code: { type: string, minLength: 1, maxLength: 64 }
+        label: { type: string, minLength: 1, maxLength: 255 }
+        result_type: { type: string, enum: [BOOLEAN, NUMBER, TEXT, SELECT] }
+        required: { type: boolean, default: true }
+        critical: { type: boolean, default: false }
+        minimum: { type: [number, 'null'] }
+        maximum: { type: [number, 'null'] }
+        options: { type: array, maxItems: 30, items: { type: string, maxLength: 128 } }
+    InspectionTemplateCreateV2:
+      type: object
+      additionalProperties: false
+      required: [code, name, items]
+      properties:
+        code: { type: string, minLength: 1, maxLength: 64 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        device_type: { type: [string, 'null'], enum: [FIRE, ELEVATOR, TRANSFORMER, ELECTRICAL, HVAC, WATER, SECURITY, CUSTOM, null] }
+        description: { type: [string, 'null'], maxLength: 1000 }
+        items: { type: array, minItems: 1, maxItems: 100, items: { $ref: '#/components/schemas/InspectionTemplateItemV2' } }
+    InspectionTemplateVersionCreateV2:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        description: { type: [string, 'null'], maxLength: 1000 }
+        items: { type: array, minItems: 1, maxItems: 100, items: { $ref: '#/components/schemas/InspectionTemplateItemV2' } }
+    InspectionScheduleCreate:
+      type: object
+      additionalProperties: false
+      required: [park_id, code, name, device_id, template_version_id, assignee_user_id, weekday, local_due_time]
+      properties:
+        park_id: { type: integer, minimum: 1 }
+        code: { type: string, minLength: 1, maxLength: 64 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        device_id: { type: integer, minimum: 1 }
+        template_version_id: { type: integer, minimum: 1 }
+        assignee_user_id: { type: integer, minimum: 1 }
+        timezone: { type: string, minLength: 1, maxLength: 64, default: Asia/Shanghai }
+        weekday: { type: integer, minimum: 1, maximum: 7 }
+        local_due_time: { type: string, pattern: '^(?:[01]\d|2[0-3]):[0-5]\d$' }
+        completion_window_minutes: { type: integer, minimum: 1, maximum: 10080, default: 1440 }
+        missed_work_order: { type: boolean, default: false }
+    FacilitySweepRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        as_of: { type: [string, 'null'], format: date-time }
+    InspectionReassign:
+      type: object
+      additionalProperties: false
+      required: [expected_version, reason, assignee_user_id]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+        assignee_user_id: { type: integer, minimum: 1 }
+    InspectionResultInput:
+      type: object
+      additionalProperties: false
+      required: [item_code, value]
+      properties:
+        item_code: { type: string, minLength: 1, maxLength: 64 }
+        value: { oneOf: [{ type: boolean }, { type: number }, { type: string }] }
+        evidence_refs: { type: array, maxItems: 20, items: { type: string, maxLength: 255 } }
+        remark: { type: [string, 'null'], maxLength: 1000 }
+    InspectionSubmit:
+      type: object
+      additionalProperties: false
+      required: [expected_version, results]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        results: { type: array, minItems: 1, maxItems: 100, items: { $ref: '#/components/schemas/InspectionResultInput' } }
+    IoTProviderCreateV2:
+      type: object
+      additionalProperties: false
+      required: [code, name]
+      properties:
+        code: { type: string, minLength: 1, maxLength: 64 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        adapter_kind: { type: string, enum: [LOCAL, SANDBOX, HTTP], default: SANDBOX }
+        environment: { type: string, minLength: 1, maxLength: 16, default: LOCAL }
+        credential_ref: { type: [string, 'null'], maxLength: 128 }
+        severity_mapping:
+          type: object
+          additionalProperties: { type: string, enum: [INFO, WARNING, HIGH, CRITICAL] }
+        correlation_minutes: { type: integer, minimum: 1, maximum: 10080, default: 30 }
+    IoTBindingCreate:
+      type: object
+      additionalProperties: false
+      required: [provider_id, device_id, external_device_key, reason]
+      properties:
+        provider_id: { type: integer, minimum: 1 }
+        device_id: { type: integer, minimum: 1 }
+        external_device_key: { type: string, minLength: 1, maxLength: 128 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    IoTAlarmIngestV2:
+      type: object
+      additionalProperties: false
+      required: [provider_id, external_device_key, source_event_id, source_time, alarm_type, title, severity]
+      properties:
+        provider_id: { type: integer, minimum: 1 }
+        external_device_key: { type: string, minLength: 1, maxLength: 128 }
+        source_event_id: { type: string, minLength: 1, maxLength: 128 }
+        source_time: { type: string, format: date-time }
+        alarm_type: { type: string, minLength: 1, maxLength: 64 }
+        title: { type: string, minLength: 1, maxLength: 255 }
+        severity: { type: string, minLength: 1, maxLength: 64 }
+        payload: { type: object, additionalProperties: true, maxProperties: 30 }
+    IoTAlarmTransition:
+      type: object
+      additionalProperties: false
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: [string, 'null'], maxLength: 1000 }

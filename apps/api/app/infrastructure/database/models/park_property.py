@@ -118,6 +118,7 @@ class Unit(Base, PrimaryKeyMixin, SoftDeleteMixin, TimestampMixin):
             name="uk_units_space_code_version",
         ),
         UniqueConstraint("tenant_id", "id", name="uk_units_tenant_id_id"),
+        UniqueConstraint("tenant_id", "park_id", "id", name="uk_units_tenant_park_id"),
         Index(
             "uk_units_current_space_code",
             "building_id",

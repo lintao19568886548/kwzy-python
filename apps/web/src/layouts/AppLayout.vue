@@ -26,6 +26,17 @@ const allNav: NavItem[] = [
     testid: "nav-work-orders",
     permissionAny: ["work_order:read", "tenant_service:read_own"],
   },
+  {
+    to: "/facility-operations",
+    label: "设施运营",
+    testid: "nav-facility-operations",
+    permissionAny: [
+      "facility_device:read",
+      "inspection:read",
+      "inspection:execute",
+      "iot:alarm_read",
+    ],
+  },
   { to: "/parks", label: "园区", testid: "nav-parks", permission: "park:read" },
   { to: "/rent-control", label: "资产租控", testid: "nav-rent-control", permission: "unit:read" },
   { to: "/parties", label: "主体", testid: "nav-parties", permission: "party:read" },

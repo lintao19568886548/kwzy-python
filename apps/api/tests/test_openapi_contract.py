@@ -760,3 +760,83 @@ def test_tenant_service_openapi_matches_every_runtime_method() -> None:
     ):
         assert schemas[command]["additionalProperties"] is False, command
     assert schemas["WorkOrderAssignmentRuleRetire"]["required"] == ["reason"]
+
+
+def test_facility_management_openapi_matches_every_runtime_method() -> None:
+    """Facility devices, inspections and IoT alarms stay method-exact and strict."""
+
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    paths = document["paths"]
+    runtime_paths = create_app().openapi()["paths"]
+    expected_methods = {
+        "/facility-devices": {"get", "post"},
+        "/facility-devices/{device_id}": {"get", "put"},
+        "/facility-devices/{device_id}/retire": {"post"},
+        "/inspection-templates": {"get", "post"},
+        "/inspection-templates/{template_id}/versions": {"post"},
+        "/inspection-template-versions/{version_id}/publish": {"post"},
+        "/inspection-schedules": {"get", "post"},
+        "/inspection-schedules/{schedule_id}/retire": {"post"},
+        "/inspection-schedules/{schedule_id}/pause": {"post"},
+        "/inspection-schedules/{schedule_id}/resume": {"post"},
+        "/inspection-tasks/generate": {"post"},
+        "/inspection-tasks/sweep-missed": {"post"},
+        "/inspection-tasks": {"get"},
+        "/inspection-tasks/{task_id}": {"get"},
+        "/inspection-tasks/{task_id}/start": {"post"},
+        "/inspection-tasks/{task_id}/reassign": {"post"},
+        "/inspection-tasks/{task_id}/submit": {"post"},
+        "/inspection-exceptions/{exception_id}/promote": {"post"},
+        "/iot-providers": {"get", "post"},
+        "/iot-device-bindings": {"get", "post"},
+        "/iot-device-bindings/{binding_id}/retire": {"post"},
+        "/iot-alarm-events/ingest": {"post"},
+        "/iot-alarms/sweep-escalations": {"post"},
+        "/iot-alarms": {"get"},
+        "/iot-alarms/{alarm_id}": {"get"},
+        "/iot-alarms/{alarm_id}/{target}": {"post"},
+    }
+    assert sum(len(methods) for methods in expected_methods.values()) == 32
+    for path, methods in expected_methods.items():
+        assert path in paths, path
+        assert methods == {
+            method.lower()
+            for method in paths[path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, path
+        runtime_path = "/api/v1" + path
+        assert runtime_path in runtime_paths, runtime_path
+        assert methods == {
+            method.lower()
+            for method in runtime_paths[runtime_path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, runtime_path
+
+    schemas = document["components"]["schemas"]
+    for command in (
+        "FacilityDeviceCreate",
+        "FacilityDeviceUpdate",
+        "FacilityExpectedVersion",
+        "FacilityExpectedReason",
+        "FacilityReason",
+        "InspectionTemplateItemV2",
+        "InspectionTemplateCreateV2",
+        "InspectionTemplateVersionCreateV2",
+        "InspectionScheduleCreate",
+        "FacilitySweepRequest",
+        "InspectionReassign",
+        "InspectionResultInput",
+        "InspectionSubmit",
+        "IoTProviderCreateV2",
+        "IoTBindingCreate",
+        "IoTAlarmIngestV2",
+        "IoTAlarmTransition",
+    ):
+        assert schemas[command]["additionalProperties"] is False, command
+    assert schemas["IoTProviderCreateV2"]["properties"]["adapter_kind"]["enum"] == [
+        "LOCAL",
+        "SANDBOX",
+        "HTTP",
+    ]

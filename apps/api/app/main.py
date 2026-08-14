@@ -24,6 +24,9 @@ from app.modules.billing.interface.api import router as billing_router
 from app.modules.collection.interface.api import router as collection_router
 from app.modules.collection.interface.receivables_api import router as receivables_router
 from app.modules.facility_ops.interface.api import router as facility_ops_router
+from app.modules.facility_ops.interface.facility_management_api import (
+    router as facility_management_router,
+)
 from app.modules.identity.application.bootstrap import ensure_default_tenant
 from app.modules.identity.interface.api import router as identity_router
 from app.modules.identity.interface.organization_governance_api import (
@@ -101,6 +104,7 @@ def create_app() -> FastAPI:
     app.include_router(workbench_router, prefix=prefix)
     app.include_router(investment_router, prefix=prefix)
     app.include_router(facility_ops_router, prefix=prefix)
+    app.include_router(facility_management_router, prefix=prefix)
     app.include_router(integrations_router, prefix=prefix)
     app.include_router(workflow_router, prefix=prefix)
     app.include_router(attachments_router, prefix=prefix)

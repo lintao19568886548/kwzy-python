@@ -412,6 +412,7 @@ class WorkOrderService:
         idempotency_key: str,
         actor_type: str,
         tenant_party_id: int | None = None,
+        commit: bool = True,
     ) -> dict[str, Any]:
         key = bounded_text(idempotency_key, field="Idempotency-Key", maximum=128, required=True)
         source_type = (
@@ -542,16 +543,17 @@ class WorkOrderService:
             park_id=park_id,
             detail={"order_no": order.order_no, "source": source_type},
         )
-        self.session.commit()
-        log_business_success(
-            logger,
-            "工单创建成功",
-            ctx=self.ctx,
-            module="facility_ops",
-            action="create_work_order",
-            resource_id=int(order.id),
-            park_id=park_id,
-        )
+        if commit:
+            self.session.commit()
+            log_business_success(
+                logger,
+                "工单创建成功",
+                ctx=self.ctx,
+                module="facility_ops",
+                action="create_work_order",
+                resource_id=int(order.id),
+                park_id=park_id,
+            )
         return self._to_dict(order, tenant_view=actor_type == "TENANT", detail=True)
 
     def create_order(self, data: dict[str, Any], *, idempotency_key: str) -> dict[str, Any]:
@@ -573,6 +575,25 @@ class WorkOrderService:
             idempotency_key=idempotency_key,
             actor_type="TENANT",
             tenant_party_id=int(principal.party_id),
+        )
+
+    def create_system_order(
+        self,
+        data: dict[str, Any],
+        *,
+        idempotency_key: str,
+        commit: bool = False,
+    ) -> dict[str, Any]:
+        """Create a governed work order from an already-authorized internal use case."""
+
+        source = str(data.get("request_source") or "").strip().upper()
+        if source not in {"INSPECTION", "IOT_ALARM"}:
+            raise AppError("内部工单来源无效", code="VALIDATION_ERROR", status_code=400)
+        return self._create_order(
+            data,
+            idempotency_key=idempotency_key,
+            actor_type="SYSTEM",
+            commit=commit,
         )
 
     def grant_principal(self, data: dict[str, Any]) -> dict[str, Any]:
