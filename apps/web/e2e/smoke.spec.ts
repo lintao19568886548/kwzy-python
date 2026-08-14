@@ -28,11 +28,13 @@ test("primary navigation resets stale page scroll", async ({ page, request }) =>
   await requireApiHealthy(request);
   await loginAs(page, ADMIN_USER, ADMIN_PASS);
   await page.goto("/workbench");
+  await expect(page.getByTestId("workbench-title")).toBeVisible();
+  await expect(page.getByTestId("widget-operations_metrics")).toBeVisible();
   await page.evaluate(() => {
-    document.documentElement.style.minHeight = "2000px";
+    document.body.style.minHeight = "2000px";
   });
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
   await page.getByRole("link", { name: "合同", exact: true }).click();
   await expect(page).toHaveURL(/\/leases$/);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);

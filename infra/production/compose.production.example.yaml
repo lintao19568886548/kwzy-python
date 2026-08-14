@@ -53,6 +53,20 @@ services:
       retries: 6
       start_period: 20s
 
+  workbench-worker:
+    image: ${KWZY_API_IMAGE:?KWZY_API_IMAGE is required}
+    command: ["python", "-m", "app.workers.workbench"]
+    environment: *api-environment
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [backend]
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
   web:
     image: ${KWZY_WEB_IMAGE:?KWZY_WEB_IMAGE is required}
     depends_on:

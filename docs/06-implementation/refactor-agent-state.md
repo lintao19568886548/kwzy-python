@@ -7,15 +7,24 @@
 | 更新时间 | 2026-08-14（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | 审批/审计实现提交 `13243b4488a79ee6eccfc505812b5315263d7c83` 已完成 26/26 clean-SHA 总门禁 |
-| 远程同步 | `feat/full-rebuild-completion` 与 `origin/feat/full-rebuild-completion` 已含实现 `13243b4` 和归档证据 `008d6ac`；本轮未 force、未触达 main |
-| 工作树 | 本状态收口提交后应为干净；用户既有修改未覆盖 |
-| Alembic | 唯一 head `o1d79e4f6a53`；fresh upgrade 与 `head→-1→head` 通过，降级任务投影残留缺陷已修复并由真实 HTTP 复演关闭 |
-| 当前阶段 | 独立验收为 3 implemented / 1 blocked / 16 missing；组合能力 1 已升级，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | 组织治理与审批/审计均已同步主规格并归档；Identity 两个真实旧数据任务继续外部门禁 |
+| 已验证 HEAD | 最近已提交 clean-SHA 为审批/审计 `13243b4488a79ee6eccfc505812b5315263d7c83`；工作台/自动化工作树已完成 28/28 总门禁，等待提交后 clean-SHA 复验 |
+| 远程同步 | `feat/full-rebuild-completion` 与 `origin/feat/full-rebuild-completion` 已含审批/审计实现、归档和收口提交；工作台纵切尚未提交；本轮未 force、未触达 main |
+| 工作树 | 工作台/自动化实现、测试、OpenAPI、截图和工作树证据待提交；用户既有修改未覆盖 |
+| Alembic | 唯一 head `p2e80a5b7c64`；PG16 fresh upgrade 与 `head→-1→head` 通过，历史迁移未修改 |
+| 当前阶段 | 独立验收为 4 implemented / 1 blocked / 15 missing；组合能力 1、2、6、7 已关闭，完整项目仍 `CONDITIONAL/BLOCKED` |
+| 当前 OpenSpec | 组织治理与审批/审计已同步并归档；`complete-platform-workbench-automation` 除提交/clean-SHA/同步归档外均闭环；Identity 真实旧数据任务继续外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
+
+- [x] 独立取证旧 workspace/outbox/consume-log/站内通知/调度任务和当前 Python 缺口，发布替代/保留/阻塞处置与切换 Runbook。
+- [x] 新增业务事件/消费者、规则/不可变版本/执行、通知、调度定义/运行、工作台布局/组件 ORM，以及唯一前向迁移 `p2e80a5b7c64`。
+- [x] 完成事务事件发布、PG `SKIP LOCKED` claim、有限退避、DEAD/代次 replay、受限规则动作、通知隔离、持久调度恢复和独立多租户 worker。
+- [x] 完成 WorkItem 深链/乐观锁/来源所有权/升级改派，以及用户→角色→服务器默认布局和数据库派生权限不放大。
+- [x] 重建 PC 实时工作台、消息中心和自动化控制面，覆盖规则草稿/发布/退役、调度、事件/死信、执行记录、个人/角色布局。
+- [x] 工作树总门禁 28/28：PG16/Alembic、277 后端、真实 HTTP、1000 请求性能、备份恢复、前端、50 浏览器、OpenAPI/OpenSpec/secrets 全通过。
+- [x] 浏览器控制技能独立检查管理员桌面与手机布局：无 body 横向溢出、无 console warning/error；三张 Playwright 截图已固化。
+- [x] 性能整改保留失败链：先发现 p95 946.484 ms 与脚本退出码覆盖，再由硬化脚本真实阻断 p95 729.289 ms；查询合并和 `DEBUG=false` 后同门槛 p95 242.193 ms。
 
 - [x] 独立取证旧报销、请假、触达模板、菜单待办和 `api_log`，明确平台替代与领域/真实迁移边界。
 - [x] 新增定义/不可变版本/节点/审批人/申请扩展/任务/委托/事件/租户审计链头 ORM 与唯一前向 Alembic revision。
@@ -70,7 +79,11 @@
 - [x] 将已落地基础合同 5 份 delta 同步主规格并归档 `2026-08-13-implement-lease-contract`，消除合同 V2 增量基线缺口。
 - [x] 完成 `implement-contract-lifecycle-v2` proposal/design、10 份 delta specs 和 102 项任务；change strict 与全量 OpenSpec 49/49 PASS。
 
-## 最新机器证据（组织治理 clean SHA）
+## 最新机器证据（工作台/自动化工作树）
+
+工作树报告 `infra/local-staging/out/acceptance_20260814_163824.json`：28/28 步 exit 0，472,584 ms；PG16 唯一 head `p2e80a5b7c64`，277 pytest，5 租户 worker 零失败，全部合成 ETL 通过，工作台真实 HTTP 通过，性能 1,000 请求/并发 25/p95 242.193 ms/145.478 RPS/0 错误，备份恢复 1,115,006 bytes/82 表，前端 lint/typecheck/6 Vitest/build、50 Playwright、OpenAPI 9/9+strict、OpenSpec 61/61、733 文件 secrets scan 和清理均通过。该报告运行时 HEAD 仍为 `83067a1` 且工作树有纵切修改，因此只作为提交前证据；必须在实现提交后重跑 clean-SHA 闸门。
+
+## 历史机器证据（组织治理与审批/审计 clean SHA）
 
 审批/审计 clean-SHA `13243b4` 证据：后端完整 264 passed；PG16 fresh/down-up 与唯一 head 通过；前端 lint/typecheck/Vitest 6/build 通过；Playwright 聚焦 3/3、全量 46/46；独立 HTTP 13 阶段 799.63 ms；性能 1,000 请求、p95 306.849 ms、0 错误；ETL 9 表对账、零重复/PII/伪造决定且 rollback 通过；备份恢复 72 表；OpenAPI 8/8、OpenSpec 54/54、secrets 695 文件；26/26 clean-SHA 总门禁通过。
 
@@ -93,7 +106,7 @@
 
 - `apps/employee-mobile` 不存在；员工移动端未实现。
 - `apps/tenant-miniprogram` 不存在；租户微信小程序未实现。
-- `analytics`、`ai_assist`、`finance`、`tenant_ops` 仍是未挂载的空响应或 stub，不能计为能力。
+- `analytics`、`ai_assist`、`finance`、`tenant_ops` 仍是未挂载的空响应或 stub，不能计为驾驶舱、AI、完整财务或租户服务；已实现的工作台自动化不外推这些能力。
 - 资产与租控本次定义范围已闭合；集团/区域/园区归属治理已闭合；GIS/CAD/BIM 地图与更深组合经营分析仍未实现。
 - CRM/锁房与合同 V2 定义范围已形成代码与本地验收；真实外部渠道、企微回调/自动触达、意向审批、AI 评分、自动计费/对账催缴、IoT/巡检、HR/供应链、完整驾驶舱和真实旧数据迁移仍未完成。
 - 外部短信/微信/邮件/OSS/支付/签章/发票/IoT 无真实凭据，生产联调均 `NOT_LIVE`。
@@ -102,8 +115,8 @@
 
 ## 下一恢复点
 
-1. 审批/审计 clean-SHA 证据与 OpenSpec 归档已提交并正常推送，纵切关闭。
-2. 建设事件驱动待办、规则/定时任务和多角色可配置工作台，继续关闭组合能力 2。
+1. 提交并正常推送工作台/自动化纵切，在精确 clean SHA 上重跑 28 项总闸门；复制 clean 报告后同步主规格并归档。
+2. 继续关闭能力矩阵剩余 15 个 `MISSING`，优先选择下一个能形成完整真实旅程的业务纵切。
 3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 
 ## 不可变安全约束

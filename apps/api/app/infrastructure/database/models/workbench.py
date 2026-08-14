@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import FK_TYPE, Base, PrimaryKeyMixin, TimestampMixin
@@ -45,3 +45,13 @@ class WorkItem(Base, PrimaryKeyMixin, TimestampMixin):
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     completed_by: Mapped[Optional[int]] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    deep_link: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    escalation_level: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    reassigned_from_user_id: Mapped[Optional[int]] = mapped_column(
+        FK_TYPE, ForeignKey("users.id"), nullable=True
+    )
+    last_event_id: Mapped[Optional[int]] = mapped_column(
+        FK_TYPE, ForeignKey("business_events.id"), nullable=True
+    )
+    source_owned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    lock_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)

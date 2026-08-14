@@ -38,6 +38,7 @@ class TenantContext:
     username: str = "system"
     park_ids: list[int] = field(default_factory=list)
     permissions: list[str] = field(default_factory=list)
+    database_permissions: list[str] | None = None
     park_scope_mode: ParkScopeMode = ParkScopeMode.NONE
     is_platform_admin: bool = False
     request_id: str = ""
@@ -70,7 +71,16 @@ class TenantContext:
         return False
 
     def has_permission(self, permission_code: str) -> bool:
-        """功能说明：判断动作权限；`*` 为全部动作权限，不授予园区范围。"""
+        """判断动作权限；高风险平台权限同时受当前数据库授权约束。"""
 
         permissions = self.permissions or []
-        return "*" in permissions or permission_code in permissions
+        token_allows = "*" in permissions or permission_code in permissions
+        if not token_allows:
+            return False
+        sensitive = permission_code.startswith(
+            ("automation.", "scheduler.", "event.", "workbench.layout.", "notification.")
+        ) or permission_code in {"work_item:reassign", "work_item:override_source"}
+        if not sensitive or self.database_permissions is None:
+            return True
+        grants = self.database_permissions or []
+        return "*" in grants or permission_code in grants

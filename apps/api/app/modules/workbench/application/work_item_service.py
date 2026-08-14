@@ -15,6 +15,8 @@ from app.core.errors import AppError
 from app.infrastructure.database.audit import AuditRecorder
 from app.infrastructure.database.base import utc_now
 from app.modules.park_property.infrastructure.park_repository import ParkRepository
+from app.modules.workbench.domain.registry import is_safe_deep_link
+from app.modules.workbench.infrastructure.automation_repository import AutomationRepository
 from app.modules.workbench.infrastructure.work_item_repository import WorkItemRepository
 from app.shared.tenant_context import TenantContext
 
@@ -32,6 +34,7 @@ class WorkItemService:
         self.session = session
         self.ctx = ctx
         self.items = WorkItemRepository(session, ctx)
+        self.automation = AutomationRepository(session, ctx)
         self.parks = ParkRepository(session, ctx)
         self.audit = AuditRecorder(session, ctx)
 
@@ -87,6 +90,12 @@ class WorkItemService:
             "completed_at": model.completed_at.isoformat() if model.completed_at else None,
             "completed_by": model.completed_by,
             "sort_order": model.sort_order,
+            "deep_link": model.deep_link,
+            "escalation_level": model.escalation_level,
+            "reassigned_from_user_id": model.reassigned_from_user_id,
+            "last_event_id": model.last_event_id,
+            "source_owned": model.source_owned,
+            "lock_version": model.lock_version,
             "created_at": model.created_at.isoformat() if model.created_at else None,
             "updated_at": model.updated_at.isoformat() if model.updated_at else None,
         }
@@ -110,16 +119,9 @@ class WorkItemService:
             raise AppError("status 无效", code="VALIDATION_ERROR", status_code=400)
         if park_id is not None:
             self._assert_park_access(int(park_id))
-        items = self.items.list(
+        total, items = self.items.list_with_total(
             offset=(page - 1) * page_size,
             limit=page_size,
-            status=status,
-            park_id=park_id,
-            assignee_user_id=assignee_user_id,
-            item_type=item_type,
-            mine=mine,
-        )
-        total = self.items.count(
             status=status,
             park_id=park_id,
             assignee_user_id=assignee_user_id,
@@ -165,6 +167,9 @@ class WorkItemService:
         assignee = data.get("assignee_user_id")
         assignee_user_id = int(assignee) if assignee is not None else None
         sort_order = int(data.get("sort_order") or 0)
+        deep_link = str(data.get("deep_link") or "").strip() or None
+        if not is_safe_deep_link(deep_link):
+            raise AppError("deep_link 无效", code="VALIDATION_ERROR", status_code=400)
 
         # 人工待办：唯一 source 防撞 uk_work_item_source
         source_type = "MANUAL"
@@ -183,6 +188,8 @@ class WorkItemService:
                 source_type=source_type,
                 source_id=source_id,
                 sort_order=sort_order,
+                deep_link=deep_link,
+                source_owned=False,
             )
             self.audit.record(
                 action="create",
@@ -211,10 +218,51 @@ class WorkItemService:
         )
         return self._to_dict(model)
 
-    def complete_work_item(self, work_item_id: int, *, commit: bool = True) -> dict[str, Any]:
+    def _assert_manual_transition(
+        self,
+        model,
+        *,
+        expected_version: Optional[int],
+        override_reason: Optional[str],
+    ) -> None:
+        if expected_version is None:
+            raise AppError("expected_version 必填", code="VALIDATION_ERROR", status_code=400)
+        if int(model.lock_version) != int(expected_version):
+            raise AppError(
+                "待办已被其他操作更新",
+                code="WORK_ITEM_VERSION_CONFLICT",
+                status_code=409,
+                data={"current_version": int(model.lock_version)},
+            )
+        if model.source_owned:
+            if not self.ctx.has_permission("work_item:override_source"):
+                raise AppError(
+                    "来源待办必须由业务来源关闭",
+                    code="WORK_ITEM_SOURCE_OWNED",
+                    status_code=409,
+                )
+            reason = str(override_reason or "").strip()
+            if len(reason) < 5:
+                raise AppError(
+                    "覆盖来源待办必须填写至少 5 个字符的原因",
+                    code="OVERRIDE_REASON_REQUIRED",
+                    status_code=400,
+                )
+
+    def complete_work_item(
+        self,
+        work_item_id: int,
+        *,
+        expected_version: Optional[int] = None,
+        override_reason: Optional[str] = None,
+        commit: bool = True,
+    ) -> dict[str, Any]:
         if not self.ctx.has_permission("work_item:write"):
             raise AppError("无待办维护权限", code="PERMISSION_DENIED", status_code=403)
         model = self._require(work_item_id, for_update=True)
+        self._assert_manual_transition(
+            model, expected_version=expected_version, override_reason=override_reason
+        )
         if model.status == "DONE":
             return self._to_dict(model)
         if model.status == "CANCELLED":
@@ -222,13 +270,14 @@ class WorkItemService:
         model.status = "DONE"
         model.completed_at = utc_now()
         model.completed_by = self.ctx.user_id or None
+        model.lock_version = int(model.lock_version) + 1
         self.items.save(model)
         self.audit.record(
             action="complete",
             resource_type="WORK_ITEM",
             resource_id=model.id,
             park_id=model.park_id,
-            detail={},
+            detail={"override_reason": override_reason if model.source_owned else None},
         )
         if commit:
             self.session.commit()
@@ -243,47 +292,151 @@ class WorkItemService:
         )
         return self._to_dict(model)
 
-    def cancel_work_item(self, work_item_id: int, *, commit: bool = True) -> dict[str, Any]:
+    def cancel_work_item(
+        self,
+        work_item_id: int,
+        *,
+        expected_version: Optional[int] = None,
+        override_reason: Optional[str] = None,
+        commit: bool = True,
+    ) -> dict[str, Any]:
         if not self.ctx.has_permission("work_item:write"):
             raise AppError("无待办维护权限", code="PERMISSION_DENIED", status_code=403)
         model = self._require(work_item_id, for_update=True)
+        self._assert_manual_transition(
+            model, expected_version=expected_version, override_reason=override_reason
+        )
         if model.status == "CANCELLED":
             return self._to_dict(model)
         if model.status == "DONE":
             raise AppError("已完成待办不可取消", code="WORK_ITEM_STATUS_INVALID", status_code=400)
         model.status = "CANCELLED"
+        model.lock_version = int(model.lock_version) + 1
         self.items.save(model)
         self.audit.record(
             action="cancel",
             resource_type="WORK_ITEM",
             resource_id=model.id,
             park_id=model.park_id,
-            detail={},
+            detail={"override_reason": override_reason if model.source_owned else None},
         )
         if commit:
             self.session.commit()
         return self._to_dict(model)
 
-    def reopen_work_item(self, work_item_id: int, *, commit: bool = True) -> dict[str, Any]:
+    def reopen_work_item(
+        self,
+        work_item_id: int,
+        *,
+        expected_version: Optional[int] = None,
+        override_reason: Optional[str] = None,
+        commit: bool = True,
+    ) -> dict[str, Any]:
         if not self.ctx.has_permission("work_item:write"):
             raise AppError("无待办维护权限", code="PERMISSION_DENIED", status_code=403)
         model = self._require(work_item_id, for_update=True)
+        self._assert_manual_transition(
+            model, expected_version=expected_version, override_reason=override_reason
+        )
         if model.status == "OPEN":
             return self._to_dict(model)
         model.status = "OPEN"
         model.completed_at = None
         model.completed_by = None
+        model.lock_version = int(model.lock_version) + 1
         self.items.save(model)
         self.audit.record(
             action="reopen",
             resource_type="WORK_ITEM",
             resource_id=model.id,
             park_id=model.park_id,
-            detail={},
+            detail={"override_reason": override_reason if model.source_owned else None},
         )
         if commit:
             self.session.commit()
         return self._to_dict(model)
+
+    def reassign_work_item(
+        self,
+        work_item_id: int,
+        *,
+        expected_version: int,
+        assignee_user_id: int,
+        reason: str,
+    ) -> dict[str, Any]:
+        if not self.ctx.has_permission("work_item:reassign"):
+            raise AppError("无待办改派权限", code="PERMISSION_DENIED", status_code=403)
+        model = self._require(work_item_id, for_update=True)
+        if model.status != "OPEN":
+            raise AppError("仅开放待办可改派", code="WORK_ITEM_STATUS_INVALID", status_code=409)
+        if int(model.lock_version) != int(expected_version):
+            raise AppError(
+                "待办已被其他操作更新",
+                code="WORK_ITEM_VERSION_CONFLICT",
+                status_code=409,
+                data={"current_version": int(model.lock_version)},
+            )
+        if not self.automation.user_exists(int(assignee_user_id)):
+            raise AppError("改派用户不存在", code="ASSIGNEE_NOT_FOUND", status_code=400)
+        old_assignee = model.assignee_user_id
+        if old_assignee == int(assignee_user_id):
+            return self._to_dict(model)
+        model.reassigned_from_user_id = old_assignee
+        model.assignee_user_id = int(assignee_user_id)
+        model.lock_version = int(model.lock_version) + 1
+        self.items.save(model)
+        self.audit.record(
+            action="reassign",
+            resource_type="WORK_ITEM",
+            resource_id=model.id,
+            park_id=model.park_id,
+            detail={
+                "from_user_id": old_assignee,
+                "to_user_id": int(assignee_user_id),
+                "reason": str(reason)[:200],
+            },
+        )
+        self.session.commit()
+        return self._to_dict(model)
+
+    def escalate_by_source(
+        self,
+        *,
+        source_type: str,
+        source_id: str,
+        item_type: str,
+        event_id: int,
+        assignee_user_id: Optional[int] = None,
+        commit: bool = True,
+    ) -> Optional[dict[str, Any]]:
+        existing = self.items.get_by_source(
+            source_type=source_type,
+            source_id=source_id,
+            item_type=item_type,
+            for_update=True,
+        )
+        if existing is None or existing.status != "OPEN":
+            return None
+        if existing.last_event_id == int(event_id):
+            return self._to_dict(existing)
+        if assignee_user_id is not None and existing.assignee_user_id != int(assignee_user_id):
+            existing.reassigned_from_user_id = existing.assignee_user_id
+            existing.assignee_user_id = int(assignee_user_id)
+        existing.escalation_level = int(existing.escalation_level) + 1
+        existing.priority = "URGENT"
+        existing.last_event_id = int(event_id)
+        existing.lock_version = int(existing.lock_version) + 1
+        self.items.save(existing)
+        self.audit.record(
+            action="escalate",
+            resource_type="WORK_ITEM",
+            resource_id=existing.id,
+            park_id=existing.park_id,
+            detail={"event_id": int(event_id), "level": int(existing.escalation_level)},
+        )
+        if commit:
+            self.session.commit()
+        return self._to_dict(existing)
 
     def ensure_from_source(
         self,
@@ -297,6 +450,8 @@ class WorkItemService:
         priority: str = "MEDIUM",
         assignee_user_id: Optional[int] = None,
         due_at: Any = None,
+        deep_link: Optional[str] = None,
+        last_event_id: Optional[int] = None,
         commit: bool = True,
     ) -> dict[str, Any]:
         """功能说明：按业务来源幂等打开/复开待办（供账单/合同等域事件调用）。
@@ -321,6 +476,8 @@ class WorkItemService:
         park_id = self._assert_park_access(int(park_id) if park_id is not None else None)
         priority = self._normalize_priority(priority)
         due = self._parse_dt(due_at)
+        if not is_safe_deep_link(deep_link):
+            raise AppError("deep_link 无效", code="VALIDATION_ERROR", status_code=400)
 
         existing = self.items.get_by_source(
             source_type=source_type,
@@ -339,10 +496,16 @@ class WorkItemService:
                 existing.assignee_user_id = assignee_user_id
             if due is not None:
                 existing.due_at = due
+            if deep_link is not None:
+                existing.deep_link = deep_link
+            if last_event_id is not None and existing.last_event_id != int(last_event_id):
+                existing.last_event_id = int(last_event_id)
             if existing.status != "OPEN":
                 existing.status = "OPEN"
                 existing.completed_at = None
                 existing.completed_by = None
+            existing.source_owned = True
+            existing.lock_version = int(existing.lock_version) + 1
             self.items.save(existing)
             if commit:
                 self.session.commit()
@@ -360,6 +523,9 @@ class WorkItemService:
                 due_at=due,
                 source_type=source_type,
                 source_id=source_id,
+                deep_link=deep_link,
+                source_owned=True,
+                last_event_id=last_event_id,
             )
             self.audit.record(
                 action="ensure",
@@ -417,6 +583,7 @@ class WorkItemService:
         existing.status = "DONE"
         existing.completed_at = utc_now()
         existing.completed_by = self.ctx.user_id or None
+        existing.lock_version = int(existing.lock_version) + 1
         self.items.save(existing)
         self.audit.record(
             action="complete",
@@ -450,6 +617,7 @@ class WorkItemService:
         if existing.status in {"CANCELLED", "DONE"}:
             return self._to_dict(existing)
         existing.status = "CANCELLED"
+        existing.lock_version = int(existing.lock_version) + 1
         self.items.save(existing)
         self.audit.record(
             action="cancel",

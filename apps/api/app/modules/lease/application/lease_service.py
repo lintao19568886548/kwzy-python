@@ -31,6 +31,14 @@ from app.modules.lease.domain.rules import (
     assert_term_type,
     is_editable_status,
 )
+from app.modules.lease.infrastructure.collaboration_adapters import (
+    CrmUnitLockReadAdapter,
+    CurrentUnitReferenceAdapter,
+    LeaseWorkItemAdapter,
+    ScopedParkReferenceAdapter,
+    ScopedPartyEligibilityAdapter,
+    TransactionalBusinessEventPublisher,
+)
 from app.modules.lease.infrastructure.lease_repository import (
     LeaseContractRepository,
     LeaseContractUnitRepository,
@@ -40,13 +48,6 @@ from app.modules.lease.infrastructure.mappers import (
     LeaseContractMapper,
     LeaseContractUnitMapper,
     LeaseTermMapper,
-)
-from app.modules.lease.infrastructure.collaboration_adapters import (
-    CrmUnitLockReadAdapter,
-    CurrentUnitReferenceAdapter,
-    LeaseWorkItemAdapter,
-    ScopedParkReferenceAdapter,
-    ScopedPartyEligibilityAdapter,
 )
 from app.shared.tenant_context import TenantContext
 
@@ -76,6 +77,7 @@ class LeaseService:
         self.lead_unit_locks = CrmUnitLockReadAdapter(session, ctx)
         self.audit = AuditRecorder(session, ctx)
         self.work_items = LeaseWorkItemAdapter(session, ctx)
+        self.events = TransactionalBusinessEventPublisher(session, ctx)
 
     def _open_expiring_todo(self, model) -> None:
         """激活后幂等打开合同到期待办（不侵入合同状态机）。"""
@@ -579,6 +581,21 @@ class LeaseService:
             lock.lock_version += 1
             self.session.add(lock)
         self._open_expiring_todo(model)
+        self.events.emit(
+            event_type="LEASE_ACTIVATED",
+            source_type="LEASE",
+            source_id=str(model.id),
+            idempotency_key=f"lease-activated:{model.id}",
+            park_id=int(model.park_id) if model.park_id is not None else None,
+            payload={
+                "title": f"合同已激活 {model.contract_no or model.id}",
+                "description": "合同进入履约期",
+                "priority": "HIGH",
+                "due_at": model.end_date.isoformat() if model.end_date else None,
+                "deep_link": "/leases",
+                "park_id": int(model.park_id) if model.park_id is not None else None,
+            },
+        )
 
         self.audit.record(
             action="activate",
@@ -622,6 +639,19 @@ class LeaseService:
             if unit is not None:
                 self.occupancy.recompute_unit_used_area(unit)
         self._close_expiring_todo(contract_id)
+        self.events.emit(
+            event_type="LEASE_TERMINATED",
+            source_type="LEASE",
+            source_id=str(model.id),
+            idempotency_key=f"lease-{target.lower()}:{model.id}",
+            park_id=int(model.park_id) if model.park_id is not None else None,
+            payload={
+                "title": f"合同已{target}",
+                "description": "合同占用已释放",
+                "deep_link": "/leases",
+                "park_id": int(model.park_id) if model.park_id is not None else None,
+            },
+        )
 
         self.audit.record(
             action="breach" if breached else "terminate",

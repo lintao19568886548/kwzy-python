@@ -1,14 +1,14 @@
 # 瞰维智管 V2 独立验收能力矩阵
 
 > 审计日期：2026-08-14（Asia/Shanghai）
-> 最近 clean-SHA 证据：审批/审计实现提交 `13243b4488a79ee6eccfc505812b5315263d7c83`，26/26 总门禁通过；组织治理 clean-SHA `8bb87707251de1e4c22cf4009928c71d84958b8a` 仍保留。
+> 最近完整工作树证据：统一工作台/自动化 28/28 总门禁通过；clean-SHA 提交与复验待本纵切提交后补录。审批/审计 clean-SHA `13243b4488a79ee6eccfc505812b5315263d7c83` 仍保留。
 > 判定规则：只使用 `IMPLEMENTED_AND_VERIFIED`、`APPROVED_RETIRED`、`APPROVED_DEFERRED`、`BLOCKED`、`MISSING`。子能力通过但组合需求未闭环时，组合项必须判为 `MISSING`；没有人工批准，不使用 retired/deferred。
 
 ## 当前整改纵切
 
 - 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
-- OpenSpec：组织治理已归档；当前 `complete-platform-approval-audit-center` 覆盖定义、实例、任务/委托、审计链、PC 和迁移证据，任务只在对应机器证据齐备后关闭。
-- 已关闭证据：集团→区域→园区历史归属、岗位任职和字段策略；版本化审批、稳定任务、委托/SLA、自审批门禁、可验证审计链及 PC 真实旅程；PG16、HTTP、浏览器和合成 ETL 均有独立证据。
+- OpenSpec：组织治理与审批/审计已归档；当前 `complete-platform-workbench-automation` 覆盖事件、规则、通知、调度、工作项治理、角色/个人布局、PC 和迁移证据。
+- 已关闭证据：组织/审批/审计；事务事件、有限重试/死信/replay、受限规则、通知、持久调度、来源工作项、多角色布局和 PC 控制面；PG16、HTTP、浏览器、性能和合成 ETL 均有独立证据。
 - 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 
 ## 产品能力
@@ -16,7 +16,7 @@
 | # | 能力 | 独立核验证据 | 未关闭事实 | 状态 |
 | --- | --- | --- | --- | --- |
 | 1 | 组织/RBAC/园区范围/审批/审计 | 集团/区域/园区历史归属、岗位任职、字段策略、会话/RBAC/园区 grant；版本化定义、ANY/ALL 多步实例、任务/委托/SLA、自审批门禁、幂等/并发、事务哈希审计、查询/校验/导出和 PC 真栈均通过 | — | `IMPLEMENTED_AND_VERIFIED` |
-| 2 | 统一工作台和自动待办 | WorkItem、摘要、合同治理待办可运行 | 多角色组件配置、全事件源、自动升级/改派/复核未完成 | `MISSING` |
+| 2 | 统一工作台和自动待办 | 事务事件和消费者、受限版本化规则、通知、持久调度、独立 worker、来源待办、升级/改派、用户→角色→服务器布局、实时 PC 工作台/控制面；PG16/真实 HTTP/50 条浏览器/性能/合成 ETL 均通过 | — | `IMPLEMENTED_AND_VERIFIED` |
 | 3 | 资产模板、租控矩阵、拆分合并和历史 | 空间树、单元版本/血缘、拆并并发、矩阵/列表 UI 已验证 | 业态模板、地图/GIS/CAD/BIM、组合分析未完成 | `MISSING` |
 | 4 | 招商线索、分配、公共池、跟进、带看和锁房 | 去重、人工分配/改派、公海、活动、匹配、限时锁房和转化有 PG/E2E | 自动分配、意向审批和外部渠道未完成 | `MISSING` |
 | 5 | 客户、租户、联系人和企业画像 | Party、联系人、地址、角色、园区关系已实现 | 完整企业画像、关联企业、受控证件/风险画像未完成 | `MISSING` |
@@ -36,7 +36,7 @@
 | 19 | 外部平台适配器 | SMS/通知/对象存储/签章有局部 fake/local/fail-closed 端口 | 银行、支付、税票、IoT、企微等多数适配器缺失；已有端口也未真实联调 | `MISSING` |
 | 20 | 数据迁移和切换 Runbook | PG16 合成 dry/apply/中断/幂等/对账/回滚和备份恢复通过 | 缺经授权旧 schema/脱敏快照、增量同步、停写切换与真实对账 | `BLOCKED` |
 
-汇总：`IMPLEMENTED_AND_VERIFIED=3`，`BLOCKED=1`，`MISSING=16`，`APPROVED_RETIRED=0`，`APPROVED_DEFERRED=0`。
+汇总：`IMPLEMENTED_AND_VERIFIED=4`，`BLOCKED=1`，`MISSING=15`，`APPROVED_RETIRED=0`，`APPROVED_DEFERRED=0`。
 
 ## 22 条关键旅程
 
@@ -62,12 +62,12 @@
 | 18 | 驾驶舱指标与原始记录对账 | `MISSING` | 无完整驾驶舱 |
 | 19 | 员工移动端现场任务 | `MISSING` | 应用不存在 |
 | 20 | 租户小程序缴费/报修/访客/预约 | `MISSING` | 应用不存在 |
-| 21 | 越权、跨租户、重复提交、并发冲突 | `IMPLEMENTED_AND_VERIFIED` | 已实现切片的 HTTP/E2E/PG 测试通过；审批新增跨租户审批人、伪造权限、提交/决定幂等、发布/决定并发和 409 表单保持证据 |
+| 21 | 越权、跨租户、重复提交、并发冲突 | `IMPLEMENTED_AND_VERIFIED` | 已实现切片的 HTTP/E2E/PG 测试通过；审批与工作台新增收件人/园区隔离、伪造权限、事件/动作/调度幂等、并发 claim、死信代次 replay 和布局/工作项 409 证据 |
 | 22 | AI 低风险操作与高风险确认 | `MISSING` | AI 业务层未实现 |
 
 ## 旧系统替代判定
 
-旧证据库 `D:\重构python\kwzg-Java-main` 的静态取证为 54 个 Controller、约 484 个 HTTP mapping、316 个 Vue 文件、30 张 SQL DDL 表。Python 仓库只有 API 与 PC Web 两个应用，且上表仍有 16 项组合能力缺失，因此：
+旧证据库 `D:\重构python\kwzg-Java-main` 的静态取证为 54 个 Controller、约 484 个 HTTP mapping、316 个 Vue 文件、30 张 SQL DDL 表。Python 仓库只有 API 与 PC Web 两个应用，且上表仍有 15 项组合能力缺失，因此：
 
 ```text
 KWZY_LEGACY_REPLACEMENT=BLOCKED

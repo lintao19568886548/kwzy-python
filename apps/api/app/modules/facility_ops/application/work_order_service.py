@@ -14,6 +14,7 @@ from app.infrastructure.database.audit import AuditRecorder
 from app.infrastructure.database.base import utc_now
 from app.modules.facility_ops.infrastructure.work_order_repository import WorkOrderRepository
 from app.modules.park_property.infrastructure.park_repository import ParkRepository
+from app.modules.workbench.application.automation_service import WorkbenchAutomationService
 from app.modules.workbench.application.work_item_service import WorkItemService
 from app.shared.tenant_context import TenantContext
 
@@ -30,6 +31,7 @@ class WorkOrderService:
         self.orders = WorkOrderRepository(session, ctx)
         self.parks = ParkRepository(session, ctx)
         self.work_items = WorkItemService(session, ctx)
+        self.events = WorkbenchAutomationService(session, ctx)
         self.audit = AuditRecorder(session, ctx)
 
     def _require(self, work_order_id: int, *, for_update: bool = False):
@@ -138,6 +140,24 @@ class WorkOrderService:
             due_at=due_at.isoformat() if due_at else None,
             commit=False,
         )
+        self.events.emit_event(
+            event_type="WORK_ORDER_CREATED",
+            source_type="WORK_ORDER",
+            source_id=str(model.id),
+            idempotency_key=f"work-order-created:{model.id}",
+            park_id=park_id,
+            payload={
+                "title": f"新工单 {title[:80]}",
+                "description": str(data.get("description") or "待处理工单")[:500],
+                "priority": priority,
+                "assignee_user_id": model.assignee_user_id,
+                "due_at": due_at.isoformat() if due_at else None,
+                "deep_link": "/work-orders",
+                "park_id": park_id,
+            },
+            commit=False,
+            enforce_permission=False,
+        )
         self.audit.record(
             action="create",
             resource_type="WORK_ORDER",
@@ -184,6 +204,21 @@ class WorkOrderService:
             source_id=str(work_order_id),
             item_type=WO_ITEM_TYPE,
             commit=False,
+        )
+        self.events.emit_event(
+            event_type="WORK_ORDER_COMPLETED",
+            source_type="WORK_ORDER",
+            source_id=str(model.id),
+            idempotency_key=f"work-order-completed:{model.id}",
+            park_id=int(model.park_id),
+            payload={
+                "title": f"工单已完成 {model.title[:80]}",
+                "description": "工单处理完成",
+                "deep_link": "/work-orders",
+                "park_id": int(model.park_id),
+            },
+            commit=False,
+            enforce_permission=False,
         )
         self.audit.record(
             action="complete",

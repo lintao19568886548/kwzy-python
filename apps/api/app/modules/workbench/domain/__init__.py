@@ -1,0 +1,1 @@
+"""Workbench automation domain contracts."""

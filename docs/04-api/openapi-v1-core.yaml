@@ -3032,6 +3032,12 @@ paths:
           in: path
           required: true
           schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkItemTransition'
       responses:
         '200':
           description: OK
@@ -3051,6 +3057,12 @@ paths:
           in: path
           required: true
           schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkItemTransition'
       responses:
         '200':
           description: OK
@@ -3070,6 +3082,37 @@ paths:
           in: path
           required: true
           schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkItemTransition'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkItem'
+
+  /work-items/{work_item_id}/reassign:
+    post:
+      tags: [WorkItems]
+      summary: 改派待办
+      operationId: reassignWorkItem
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: work_item_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkItemReassign'
       responses:
         '200':
           description: OK
@@ -3837,6 +3880,886 @@ paths:
         '200': { $ref: '#/components/responses/OrganizationGovernanceOK' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '409': { $ref: '#/components/responses/Conflict' }
+
+  /business-events:
+    post:
+      tags:
+      - WorkItems
+      summary: Emit Business Event
+      operationId: emit_business_event_api_v1_business_events_post
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BusinessEventEmit'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Emit Business Event Api V1 Business Events Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - WorkItems
+      summary: List Business Events
+      operationId: list_business_events_api_v1_business_events_get
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: event_type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Event Type
+      - name: park_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Park Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response List Business Events Api V1 Business Events Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /business-events/dispatch:
+    post:
+      tags:
+      - WorkItems
+      summary: Dispatch Business Events
+      operationId: dispatch_business_events_api_v1_business_events_dispatch_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 500
+          minimum: 1
+          default: 100
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Dispatch Business Events Api V1 Business Events Dispatch Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /event-consumers/{consumer_id}/replay:
+    post:
+      tags:
+      - WorkItems
+      summary: Replay Event Consumer
+      operationId: replay_event_consumer_api_v1_event_consumers__consumer_id__replay_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: consumer_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Consumer Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReplayRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Replay Event Consumer Api V1 Event Consumers  Consumer Id  Replay Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /automation-rules:
+    get:
+      tags:
+      - WorkItems
+      summary: List Automation Rules
+      operationId: list_automation_rules_api_v1_automation_rules_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response List Automation Rules Api V1 Automation Rules Get
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - WorkItems
+      summary: Create Automation Rule
+      operationId: create_automation_rule_api_v1_automation_rules_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RuleCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Create Automation Rule Api V1 Automation Rules Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - bearerAuth: []
+  /automation-rules/{rule_id}/draft:
+    put:
+      tags:
+      - WorkItems
+      summary: Update Automation Rule Draft
+      operationId: update_automation_rule_draft_api_v1_automation_rules__rule_id__draft_put
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: rule_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Rule Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RuleDraftUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Update Automation Rule Draft Api V1 Automation Rules  Rule Id  Draft Put
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - WorkItems
+      summary: Create Automation Rule Draft
+      operationId: create_automation_rule_draft_api_v1_automation_rules__rule_id__draft_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: rule_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Rule Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkbenchVersionCommand'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Create Automation Rule Draft Api V1 Automation Rules  Rule Id  Draft Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /automation-rules/{rule_id}/publish:
+    post:
+      tags:
+      - WorkItems
+      summary: Publish Automation Rule
+      operationId: publish_automation_rule_api_v1_automation_rules__rule_id__publish_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: rule_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Rule Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkbenchVersionCommand'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Publish Automation Rule Api V1 Automation Rules  Rule Id  Publish Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /automation-rules/{rule_id}/retire:
+    post:
+      tags:
+      - WorkItems
+      summary: Retire Automation Rule
+      operationId: retire_automation_rule_api_v1_automation_rules__rule_id__retire_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: rule_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Rule Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkbenchVersionCommand'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Retire Automation Rule Api V1 Automation Rules  Rule Id  Retire Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /automation-executions:
+    get:
+      tags:
+      - WorkItems
+      summary: List Automation Executions
+      operationId: list_automation_executions_api_v1_automation_executions_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response List Automation Executions Api V1 Automation Executions Get
+      security:
+      - bearerAuth: []
+  /notifications:
+    get:
+      tags:
+      - WorkItems
+      summary: List Notifications
+      operationId: list_notifications_api_v1_notifications_get
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response List Notifications Api V1 Notifications Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /notifications/bulk-read:
+    post:
+      tags:
+      - WorkItems
+      summary: Bulk Read Notifications
+      operationId: bulk_read_notifications_api_v1_notifications_bulk_read_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationBulkRead'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Bulk Read Notifications Api V1 Notifications Bulk Read Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - bearerAuth: []
+  /notifications/{notification_id}/read:
+    post:
+      tags:
+      - WorkItems
+      summary: Read Notification
+      operationId: read_notification_api_v1_notifications__notification_id__read_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: notification_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Notification Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Read Notification Api V1 Notifications  Notification Id  Read Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /notifications/{notification_id}/archive:
+    post:
+      tags:
+      - WorkItems
+      summary: Archive Notification
+      operationId: archive_notification_api_v1_notifications__notification_id__archive_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: notification_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Notification Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Archive Notification Api V1 Notifications  Notification Id  Archive Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /scheduler/definitions:
+    get:
+      tags:
+      - WorkItems
+      summary: List Scheduler Definitions
+      operationId: list_scheduler_definitions_api_v1_scheduler_definitions_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response List Scheduler Definitions Api V1 Scheduler Definitions Get
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - WorkItems
+      summary: Create Scheduler Definition
+      operationId: create_scheduler_definition_api_v1_scheduler_definitions_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Create Scheduler Definition Api V1 Scheduler Definitions Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - bearerAuth: []
+  /scheduler/definitions/{schedule_id}:
+    put:
+      tags:
+      - WorkItems
+      summary: Update Scheduler Definition
+      operationId: update_scheduler_definition_api_v1_scheduler_definitions__schedule_id__put
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: schedule_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Schedule Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Update Scheduler Definition Api V1 Scheduler Definitions  Schedule Id  Put
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /scheduler/definitions/{schedule_id}/run:
+    post:
+      tags:
+      - WorkItems
+      summary: Run Scheduler Definition
+      operationId: run_scheduler_definition_api_v1_scheduler_definitions__schedule_id__run_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: schedule_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Schedule Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleRunRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Run Scheduler Definition Api V1 Scheduler Definitions  Schedule Id  Run Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /scheduler/poll:
+    post:
+      tags:
+      - WorkItems
+      summary: Poll Scheduler
+      operationId: poll_scheduler_api_v1_scheduler_poll_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Poll Scheduler Api V1 Scheduler Poll Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /scheduler/recover:
+    post:
+      tags:
+      - WorkItems
+      summary: Recover Scheduler
+      operationId: recover_scheduler_api_v1_scheduler_recover_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 100
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Recover Scheduler Api V1 Scheduler Recover Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /scheduler/runs:
+    get:
+      tags:
+      - WorkItems
+      summary: List Scheduler Runs
+      operationId: list_scheduler_runs_api_v1_scheduler_runs_get
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: schedule_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Schedule Id
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 500
+          minimum: 1
+          default: 100
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response List Scheduler Runs Api V1 Scheduler Runs Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /workbench/layout:
+    get:
+      tags:
+      - WorkItems
+      summary: Effective Workbench Layout
+      operationId: effective_workbench_layout_api_v1_workbench_layout_get
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: park_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Park Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Effective Workbench Layout Api V1 Workbench Layout Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+      - WorkItems
+      summary: Save Workbench Layout
+      operationId: save_workbench_layout_api_v1_workbench_layout_put
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LayoutSave'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Save Workbench Layout Api V1 Workbench Layout Put
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - WorkItems
+      summary: Reset Workbench Layout
+      operationId: reset_workbench_layout_api_v1_workbench_layout_delete
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Reset Workbench Layout Api V1 Workbench Layout Delete
+  /workbench/layout/roles:
+    get:
+      tags:
+      - WorkItems
+      summary: List Role Workbench Layouts
+      operationId: list_role_workbench_layouts_api_v1_workbench_layout_roles_get
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response List Role Workbench Layouts Api V1 Workbench Layout Roles Get
+  /workbench/layout/roles/{role_id}:
+    get:
+      tags:
+      - WorkItems
+      summary: Get Role Workbench Layout
+      operationId: get_role_workbench_layout_api_v1_workbench_layout_roles__role_id__get
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: role_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Role Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Role Workbench Layout Api V1 Workbench Layout Roles  Role Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+      - WorkItems
+      summary: Save Role Workbench Layout
+      operationId: save_role_workbench_layout_api_v1_workbench_layout_roles__role_id__put
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: role_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Role Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleLayoutSave'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Save Role Workbench Layout Api V1 Workbench Layout Roles  Role Id  Put
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
 
 components:
   securitySchemes:
@@ -5075,6 +5998,12 @@ components:
         completed_at: { type: string, format: date-time, nullable: true }
         completed_by: { type: integer, format: int64, nullable: true }
         sort_order: { type: integer }
+        deep_link: { type: string, nullable: true, maxLength: 512 }
+        escalation_level: { type: integer, minimum: 0 }
+        reassigned_from_user_id: { type: integer, format: int64, nullable: true }
+        last_event_id: { type: integer, format: int64, nullable: true }
+        source_owned: { type: boolean }
+        lock_version: { type: integer, minimum: 1 }
         created_at: { type: string, format: date-time, nullable: true }
         updated_at: { type: string, format: date-time, nullable: true }
     WorkItemCreate:
@@ -5089,6 +6018,22 @@ components:
         assignee_user_id: { type: integer, format: int64, nullable: true }
         due_at: { type: string, format: date-time, nullable: true }
         sort_order: { type: integer, default: 0 }
+        deep_link: { type: string, nullable: true, maxLength: 512 }
+    WorkItemTransition:
+      type: object
+      additionalProperties: false
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        override_reason: { type: string, nullable: true, maxLength: 500 }
+    WorkItemReassign:
+      type: object
+      additionalProperties: false
+      required: [expected_version, assignee_user_id, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        assignee_user_id: { type: integer, format: int64, minimum: 1 }
+        reason: { type: string, minLength: 5, maxLength: 500 }
     WorkItemPage:
       type: object
       properties:
@@ -5703,7 +6648,470 @@ components:
         result_meta: { type: object, additionalProperties: true, nullable: true }
         error_message: { type: string, nullable: true }
 
-
-
-
-
+    BusinessEventEmit:
+      properties:
+        event_type:
+          type: string
+          maxLength: 96
+          minLength: 1
+          title: Event Type
+        source_type:
+          type: string
+          maxLength: 64
+          minLength: 1
+          title: Source Type
+        source_id:
+          type: string
+          maxLength: 96
+          minLength: 1
+          title: Source Id
+        idempotency_key:
+          type: string
+          maxLength: 192
+          minLength: 8
+          title: Idempotency Key
+        park_id:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Park Id
+        schema_version:
+          type: integer
+          maximum: 20.0
+          minimum: 1.0
+          title: Schema Version
+          default: 1
+        payload:
+          additionalProperties: true
+          type: object
+          title: Payload
+      type: object
+      required:
+      - event_type
+      - source_type
+      - source_id
+      - idempotency_key
+      title: BusinessEventEmit
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    LayoutSave:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 0.0
+          title: Expected Version
+        name:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Name
+          default: 我的工作台
+        widgets:
+          items:
+            $ref: '#/components/schemas/LayoutWidget'
+          type: array
+          maxItems: 20
+          minItems: 1
+          title: Widgets
+      type: object
+      required:
+      - expected_version
+      - widgets
+      title: LayoutSave
+    LayoutWidget:
+      properties:
+        widget_key:
+          type: string
+          maxLength: 64
+          minLength: 1
+          title: Widget Key
+        position_x:
+          type: integer
+          maximum: 11.0
+          minimum: 0.0
+          title: Position X
+        position_y:
+          type: integer
+          maximum: 99.0
+          minimum: 0.0
+          title: Position Y
+        width:
+          type: integer
+          maximum: 12.0
+          minimum: 1.0
+          title: Width
+        height:
+          type: integer
+          maximum: 12.0
+          minimum: 1.0
+          title: Height
+        visible:
+          type: boolean
+          title: Visible
+          default: true
+        config:
+          additionalProperties: true
+          type: object
+          title: Config
+      type: object
+      required:
+      - widget_key
+      - position_x
+      - position_y
+      - width
+      - height
+      title: LayoutWidget
+    NotificationBulkRead:
+      properties:
+        ids:
+          items:
+            type: integer
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Ids
+      type: object
+      required:
+      - ids
+      title: NotificationBulkRead
+    ReplayRequest:
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 5
+          title: Reason
+      type: object
+      required:
+      - reason
+      title: ReplayRequest
+    RoleLayoutSave:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 0.0
+          title: Expected Version
+        name:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Name
+          default: 我的工作台
+        widgets:
+          items:
+            $ref: '#/components/schemas/LayoutWidget'
+          type: array
+          maxItems: 20
+          minItems: 1
+          title: Widgets
+        role_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Role Id
+        priority:
+          type: integer
+          maximum: 1000.0
+          minimum: 0.0
+          title: Priority
+          default: 100
+      type: object
+      required:
+      - expected_version
+      - widgets
+      - role_id
+      title: RoleLayoutSave
+    RuleCreate:
+      properties:
+        code:
+          type: string
+          maxLength: 64
+          minLength: 2
+          pattern: ^[A-Z][A-Z0-9_]*$
+          title: Code
+        name:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Name
+        description:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Description
+        park_id:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Park Id
+        event_type:
+          type: string
+          maxLength: 96
+          minLength: 1
+          title: Event Type
+        priority:
+          type: integer
+          maximum: 1000.0
+          minimum: 0.0
+          title: Priority
+          default: 100
+        conditions:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          maxItems: 20
+          title: Conditions
+        actions:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          maxItems: 10
+          minItems: 1
+          title: Actions
+      type: object
+      required:
+      - code
+      - name
+      - event_type
+      - actions
+      title: RuleCreate
+    RuleDraftUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        name:
+          anyOf:
+          - type: string
+            maxLength: 128
+            minLength: 1
+          - type: 'null'
+          title: Name
+        description:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Description
+        park_id:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Park Id
+        event_type:
+          anyOf:
+          - type: string
+            maxLength: 96
+            minLength: 1
+          - type: 'null'
+          title: Event Type
+        priority:
+          anyOf:
+          - type: integer
+            maximum: 1000.0
+            minimum: 0.0
+          - type: 'null'
+          title: Priority
+        conditions:
+          anyOf:
+          - items:
+              additionalProperties: true
+              type: object
+            type: array
+            maxItems: 20
+          - type: 'null'
+          title: Conditions
+        actions:
+          anyOf:
+          - items:
+              additionalProperties: true
+              type: object
+            type: array
+            maxItems: 10
+            minItems: 1
+          - type: 'null'
+          title: Actions
+      type: object
+      required:
+      - expected_version
+      title: RuleDraftUpdate
+    ScheduleCreate:
+      properties:
+        code:
+          type: string
+          maxLength: 64
+          minLength: 2
+          pattern: ^[A-Z][A-Z0-9_]*$
+          title: Code
+        name:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Name
+        handler_key:
+          type: string
+          maxLength: 96
+          minLength: 1
+          title: Handler Key
+        parameters:
+          additionalProperties: true
+          type: object
+          title: Parameters
+        cadence_seconds:
+          type: integer
+          maximum: 2678400.0
+          minimum: 10.0
+          title: Cadence Seconds
+        enabled:
+          type: boolean
+          title: Enabled
+          default: false
+        concurrency_policy:
+          type: string
+          pattern: ^(FORBID|ALLOW)$
+          title: Concurrency Policy
+          default: FORBID
+        next_run_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Next Run At
+        timeout_seconds:
+          type: integer
+          maximum: 86400.0
+          minimum: 10.0
+          title: Timeout Seconds
+          default: 300
+        max_attempts:
+          type: integer
+          maximum: 10.0
+          minimum: 1.0
+          title: Max Attempts
+          default: 3
+      type: object
+      required:
+      - code
+      - name
+      - handler_key
+      - cadence_seconds
+      title: ScheduleCreate
+    ScheduleRunRequest:
+      properties:
+        idempotency_key:
+          type: string
+          maxLength: 192
+          minLength: 8
+          title: Idempotency Key
+      type: object
+      required:
+      - idempotency_key
+      title: ScheduleRunRequest
+    ScheduleUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        name:
+          anyOf:
+          - type: string
+            maxLength: 128
+            minLength: 1
+          - type: 'null'
+          title: Name
+        parameters:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Parameters
+        cadence_seconds:
+          anyOf:
+          - type: integer
+            maximum: 2678400.0
+            minimum: 10.0
+          - type: 'null'
+          title: Cadence Seconds
+        enabled:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Enabled
+        concurrency_policy:
+          anyOf:
+          - type: string
+            pattern: ^(FORBID|ALLOW)$
+          - type: 'null'
+          title: Concurrency Policy
+        next_run_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Next Run At
+        timeout_seconds:
+          anyOf:
+          - type: integer
+            maximum: 86400.0
+            minimum: 10.0
+          - type: 'null'
+          title: Timeout Seconds
+        max_attempts:
+          anyOf:
+          - type: integer
+            maximum: 10.0
+            minimum: 1.0
+          - type: 'null'
+          title: Max Attempts
+      type: object
+      required:
+      - expected_version
+      title: ScheduleUpdate
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    WorkbenchVersionCommand:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+      type: object
+      required:
+      - expected_version
+      title: WorkbenchVersionCommand

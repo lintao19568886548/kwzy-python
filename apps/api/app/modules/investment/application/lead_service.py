@@ -33,8 +33,8 @@ from app.modules.investment.domain.rules import (
     normalize_status,
 )
 from app.modules.investment.infrastructure.crm_repository import (
-    LeadAssigneeRepository,
     LeadActivityRepository,
+    LeadAssigneeRepository,
     LeadAssignmentRepository,
     LeadMergeRepository,
     LeadUnitLockRepository,
@@ -50,6 +50,7 @@ from app.modules.lease.application.lease_service import LeaseService
 from app.modules.park_property.infrastructure.park_repository import ParkRepository
 from app.modules.park_property.infrastructure.unit_repository import UnitRepository
 from app.modules.party.application.party_service import PartyService
+from app.modules.workbench.application.automation_service import WorkbenchAutomationService
 from app.modules.workbench.application.work_item_service import WorkItemService
 from app.shared.tenant_context import TenantContext
 
@@ -75,6 +76,7 @@ class LeadService:
         self.parties = PartyService(session, ctx)
         self.leases = LeaseService(session, ctx)
         self.work_items = WorkItemService(session, ctx)
+        self.events = WorkbenchAutomationService(session, ctx)
         self.audit = AuditRecorder(session, ctx)
 
     def _require(self, lead_id: int, *, for_update: bool = False, manage: bool = False):
@@ -476,6 +478,24 @@ class LeadService:
         )
         if owner_user_id:
             self._open_follow_todo(model)
+        self.events.emit_event(
+            event_type="LEAD_CREATED",
+            source_type="LEAD",
+            source_id=str(model.id),
+            idempotency_key=f"lead-created:{model.id}",
+            park_id=park_id,
+            payload={
+                "title": f"新招商线索 {name[:80]}",
+                "description": "招商线索待跟进",
+                "priority": "MEDIUM",
+                "assignee_user_id": owner_user_id,
+                "due_at": next_follow.isoformat() if next_follow else None,
+                "deep_link": "/leads",
+                "park_id": park_id,
+            },
+            commit=False,
+            enforce_permission=False,
+        )
         self.audit.record(
             action="create",
             resource_type="LEAD",
@@ -675,7 +695,7 @@ class LeadService:
     def duplicate_candidates(self, data: dict[str, Any]) -> list[dict[str, Any]]:
         if not self.ctx.has_permission("lead:read"):
             raise AppError("无线索查看权限", code="PERMISSION_DENIED", status_code=403)
-        park_id = self._assert_park(int(data["park_id"]))
+        self._assert_park(int(data["park_id"]))
         name = str(data.get("name") or "").strip()
         phone = normalize_phone(str(data.get("contact_phone") or ""))
         normalized_name = normalize_name_key(name)
@@ -1513,6 +1533,21 @@ class LeadService:
                 attributes={"party_id": model.party_id, "lease_id": model.lease_id},
             )
             self._close_follow_todo(lead_id, done=True)
+            self.events.emit_event(
+                event_type="LEAD_CONVERTED",
+                source_type="LEAD",
+                source_id=str(model.id),
+                idempotency_key=f"lead-converted:{model.id}",
+                park_id=int(model.park_id),
+                payload={
+                    "title": f"线索已转化 {model.name[:80]}",
+                    "description": "线索已形成客户主体",
+                    "deep_link": "/leads",
+                    "park_id": int(model.park_id),
+                },
+                commit=False,
+                enforce_permission=False,
+            )
             self.audit.record(
                 action="convert",
                 resource_type="LEAD",

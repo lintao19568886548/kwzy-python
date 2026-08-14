@@ -14,20 +14,23 @@ import os
 import statistics
 import threading
 import time
+from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable
 from urllib.parse import urlparse
 
 import httpx
 
 DEFAULT_ENDPOINTS = (
-    "/workbench/summary",
-    "/leases?page=1&page_size=50",
-    "/parties?page=1&page_size=50",
-    "/units?page=1&page_size=50",
+    "GET /workbench/summary",
+    "GET /workbench/layout",
+    "GET /business-events?page=1&page_size=30",
+    "POST /business-events/dispatch?limit=10",
+    "GET /leases?page=1&page_size=50",
+    "GET /parties?page=1&page_size=50",
+    "GET /units?page=1&page_size=50",
 )
 
 
@@ -148,6 +151,7 @@ def run_requests(
 
     def execute(index: int) -> Sample:
         endpoint = endpoints[index % len(endpoints)]
+        method, path = endpoint.split(" ", 1)
         client = getattr(local, "client", None)
         if client is None:
             client = httpx.Client(
@@ -157,7 +161,7 @@ def run_requests(
             local.client = client
         started = time.perf_counter()
         try:
-            response = client.get(f"{base_url}{endpoint}")
+            response = client.request(method, f"{base_url}{path}")
             return Sample(endpoint, response.status_code, (time.perf_counter() - started) * 1000)
         except httpx.HTTPError as exc:
             return Sample(endpoint, 0, (time.perf_counter() - started) * 1000, type(exc).__name__)
@@ -225,7 +229,7 @@ def main() -> int:
     )
     report = {
         "schema_version": 1,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),  # noqa: UP017 - Python 3.10
         "target": args.base_url,
         "runtime": {
             "requests": args.requests,

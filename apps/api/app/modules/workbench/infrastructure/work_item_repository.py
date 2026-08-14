@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Optional, Sequence
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
@@ -139,6 +140,9 @@ class WorkItemRepository:
         source_type: str,
         source_id: str,
         sort_order: int = 0,
+        deep_link: Optional[str] = None,
+        source_owned: bool = False,
+        last_event_id: Optional[int] = None,
     ) -> WorkItem:
         model = WorkItem(
             park_id=park_id,
@@ -152,8 +156,87 @@ class WorkItemRepository:
             source_type=source_type,
             source_id=source_id,
             sort_order=sort_order,
+            deep_link=deep_link,
+            source_owned=source_owned,
+            last_event_id=last_event_id,
+            lock_version=1,
         )
         return self.add(model)
+
+    def list_with_total(
+        self,
+        *,
+        offset: int = 0,
+        limit: int = 20,
+        status: Optional[str] = None,
+        park_id: Optional[int] = None,
+        assignee_user_id: Optional[int] = None,
+        item_type: Optional[str] = None,
+        mine: bool = False,
+    ) -> tuple[int, Sequence[WorkItem]]:
+        """Return a page and its total in one round trip for normal, non-empty pages."""
+
+        stmt = self._scope(select(WorkItem, func.count().over().label("page_total")))
+        if status:
+            stmt = stmt.where(WorkItem.status == status)
+        if park_id is not None:
+            stmt = stmt.where(WorkItem.park_id == int(park_id))
+        if assignee_user_id is not None:
+            stmt = stmt.where(WorkItem.assignee_user_id == int(assignee_user_id))
+        if item_type:
+            stmt = stmt.where(WorkItem.item_type == item_type)
+        if mine and self.ctx.user_id:
+            stmt = stmt.where(WorkItem.assignee_user_id == int(self.ctx.user_id))
+        result = self.session.execute(
+            stmt.order_by(WorkItem.sort_order.asc(), WorkItem.id.desc())
+            .offset(offset)
+            .limit(limit)
+        ).all()
+        if result:
+            return int(result[0][1]), [row[0] for row in result]
+        if offset:
+            return (
+                self.count(
+                    status=status,
+                    park_id=park_id,
+                    assignee_user_id=assignee_user_id,
+                    item_type=item_type,
+                    mine=mine,
+                ),
+                [],
+            )
+        return 0, []
+
+    def open_metrics(
+        self,
+        *,
+        park_id: Optional[int],
+        now: datetime,
+        horizon: datetime,
+    ) -> tuple[int, int, int]:
+        """Aggregate open, overdue and due-soon counts without loading a bounded row sample."""
+
+        stmt = self._scope(
+            select(
+                func.count(WorkItem.id),
+                func.sum(case((WorkItem.due_at < now, 1), else_=0)),
+                func.sum(
+                    case(
+                        (
+                            WorkItem.due_at.is_not(None)
+                            & (WorkItem.due_at >= now)
+                            & (WorkItem.due_at <= horizon),
+                            1,
+                        ),
+                        else_=0,
+                    )
+                ),
+            )
+        ).where(WorkItem.status == "OPEN")
+        if park_id is not None:
+            stmt = stmt.where(WorkItem.park_id == int(park_id))
+        row = self.session.execute(stmt).one()
+        return int(row[0] or 0), int(row[1] or 0), int(row[2] or 0)
 
     def save(self, model: WorkItem) -> WorkItem:
         if int(model.tenant_id) != self.ctx.tenant_id:

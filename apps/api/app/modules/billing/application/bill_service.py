@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -27,6 +27,7 @@ from app.modules.billing.infrastructure.bill_repository import BillLineRepositor
 from app.modules.billing.infrastructure.mappers import BillLineMapper, BillMapper
 from app.modules.park_property.infrastructure.park_repository import ParkRepository
 from app.modules.party.infrastructure.party_repository import PartyRepository
+from app.modules.workbench.application.automation_service import WorkbenchAutomationService
 from app.modules.workbench.application.work_item_service import WorkItemService
 from app.shared.tenant_context import TenantContext
 
@@ -47,6 +48,7 @@ class BillService:
         self.parties = PartyRepository(session, ctx)
         self.audit = AuditRecorder(session, ctx)
         self.work_items = WorkItemService(session, ctx)
+        self.events = WorkbenchAutomationService(session, ctx)
 
     def _open_collect_todo(self, model) -> None:
         """签发后幂等打开「账单待收款」待办（同事务 flush）。"""
@@ -335,6 +337,24 @@ class BillService:
             detail={},
         )
         self._open_collect_todo(model)
+        self.events.emit_event(
+            event_type="BILL_ISSUED",
+            source_type="BILL",
+            source_id=str(model.id),
+            idempotency_key=f"bill-issued:{model.id}",
+            park_id=int(model.park_id) if model.park_id is not None else None,
+            payload={
+                "title": f"账单已签发 {model.bill_no or model.id}",
+                "description": "账单进入待收款状态",
+                "priority": "HIGH",
+                "amount": str(model.total_amount or 0),
+                "due_at": model.due_date.isoformat() if model.due_date else None,
+                "deep_link": "/bills",
+                "park_id": int(model.park_id) if model.park_id is not None else None,
+            },
+            commit=False,
+            enforce_permission=False,
+        )
         result = self.get_bill(bill_id)
         if idem_key:
             complete_idempotent(

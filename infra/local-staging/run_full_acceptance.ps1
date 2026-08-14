@@ -20,6 +20,7 @@ function Step($name, $scriptBlock) {
   $sw = [System.Diagnostics.Stopwatch]::StartNew()
   $code = 0
   $out = ""
+  $global:LASTEXITCODE = 0
   try {
     $out = & $scriptBlock 2>&1 | Out-String
   } catch {
@@ -41,6 +42,12 @@ function Step($name, $scriptBlock) {
   return $out
 }
 
+function Assert-NativeSuccess($label) {
+  if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) {
+    throw "$label failed with exit code $LASTEXITCODE"
+  }
+}
+
 $env:POSTGRES_PASSWORD = "kwzy_test_local_only"
 $env:TEST_DATABASE_URL = $pgUrl
 $env:POSTGRES_TEST_URL = $pgUrl
@@ -50,6 +57,7 @@ $env:JWT_SECRET = "local-staging-jwt-secret-not-for-production-32"
 $env:LOCAL_ADMIN_PASSWORD = "admin123"
 $env:ALLOW_ANON_DEV = "false"
 $env:APP_ENV = "local"
+$env:DEBUG = "false"
 $env:SMS_PROVIDER = "fake"
 $env:OSS_PROVIDER = "local"
 
@@ -61,6 +69,7 @@ try {
 
   Step "docker_pg_up" {
     docker compose -f $composeFile up -d
+    Assert-NativeSuccess "docker compose up"
     $deadline = (Get-Date).AddSeconds(120)
     do {
       $h = docker inspect --format='{{.State.Health.Status}}' kwzy_party_test_pg 2>$null
@@ -74,7 +83,9 @@ try {
     Push-Location $Api
     & $Py -c "from app.core.config import get_settings; get_settings.cache_clear()"
     & $Alembic upgrade head
+    Assert-NativeSuccess "alembic upgrade head"
     $heads = & $Alembic heads
+    Assert-NativeSuccess "alembic heads"
     if (($heads | Measure-Object).Count -ne 1 -and ($heads -join " ") -notmatch "\(head\)") {
       # alembic heads prints one line with (head)
     }
@@ -85,6 +96,7 @@ try {
   Step "alembic_down_up" {
     Push-Location $Api
     & $Alembic downgrade -1
+    Assert-NativeSuccess "alembic downgrade -1"
     & $Alembic upgrade head
     Pop-Location
   }
@@ -93,6 +105,12 @@ try {
     # Full suite with TEST_DATABASE_URL set => PG paths + sqlite-less paths as configured
     Push-Location $Api
     & $Py -m pytest -q --tb=line
+    Pop-Location
+  }
+
+  Step "workbench_worker_once" {
+    Push-Location $Api
+    & $Py -m app.workers.workbench --once --batch-size 100
     Pop-Location
   }
 
@@ -134,6 +152,11 @@ try {
     & $Py (Join-Path $Root "tools\etl\run_approval_audit_etl_drill.py") --database-url $pgUrl --out $approvalAuditReport
   }
 
+  Step "workbench_automation_etl_acceptance" {
+    $workbenchAutomationReport = Join-Path $ReportDir "workbench_automation_etl\workbench-automation-etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_workbench_automation_etl_drill.py") --database-url $pgUrl --out $workbenchAutomationReport
+  }
+
   Step "http_performance_seed" {
     & $Py (Join-Path $Root "scripts\e2e_seed.py")
   }
@@ -168,10 +191,16 @@ try {
         --requests 1000 --concurrency 25 --warmup 40 `
         --max-p95-ms 500 --max-error-rate-percent 1 --min-rps 20 `
         --output (Join-Path $perfDir "http-performance.json")
+      Assert-NativeSuccess "HTTP performance gate"
       & $Py (Join-Path $Root "scripts\approval_audit_http_journey.py") `
         --base-url "http://127.0.0.1:8010/api/v1" `
         --username "admin" --password "admin123" `
         --output (Join-Path $perfDir "approval-audit-http-journey.json")
+      Assert-NativeSuccess "approval audit HTTP journey"
+      & $Py (Join-Path $Root "scripts\workbench_automation_http_journey.py") `
+        --base-url "http://127.0.0.1:8010/api/v1" `
+        --username "admin" --password "admin123" `
+        --output (Join-Path $perfDir "workbench-automation-http-journey.json")
     } finally {
       Remove-Item Env:PERF_PASSWORD -ErrorAction SilentlyContinue
       if ($apiProc -and -not $apiProc.HasExited) {
@@ -185,16 +214,23 @@ try {
     New-Item -ItemType Directory -Force -Path $bakDir | Out-Null
     $dump = Join-Path $bakDir "kwzy_party_test.dump"
     docker exec kwzy_party_test_pg pg_dump -U kwzy_party_test -d kwzy_party_test -Fc -f /tmp/kwzy.dump
+    Assert-NativeSuccess "pg_dump"
     docker cp kwzy_party_test_pg:/tmp/kwzy.dump $dump
+    Assert-NativeSuccess "docker copy dump"
     if (-not (Test-Path $dump)) { throw "dump missing" }
     $size = (Get-Item $dump).Length
     if ($size -lt 1000) { throw "dump too small: $size" }
     # restore into a temp database
     docker exec kwzy_party_test_pg psql -U kwzy_party_test -d postgres -c "DROP DATABASE IF EXISTS kwzy_restore_check;"
+    Assert-NativeSuccess "drop restore database"
     docker exec kwzy_party_test_pg psql -U kwzy_party_test -d postgres -c "CREATE DATABASE kwzy_restore_check OWNER kwzy_party_test;"
+    Assert-NativeSuccess "create restore database"
     docker cp $dump kwzy_party_test_pg:/tmp/kwzy_restore.dump
+    Assert-NativeSuccess "docker copy restore dump"
     docker exec kwzy_party_test_pg pg_restore -U kwzy_party_test -d kwzy_restore_check --clean --if-exists /tmp/kwzy_restore.dump
+    Assert-NativeSuccess "pg_restore"
     $cnt = docker exec kwzy_party_test_pg psql -U kwzy_party_test -d kwzy_restore_check -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';"
+    Assert-NativeSuccess "restore verification query"
     if ([int]$cnt -lt 5) { throw "restore table count too low: $cnt" }
     docker exec kwzy_party_test_pg psql -U kwzy_party_test -d postgres -c "DROP DATABASE IF EXISTS kwzy_restore_check;"
     "BACKUP_RESTORE=PASS dump_bytes=$size restored_tables=$cnt"
@@ -234,6 +270,7 @@ try {
   Step "openapi_strict" {
     Push-Location $Api
     & $Py -m pytest tests/test_openapi_contract.py -q --tb=line
+    Assert-NativeSuccess "OpenAPI contract tests"
     $yaml = Join-Path $Root "docs\04-api\openapi-v1-core.yaml"
     & $Py -c @"
 from pathlib import Path
@@ -327,8 +364,10 @@ $summary = [ordered]@{
   contract_etl = (Join-Path $ReportDir "contract_etl\contract_etl.json")
   organization_governance_etl = (Join-Path $ReportDir "organization_governance_etl\organization_governance_etl.json")
   approval_audit_etl = (Join-Path $ReportDir "approval_audit_etl\approval_audit_etl.json")
+  workbench_automation_etl = (Join-Path $ReportDir "workbench_automation_etl\workbench-automation-etl.json")
   http_performance = (Join-Path $ReportDir "performance\http-performance.json")
   approval_audit_http = (Join-Path $ReportDir "performance\approval-audit-http-journey.json")
+  workbench_automation_http = (Join-Path $ReportDir "performance\workbench-automation-http-journey.json")
   backup = (Join-Path $ReportDir "backup")
 }
 $summary | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding utf8

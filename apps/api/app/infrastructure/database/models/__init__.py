@@ -1,6 +1,11 @@
 """ORM models package — Step1 foundation + Party + Lease."""
 
+from app.infrastructure.database.models.attachment import Attachment
 from app.infrastructure.database.models.audit import AuditChainHead, AuditLog
+from app.infrastructure.database.models.billing import Bill, BillLine, FeeCatalog
+from app.infrastructure.database.models.collection import Payment, PaymentAllocation
+from app.infrastructure.database.models.collection_case import CollectionCase
+from app.infrastructure.database.models.facility_ops import WorkOrder
 from app.infrastructure.database.models.identity import (
     AuthSecurityEvent,
     Menu,
@@ -17,9 +22,14 @@ from app.infrastructure.database.models.identity import (
     UserRole,
     VerificationCode,
 )
-from app.infrastructure.database.models.billing import Bill, BillLine, FeeCatalog
-from app.infrastructure.database.models.collection import Payment, PaymentAllocation
-from app.infrastructure.database.models.platform import IdempotencyKey, NumberSequence
+from app.infrastructure.database.models.integration_outbox import IntegrationOutbox
+from app.infrastructure.database.models.investment import (
+    Lead,
+    LeadActivity,
+    LeadAssignmentEvent,
+    LeadMergeLink,
+    LeadUnitLock,
+)
 from app.infrastructure.database.models.lease import (
     LeaseChangeOrder,
     LeaseChargeItem,
@@ -32,6 +42,14 @@ from app.infrastructure.database.models.lease import (
     LeasePerformanceSchedule,
     LeaseTerm,
 )
+from app.infrastructure.database.models.organization_governance import (
+    FieldAccessPolicy,
+    OrganizationGroup,
+    OrganizationRegion,
+    Position,
+    RegionParkAssignment,
+    UserPositionAssignment,
+)
 from app.infrastructure.database.models.park_property import Building, Park, Unit, UnitLineage
 from app.infrastructure.database.models.party import (
     Party,
@@ -41,22 +59,26 @@ from app.infrastructure.database.models.party import (
     PartyRiskEvent,
     PartyRole,
 )
-from app.infrastructure.database.models.workbench import WorkItem
-from app.infrastructure.database.models.investment import (
-    Lead,
-    LeadActivity,
-    LeadAssignmentEvent,
-    LeadMergeLink,
-    LeadUnitLock,
-)
+from app.infrastructure.database.models.platform import IdempotencyKey, NumberSequence
 from app.infrastructure.database.models.system_config import (
     DictItem,
     DictType,
     OrgUnit,
     SystemParam,
 )
-from app.infrastructure.database.models.facility_ops import WorkOrder
-from app.infrastructure.database.models.collection_case import CollectionCase
+from app.infrastructure.database.models.workbench import WorkItem
+from app.infrastructure.database.models.workbench_automation import (
+    AutomationExecution,
+    AutomationRule,
+    AutomationRuleVersion,
+    BusinessEvent,
+    EventConsumerLog,
+    InAppNotification,
+    SchedulerDefinition,
+    SchedulerRun,
+    WorkbenchLayout,
+    WorkbenchWidget,
+)
 from app.infrastructure.database.models.workflow import (
     ApprovalDefinition,
     ApprovalDefinitionStep,
@@ -66,16 +88,6 @@ from app.infrastructure.database.models.workflow import (
     ApprovalRequest,
     ApprovalStepAssignee,
     ApprovalTask,
-)
-from app.infrastructure.database.models.attachment import Attachment
-from app.infrastructure.database.models.integration_outbox import IntegrationOutbox
-from app.infrastructure.database.models.organization_governance import (
-    FieldAccessPolicy,
-    OrganizationGroup,
-    OrganizationRegion,
-    Position,
-    RegionParkAssignment,
-    UserPositionAssignment,
 )
 
 __all__ = [
@@ -123,6 +135,16 @@ __all__ = [
     "NumberSequence",
     "IdempotencyKey",
     "WorkItem",
+    "BusinessEvent",
+    "EventConsumerLog",
+    "AutomationRule",
+    "AutomationRuleVersion",
+    "AutomationExecution",
+    "InAppNotification",
+    "SchedulerDefinition",
+    "SchedulerRun",
+    "WorkbenchLayout",
+    "WorkbenchWidget",
     "Lead",
     "LeadActivity",
     "LeadAssignmentEvent",

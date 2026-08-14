@@ -19,3 +19,9 @@ class LeaseWorkItemPort(Protocol):
     def complete_by_source(self, **kwargs: Any) -> Optional[dict[str, Any]]: ...
 
     def cancel_by_source(self, **kwargs: Any) -> Optional[dict[str, Any]]: ...
+
+
+class BusinessEventPublisherPort(Protocol):
+    """Publish a registered event in the caller-owned transaction."""
+
+    def emit(self, **kwargs: Any) -> dict[str, Any]: ...

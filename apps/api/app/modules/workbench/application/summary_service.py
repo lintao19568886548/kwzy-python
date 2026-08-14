@@ -36,22 +36,15 @@ class WorkbenchSummaryService:
         if not self.ctx.has_permission("work_item:read"):
             raise AppError("无工作台查看权限", code="PERMISSION_DENIED", status_code=403)
 
-        open_total = self.items.count(status="OPEN", park_id=park_id)
         open_items = self.items.list(
             status="OPEN", park_id=park_id, offset=0, limit=max(todo_limit, 1)
         )
 
         now = datetime.utcnow()
-        overdue = 0
-        due_soon = 0
         horizon = now + timedelta(days=7)
-        for it in self.items.list(status="OPEN", park_id=park_id, offset=0, limit=500):
-            if it.due_at is None:
-                continue
-            if it.due_at < now:
-                overdue += 1
-            elif it.due_at <= horizon:
-                due_soon += 1
+        open_total, overdue, due_soon = self.items.open_metrics(
+            park_id=park_id, now=now, horizon=horizon
+        )
 
         unpaid_bills = self.bills.count_open_receivable()
         expiring_contracts = self.leases.count_expiring(within_days=expiring_within_days)

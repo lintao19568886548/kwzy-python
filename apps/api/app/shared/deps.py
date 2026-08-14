@@ -12,8 +12,14 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.core.security import TokenError, safe_decode
+from app.infrastructure.database.models.identity import (
+    Permission,
+    Role,
+    RolePermission,
+    User,
+    UserRole,
+)
 from app.infrastructure.database.session import get_db
-from app.infrastructure.database.models.identity import User
 from app.shared.tenant_context import ParkScopeMode, TenantContext
 
 _bearer = HTTPBearer(auto_error=False)
@@ -88,7 +94,22 @@ def get_tenant_context(
         raise AppError("会话已失效，请重新登录", code="AUTH_SESSION_REVOKED", status_code=401)
 
     park_ids = [int(x) for x in (payload.get("park_ids") or [])]
-    permissions = list(payload.get("permissions") or [])
+    token_permissions = {str(code) for code in (payload.get("permissions") or []) if code}
+    database_permissions = set(
+        db.scalars(
+            select(Permission.code)
+            .join(RolePermission, RolePermission.permission_id == Permission.id)
+            .join(Role, Role.id == RolePermission.role_id)
+            .join(UserRole, UserRole.role_id == Role.id)
+            .where(
+                UserRole.tenant_id == tenant_id,
+                UserRole.user_id == user_id,
+                Role.tenant_id == tenant_id,
+                Role.status == "ACTIVE",
+            )
+        ).all()
+    )
+    permissions = sorted(token_permissions)
     park_scope_mode = _mode_from_claims(payload.get("park_scope_mode"), park_ids)
     return TenantContext(
         tenant_id=tenant_id,
@@ -96,6 +117,7 @@ def get_tenant_context(
         username=str(payload.get("sub") or ""),
         park_ids=park_ids,
         permissions=permissions,
+        database_permissions=sorted(database_permissions),
         park_scope_mode=park_scope_mode,
         is_platform_admin=bool(payload.get("is_platform_admin", False)),
         request_id=getattr(request.state, "request_id", ""),

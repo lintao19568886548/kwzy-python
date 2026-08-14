@@ -21,6 +21,9 @@
 | PERF-001 | P1 | 无真实 HTTP 性能门禁 | loopback 登录后 1000 请求；p95 280.422 ms、141.36 RPS、0 错误 | CLOSED_LOCAL_GATE |
 | OPS-001 | P1 | 无生产容器、readiness/pool/CI/Runbook | 非 root/只读/cap-drop 容器、PG pool/readiness、CI、Runbook、栈启动和重启恢复 | CLOSED_LOCAL_GATE |
 | MIG-LOCAL-001 | P1 | 合同迁移缺幂等/中断/对账/回滚 | 合成 PG16 dry/apply/interruption/idempotent/reconcile/rollback + 备份恢复 | CLOSED_SYNTHETIC_SCOPE |
+| WB-001 | P1 | 统一工作台仅固定摘要，缺事件/规则/通知/调度/多角色布局和可恢复投递 | 完成事务事件、受限版本化规则、收件人隔离通知、持久调度/worker、来源待办、用户/角色布局、PC 控制面；277 pytest、真实 HTTP、50 E2E 和 PG 并发通过 | CLOSED |
+| PERF-002 | P1 | 首轮工作台性能 p95 946.484 ms，事件列表 N+1、布局重复/串行查询且本地性能栈开启 SQL DEBUG | 合并消费者、摘要、待办、通知、健康和布局查询；按生产契约 DEBUG=false；同一 1000/25 门槛 p95 242.193 ms、145.478 RPS、0 错误 | CLOSED_LOCAL_GATE |
+| OPS-003 | P1 | 全量脚本可被后续命令覆盖性能进程退出码并误记 PASS | 每步重置退出码并在 Docker/Alembic/性能/HTTP/备份恢复/OpenAPI 后立即 `Assert-NativeSuccess`；p95 729.289 ms 的中间轮次已真实中止为 FAIL，最终 28/28 PASS | CLOSED |
 
 ## 未关闭 P1
 
@@ -28,7 +31,7 @@
 | --- | --- | --- | --- | --- |
 | CAP-001 | 员工移动端缺失 | 无应用目录/启动方式/E2E | 建立独立端，接真实 API，完成现场任务/审批/巡检/维修等角色旅程 | 产品负责人 + 移动端负责人（待指定）；MISSING |
 | CAP-002 | 租户微信小程序缺失 | 无应用目录/启动方式/E2E | 完成缴费、报修、访客、预约、租户隔离和小程序 E2E | 产品负责人 + 小程序负责人（待指定）；MISSING |
-| CAP-003 | 其余组合业务闭环缺失 | 能力矩阵 17 项为 MISSING | 按矩阵逐项实现，或取得有依据/责任人的退休或延期批准 | 产品/领域负责人（待指定）；MISSING |
+| CAP-003 | 其余组合业务闭环缺失 | 能力矩阵仍有 15 项为 MISSING | 按矩阵逐项实现，或取得有依据/责任人的退休或延期批准 | 产品/领域负责人（待指定）；MISSING |
 | MIG-001 | 真实旧数据迁移和切换无法验收 | 仅合成数据；无旧 schema/脱敏快照 | 授权数据、全量/增量/中断/回滚/金额面积数量对账和签字 | 数据负责人/DBA（待指定）；BLOCKED_EXTERNAL_EVIDENCE |
 | INT-001 | 外部适配器不完整且未 live verify | 局部 fake/local/fail-closed；多数平台缺失 | 实现缺失端口，提供沙箱凭据/协议，完成验签、重试、死信、补偿和降级 | 集成/安全负责人（待指定）；MISSING_AND_BLOCKED_EXTERNAL |
 | OPS-002 | 远程预发/生产容量、监控告警和灾备未验收 | 本地容器/性能/恢复通过 | 获批预发执行大数据容量、慢 SQL、连接池、告警、备份恢复/RTO-RPO/回切；生产另审批 | SRE/生产审批人（待指定）；BLOCKED_EXTERNAL_EVIDENCE |

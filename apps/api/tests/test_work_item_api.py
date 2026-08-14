@@ -57,28 +57,48 @@ def test_work_item_create_list_complete_reopen(client) -> None:
     assert got.status_code == 200
     assert got.json()["data"]["title"] == "跟进合同续签"
 
-    done = client.post(f"/api/v1/work-items/{wid}/complete", headers=h)
+    done = client.post(
+        f"/api/v1/work-items/{wid}/complete",
+        headers=h,
+        json={"expected_version": item["lock_version"]},
+    )
     assert done.status_code == 200, done.text
     assert done.json()["data"]["status"] == "DONE"
     assert done.json()["data"]["completed_at"] is not None
     assert done.json()["data"]["completed_by"] == 1
 
     # idempotent complete
-    again = client.post(f"/api/v1/work-items/{wid}/complete", headers=h)
+    again = client.post(
+        f"/api/v1/work-items/{wid}/complete",
+        headers=h,
+        json={"expected_version": done.json()["data"]["lock_version"]},
+    )
     assert again.status_code == 200
     assert again.json()["data"]["status"] == "DONE"
 
-    reopened = client.post(f"/api/v1/work-items/{wid}/reopen", headers=h)
+    reopened = client.post(
+        f"/api/v1/work-items/{wid}/reopen",
+        headers=h,
+        json={"expected_version": again.json()["data"]["lock_version"]},
+    )
     assert reopened.status_code == 200
     assert reopened.json()["data"]["status"] == "OPEN"
     assert reopened.json()["data"]["completed_at"] is None
 
-    cancelled = client.post(f"/api/v1/work-items/{wid}/cancel", headers=h)
+    cancelled = client.post(
+        f"/api/v1/work-items/{wid}/cancel",
+        headers=h,
+        json={"expected_version": reopened.json()["data"]["lock_version"]},
+    )
     assert cancelled.status_code == 200
     assert cancelled.json()["data"]["status"] == "CANCELLED"
 
     # cannot complete cancelled
-    bad = client.post(f"/api/v1/work-items/{wid}/complete", headers=h)
+    bad = client.post(
+        f"/api/v1/work-items/{wid}/complete",
+        headers=h,
+        json={"expected_version": cancelled.json()["data"]["lock_version"]},
+    )
     assert bad.status_code == 400
     assert bad.json()["code"] == "WORK_ITEM_STATUS_INVALID"
 
@@ -152,7 +172,7 @@ def test_work_item_ensure_from_source_idempotent(client, db_session) -> None:
     assert second["priority"] == "HIGH"
 
     # complete then ensure reopens
-    svc.complete_work_item(int(first["id"]))
+    svc.complete_by_source(source_type="BILL", source_id="42", item_type="BILL_UNPAID")
     third = svc.ensure_from_source(
         source_type="BILL",
         source_id="42",

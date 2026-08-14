@@ -443,3 +443,73 @@ def test_organization_governance_openapi_matches_every_runtime_method() -> None:
     assert {"user_id", "position_id"} <= set(
         schemas["UserPositionAssignmentCreate"]["required"]
     )
+
+
+def test_workbench_automation_openapi_matches_every_runtime_method() -> None:
+    """The controlled contract exposes the complete workbench automation surface."""
+
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    paths = document["paths"]
+    runtime_paths = create_app().openapi()["paths"]
+    expected_methods = {
+        "/business-events": {"get", "post"},
+        "/business-events/dispatch": {"post"},
+        "/event-consumers/{consumer_id}/replay": {"post"},
+        "/automation-rules": {"get", "post"},
+        "/automation-rules/{rule_id}/draft": {"put", "post"},
+        "/automation-rules/{rule_id}/publish": {"post"},
+        "/automation-rules/{rule_id}/retire": {"post"},
+        "/automation-executions": {"get"},
+        "/notifications": {"get"},
+        "/notifications/bulk-read": {"post"},
+        "/notifications/{notification_id}/read": {"post"},
+        "/notifications/{notification_id}/archive": {"post"},
+        "/scheduler/definitions": {"get", "post"},
+        "/scheduler/definitions/{schedule_id}": {"put"},
+        "/scheduler/definitions/{schedule_id}/run": {"post"},
+        "/scheduler/poll": {"post"},
+        "/scheduler/recover": {"post"},
+        "/scheduler/runs": {"get"},
+        "/workbench/layout": {"get", "put", "delete"},
+        "/workbench/layout/roles": {"get"},
+        "/workbench/layout/roles/{role_id}": {"get", "put"},
+        "/work-items/{work_item_id}/reassign": {"post"},
+    }
+    for path, methods in expected_methods.items():
+        assert path in paths, path
+        assert methods == {
+            method.lower()
+            for method in paths[path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, path
+        runtime_path = "/api/v1" + path
+        assert runtime_path in runtime_paths, runtime_path
+        assert methods == {
+            method.lower()
+            for method in runtime_paths[runtime_path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, runtime_path
+
+    schemas = document["components"]["schemas"]
+    for command in (
+        "BusinessEventEmit",
+        "ReplayRequest",
+        "RuleCreate",
+        "RuleDraftUpdate",
+        "WorkbenchVersionCommand",
+        "NotificationBulkRead",
+        "ScheduleCreate",
+        "ScheduleUpdate",
+        "ScheduleRunRequest",
+        "LayoutWidget",
+        "LayoutSave",
+        "RoleLayoutSave",
+        "WorkItemTransition",
+        "WorkItemReassign",
+    ):
+        assert command in schemas, command
+    assert "expected_version" in schemas["WorkbenchVersionCommand"]["required"]
+    assert "expected_version" in schemas["WorkItemTransition"]["required"]
+    assert schemas["NotificationBulkRead"]["properties"]["ids"]["maxItems"] == 100

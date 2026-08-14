@@ -11,6 +11,7 @@ from app.modules.investment.infrastructure.crm_repository import LeadUnitLockRep
 from app.modules.park_property.infrastructure.park_repository import ParkRepository
 from app.modules.park_property.infrastructure.unit_repository import UnitRepository
 from app.modules.party.infrastructure.party_repository import PartyRepository
+from app.modules.workbench.application.automation_service import WorkbenchAutomationService
 from app.modules.workbench.application.work_item_service import WorkItemService
 from app.shared.tenant_context import TenantContext
 
@@ -132,3 +133,15 @@ class LeaseWorkItemAdapter:
     def cancel_by_source(self, **kwargs: Any) -> Optional[dict[str, Any]]:
         kwargs["commit"] = False
         return self.service.cancel_by_source(**kwargs)
+
+
+class TransactionalBusinessEventPublisher:
+    """Lease-owned adapter over the platform event outbox."""
+
+    def __init__(self, session: Session, ctx: TenantContext) -> None:
+        self.service = WorkbenchAutomationService(session, ctx)
+
+    def emit(self, **kwargs: Any) -> dict[str, Any]:
+        kwargs["commit"] = False
+        kwargs["enforce_permission"] = False
+        return self.service.emit_event(**kwargs)

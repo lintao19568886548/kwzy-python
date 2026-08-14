@@ -13,6 +13,9 @@ type Todo = {
   due_at: string | null;
   source_type?: string | null;
   source_id?: string | null;
+  deep_link?: string | null;
+  source_owned: boolean;
+  lock_version: number;
 };
 
 const items = ref<Todo[]>([]);
@@ -44,7 +47,9 @@ async function load() {
 async function complete(id: number) {
   if (!window.confirm("确认完成该待办？")) return;
   try {
-    await http.post(`/work-items/${id}/complete`);
+    const item = items.value.find((entry) => entry.id === id);
+    if (!item) return;
+    await http.post(`/work-items/${id}/complete`, { expected_version: item.lock_version });
     success.value = "已完成";
     await load();
   } catch (e) {
@@ -55,7 +60,9 @@ async function complete(id: number) {
 async function cancel(id: number) {
   if (!window.confirm("确认取消该待办？")) return;
   try {
-    await http.post(`/work-items/${id}/cancel`);
+    const item = items.value.find((entry) => entry.id === id);
+    if (!item) return;
+    await http.post(`/work-items/${id}/cancel`, { expected_version: item.lock_version });
     success.value = "已取消";
     await load();
   } catch (e) {
@@ -65,7 +72,9 @@ async function cancel(id: number) {
 
 async function reopen(id: number) {
   try {
-    await http.post(`/work-items/${id}/reopen`);
+    const item = items.value.find((entry) => entry.id === id);
+    if (!item) return;
+    await http.post(`/work-items/${id}/reopen`, { expected_version: item.lock_version });
     success.value = "已重新打开";
     await load();
   } catch (e) {
@@ -74,6 +83,10 @@ async function reopen(id: number) {
 }
 
 function jumpSource(t: Todo) {
+  if (t.deep_link?.startsWith("/")) {
+    router.push(t.deep_link);
+    return;
+  }
   const st = (t.source_type || "").toUpperCase();
   if (st.includes("BILL")) router.push("/bills");
   else if (st.includes("LEASE") || st.includes("CONTRACT")) router.push("/leases");
@@ -137,7 +150,7 @@ onMounted(load);
               来源
             </button>
             <button
-              v-if="t.status === 'OPEN'"
+              v-if="t.status === 'OPEN' && !t.source_owned"
               v-permission="'work_item:write'"
               class="btn"
               type="button"
@@ -147,7 +160,7 @@ onMounted(load);
               完成
             </button>
             <button
-              v-if="t.status === 'OPEN'"
+              v-if="t.status === 'OPEN' && !t.source_owned"
               v-permission="'work_item:write'"
               class="btn"
               type="button"
@@ -157,7 +170,7 @@ onMounted(load);
               取消
             </button>
             <button
-              v-if="t.status === 'DONE' || t.status === 'CANCELLED'"
+              v-if="(t.status === 'DONE' || t.status === 'CANCELLED') && !t.source_owned"
               v-permission="'work_item:write'"
               class="btn"
               type="button"

@@ -9,6 +9,10 @@ export const ADMIN_USER = process.env.E2E_ADMIN_USER || "admin";
 export const ADMIN_PASS = process.env.E2E_ADMIN_PASSWORD || "admin123";
 export const LIMITED_USER = process.env.E2E_LIMITED_USER || "e2e_limited";
 export const LIMITED_PASS = process.env.E2E_LIMITED_PASSWORD || "limited123";
+export const WORKBENCH_VIEWER_USER =
+  process.env.E2E_WORKBENCH_VIEWER_USER || "e2e_workbench_viewer";
+export const WORKBENCH_VIEWER_PASS =
+  process.env.E2E_WORKBENCH_VIEWER_PASSWORD || "WorkbenchView!2026";
 export const LEASE_VIEWER_USER = process.env.E2E_LEASE_VIEWER_USER || "e2e_lease_viewer";
 export const LEASE_VIEWER_PASS = process.env.E2E_LEASE_VIEWER_PASSWORD || "LeaseView!2026";
 export const LEASE_SUBMITTER_USER =

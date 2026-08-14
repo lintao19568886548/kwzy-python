@@ -13,6 +13,7 @@ from app.infrastructure.database.audit import AuditRecorder, bounded_audit_detai
 from app.infrastructure.database.base import utc_now
 from app.infrastructure.platform.number_sequence import next_number
 from app.modules.lease.infrastructure.approval_adapter import LEASE_MANAGED_APPROVAL_TYPES
+from app.modules.workbench.application.automation_service import WorkbenchAutomationService
 from app.modules.workflow.infrastructure.approval_repository import ApprovalRepository
 from app.shared.tenant_context import TenantContext
 
@@ -23,6 +24,7 @@ class ApprovalService:
         self.ctx = ctx
         self.repo = ApprovalRepository(session, ctx)
         self.audit = AuditRecorder(session, ctx)
+        self.events = WorkbenchAutomationService(session, ctx)
 
     def _has_any(self, *permissions: str) -> bool:
         return any(self.ctx.has_permission(code) for code in permissions)
@@ -805,6 +807,30 @@ class ApprovalService:
         if not self.ctx.has_permission("approval.definition.write"):
             raise AppError("无审批超时处理权限", code="PERMISSION_DENIED", status_code=403)
         tasks = self.repo.sweep_overdue(limit=min(max(limit, 1), 500))
+        for task in tasks:
+            approval = self.repo.get_by_id(task.approval_id)
+            park_id = (
+                int(approval.park_id)
+                if approval is not None and approval.park_id is not None
+                else None
+            )
+            self.events.emit_event(
+                event_type="APPROVAL_TASK_OVERDUE",
+                source_type="APPROVAL_TASK",
+                source_id=str(task.id),
+                idempotency_key=f"approval-task-overdue:{task.id}",
+                park_id=park_id,
+                payload={
+                    "title": "审批任务已超时",
+                    "description": "审批任务需要及时处理",
+                    "priority": "URGENT",
+                    "assignee_user_id": int(task.assignee_user_id),
+                    "deep_link": "/approvals",
+                    "park_id": park_id,
+                },
+                commit=False,
+                enforce_permission=False,
+            )
         if tasks:
             self.audit.record(
                 action="sweep_overdue",

@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     database_max_overflow: int = Field(default=20, ge=0, le=400)
     database_pool_timeout_seconds: int = Field(default=30, ge=1, le=300)
     database_pool_recycle_seconds: int = Field(default=1800, ge=60, le=86400)
+    workbench_worker_poll_seconds: int = Field(default=5, ge=1, le=300)
+    workbench_worker_batch_size: int = Field(default=100, ge=1, le=500)
 
     jwt_secret: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"

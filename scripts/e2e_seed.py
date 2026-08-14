@@ -164,6 +164,23 @@ def main() -> int:
             role=limited_role,
             reset_password=True,
         )
+        workbench_viewer_role = _ensure_role(
+            db,
+            tenant_id=tenant.id,
+            code="E2E_WORKBENCH_VIEWER",
+            name="E2E工作台只读",
+            perm_codes=["work_item:read", "workbench.layout.read", "notification.read"],
+            all_parks=True,
+        )
+        _ensure_user(
+            db,
+            tenant_id=tenant.id,
+            username="e2e_workbench_viewer",
+            password="WorkbenchView!2026",
+            real_name="工作台只读用户",
+            role=workbench_viewer_role,
+            reset_password=True,
+        )
         asset_viewer_role = _ensure_role(
             db,
             tenant_id=tenant.id,
@@ -334,7 +351,7 @@ def main() -> int:
         print(
             "E2E_SEED=OK "
             f"tenant=default park_id={park.id} "
-            "admin=admin e2e_limited=e2e_limited "
+            "admin=admin e2e_limited=e2e_limited e2e_workbench_viewer=e2e_workbench_viewer "
             "e2e_asset_viewer=e2e_asset_viewer e2e_crm_viewer=e2e_crm_viewer "
             "e2e_lease_viewer=e2e_lease_viewer "
             "e2e_lease_submitter=e2e_lease_submitter tenant_b=admin_b"

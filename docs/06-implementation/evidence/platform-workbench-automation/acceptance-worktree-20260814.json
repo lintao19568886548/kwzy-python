@@ -1,0 +1,219 @@
+{
+  "started_at": "2026-08-14T16:30:32.3008821+08:00",
+  "ended_at": "2026-08-14T16:38:24.8845782+08:00",
+  "duration_ms": 472584,
+  "head": "83067a1bc1e9507f3be9df0fc76a8deee71b23ac",
+  "steps": [
+    {
+      "step": "docker_clean_start",
+      "exit_code": 0,
+      "ms": 177,
+      "started": "2026-08-14T16:30:32.4847804+08:00",
+      "output_tail": "cleaned"
+    },
+    {
+      "step": "docker_pg_up",
+      "exit_code": 0,
+      "ms": 6990,
+      "started": "2026-08-14T16:30:39.4827889+08:00",
+      "output_tail": "Network kwzy_party_test_net Creating \r\n Network kwzy_party_test_net Created \r\n Volume kwzy_party_test_pgdata Creating \r\n Volume kwzy_party_test_pgdata Created \r\n Container kwzy_party_test_pg Creating \r\n Container kwzy_party_test_pg Created \r\n Container kwzy_party_test_pg Starting \r\n Container kwzy_party_test_pg Started \r\nhealthy"
+    },
+    {
+      "step": "alembic_upgrade",
+      "exit_code": 0,
+      "ms": 3084,
+      "started": "2026-08-14T16:30:42.5688004+08:00",
+      "output_tail": "INFO  [alembic.runtime.migration] Running upgrade c3a91b2e4f10 -> d4b02c3f5a21, lease contract tables\r\nINFO  [alembic.runtime.migration] Running upgrade d4b02c3f5a21 -> e5c13d4a6b32, bill master tables\r\nINFO  [alembic.runtime.migration] Running upgrade e5c13d4a6b32 -> f6d24e5b7c43, payment collection tables\r\nINFO  [alembic.runtime.migration] Running upgrade f6d24e5b7c43 -> a7e35f6c8d54, auth payment integrity tables\r\nINFO  [alembic.runtime.migration] Running upgrade a7e35f6c8d54 -> b8f46a1c9e20, identity session menu admin\r\nINFO  [alembic.runtime.migration] Running upgrade b8f46a1c9e20 -> c9a57b2d0f31, work items workbench\r\nINFO  [alembic.runtime.migration] Running upgrade c9a57b2d0f31 -> d0b68c3e1a42, investment leads\r\nINFO  [alembic.runtime.migration] Running upgrade d0b68c3e1a42 -> e1c79d4f2b53, identity org dict params + work orders + collection cases\r\nINFO  [alembic.runtime.migration] Running upgrade e1c79d4f2b53 -> f2a80e5c3b64, approval requests minimal\r\nINFO  [alembic.runtime.migration] Running upgrade f2a80e5c3b64 -> g3b91f6d4c75, integration outbox and attachments\r\nINFO  [alembic.runtime.migration] Running upgrade g3b91f6d4c75 -> h4c02d7e9a86, identity security events\r\nINFO  [alembic.runtime.migration] Running upgrade h4c02d7e9a86 -> i5d13e8f0b97, asset rent control v2\r\nINFO  [alembic.runtime.migration] Running upgrade i5d13e8f0b97 -> j6e24f9a1c08, investment crm v2\r\nINFO  [alembic.runtime.migration] Running upgrade j6e24f9a1c08 -> k7f35a0b2d19, contract lifecycle v2\r\nINFO  [alembic.runtime.migration] Running upgrade k7f35a0b2d19 -> l8a46b1c3e20, integration outbox idempotency uniqueness\r\nINFO  [alembic.runtime.migration] Running upgrade l8a46b1c3e20 -> m9b57c2d4e31, align timestamp nullability with the ORM contract\r\nINFO  [alembic.runtime.migration] Running upgrade m9b57c2d4e31 -> n0c68d3e5f42, platform organization governance\r\nINFO  [alembic.runtime.migration] Running upgrade n0c68d3e5f42 -> o1d79e4f6a53, versioned approval orchestration and tamper-evident audit ledger\r\nINFO  [alembic.runtime.migration] Running upgrade o1d79e4f6a53 -> p2e80a5b7c64, event-driven configurable workbench automation\r\np2e80a5b7c64 (head)"
+    },
+    {
+      "step": "alembic_down_up",
+      "exit_code": 0,
+      "ms": 2263,
+      "started": "2026-08-14T16:30:44.8327343+08:00",
+      "output_tail": "INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\r\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\r\nINFO  [alembic.runtime.migration] Running downgrade p2e80a5b7c64 -> o1d79e4f6a53, event-driven configurable workbench automation\r\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\r\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\r\nINFO  [alembic.runtime.migration] Running upgrade o1d79e4f6a53 -> p2e80a5b7c64, event-driven configurable workbench automation"
+    },
+    {
+      "step": "pytest_non_pg_and_pg",
+      "exit_code": 0,
+      "ms": 113491,
+      "started": "2026-08-14T16:32:38.3251083+08:00",
+      "output_tail": "........................................................................ [ 25%]\r\n........................................................................ [ 51%]\r\n........................................................................ [ 77%]\r\n.............................................................            [100%]\r\n============================== warnings summary ===============================\r\n.venv\\lib\\site-packages\\fastapi\\testclient.py:1\r\n  D:\\�ع�python\\kwzy-python\\apps\\api\\.venv\\lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\r\n    from starlette.testclient import TestClient as TestClient  # noqa\r\n\r\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\r\n277 passed, 1 warning in 106.65s (0:01:46)"
+    },
+    {
+      "step": "workbench_worker_once",
+      "exit_code": 0,
+      "ms": 1332,
+      "started": "2026-08-14T16:32:39.6579236+08:00",
+      "output_tail": "2026-08-14 16:32:39,293 INFO __main__ workbench worker cycle outcome={'tenants': 5, 'dispatched': 0, 'scheduled': 0, 'recovered': 0, 'failed_tenants': 0, 'tenant_results': {'1': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '2': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '3': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '4': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '5': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}}}"
+    },
+    {
+      "step": "etl_fast",
+      "exit_code": 0,
+      "ms": 16122,
+      "started": "2026-08-14T16:32:55.7814403+08:00",
+      "output_tail": "ETL_DRILL_REPORT_JSON=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\etl_fast\\drill_fast.json\r\nETL_DRILL_REPORT_MD=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\etl_fast\\drill_fast.md\r\nETL_DRILL=PASS"
+    },
+    {
+      "step": "etl_acceptance",
+      "exit_code": 0,
+      "ms": 150150,
+      "started": "2026-08-14T16:35:25.9324086+08:00",
+      "output_tail": "ETL_DRILL_REPORT_JSON=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\etl_acceptance\\drill_acceptance.json\r\nETL_DRILL_REPORT_MD=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\etl_acceptance\\drill_acceptance.md\r\nETL_DRILL=PASS"
+    },
+    {
+      "step": "identity_etl_acceptance",
+      "exit_code": 0,
+      "ms": 440,
+      "started": "2026-08-14T16:35:26.3740535+08:00",
+      "output_tail": "IDENTITY_ETL_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\identity_etl\\identity_etl.json\r\nIDENTITY_ETL_DRILL=PASS"
+    },
+    {
+      "step": "asset_etl_acceptance",
+      "exit_code": 0,
+      "ms": 426,
+      "started": "2026-08-14T16:35:26.8010580+08:00",
+      "output_tail": "ASSET_ETL_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\asset_etl\\asset_etl.json\r\nASSET_ETL_DRILL=PASS"
+    },
+    {
+      "step": "crm_etl_acceptance",
+      "exit_code": 0,
+      "ms": 445,
+      "started": "2026-08-14T16:35:27.2474707+08:00",
+      "output_tail": "CRM_ETL_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\crm_etl\\crm_etl.json\r\nCRM_ETL_DRILL=PASS\r\nKWZY_DATA_MIGRATION_READINESS=CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA"
+    },
+    {
+      "step": "contract_etl_acceptance",
+      "exit_code": 0,
+      "ms": 496,
+      "started": "2026-08-14T16:35:27.7448710+08:00",
+      "output_tail": "CONTRACT_ETL_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\contract_etl\\contract_etl.json\r\nCONTRACT_ETL_DRILL=PASS\r\nCONTRACT_ETL_READINESS=CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA"
+    },
+    {
+      "step": "organization_governance_etl_acceptance",
+      "exit_code": 0,
+      "ms": 425,
+      "started": "2026-08-14T16:35:28.1712735+08:00",
+      "output_tail": "ORGANIZATION_GOVERNANCE_ETL_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\organization_governance_etl\\organization_governance_etl.json\r\nORGANIZATION_GOVERNANCE_ETL_DRILL=PASS"
+    },
+    {
+      "step": "approval_audit_etl_acceptance",
+      "exit_code": 0,
+      "ms": 515,
+      "started": "2026-08-14T16:35:28.6871281+08:00",
+      "output_tail": "APPROVAL_AUDIT_ETL_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\approval_audit_etl\\approval_audit_etl.json\r\nAPPROVAL_AUDIT_ETL_DRILL=PASS"
+    },
+    {
+      "step": "workbench_automation_etl_acceptance",
+      "exit_code": 0,
+      "ms": 477,
+      "started": "2026-08-14T16:35:29.1651699+08:00",
+      "output_tail": "WORKBENCH_AUTOMATION_ETL_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\workbench_automation_etl\\workbench-automation-etl.json\r\nWORKBENCH_AUTOMATION_ETL_DRILL=PASS"
+    },
+    {
+      "step": "http_performance_seed",
+      "exit_code": 0,
+      "ms": 2534,
+      "started": "2026-08-14T16:35:31.6999116+08:00",
+      "output_tail": "E2E_SEED=OK tenant=default park_id=28 admin=admin e2e_limited=e2e_limited e2e_workbench_viewer=e2e_workbench_viewer e2e_asset_viewer=e2e_asset_viewer e2e_crm_viewer=e2e_crm_viewer e2e_lease_viewer=e2e_lease_viewer e2e_lease_submitter=e2e_lease_submitter tenant_b=admin_b"
+    },
+    {
+      "step": "http_performance_gate",
+      "exit_code": 0,
+      "ms": 18646,
+      "started": "2026-08-14T16:35:50.3469432+08:00",
+      "output_tail": "HTTP_PERFORMANCE_GATE=PASS requests=1000 p95_ms=242.193 rps=145.478 errors=0.0%\r\nREPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\performance\\http-performance.json\r\nAPPROVAL_AUDIT_HTTP_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\performance\\approval-audit-http-journey.json\r\nAPPROVAL_AUDIT_REAL_HTTP=PASS\r\nWORKBENCH_AUTOMATION_HTTP_REPORT=D:\\�ع�python\\kwzy-python\\infra\\local-staging\\out\\performance\\workbench-automation-http-journey.json\r\nWORKBENCH_AUTOMATION_REAL_HTTP=PASS"
+    },
+    {
+      "step": "backup_restore",
+      "exit_code": 0,
+      "ms": 3508,
+      "started": "2026-08-14T16:35:53.8573214+08:00",
+      "output_tail": "DROP DATABASE\r\nNOTICE:  database \"kwzy_restore_check\" does not exist, skipping\r\nCREATE DATABASE\r\nDROP DATABASE\r\nBACKUP_RESTORE=PASS dump_bytes=1115006 restored_tables=82"
+    },
+    {
+      "step": "frontend_lint",
+      "exit_code": 0,
+      "ms": 8647,
+      "started": "2026-08-14T16:36:02.5052886+08:00",
+      "output_tail": "> kwzy-web@0.2.0 lint\r\n> eslint \"src/**/*.{ts,vue}\" --max-warnings 0"
+    },
+    {
+      "step": "frontend_typecheck",
+      "exit_code": 0,
+      "ms": 5157,
+      "started": "2026-08-14T16:36:07.6630419+08:00",
+      "output_tail": "> kwzy-web@0.2.0 typecheck\r\n> vue-tsc --noEmit"
+    },
+    {
+      "step": "frontend_unit",
+      "exit_code": 0,
+      "ms": 8018,
+      "started": "2026-08-14T16:36:15.6819071+08:00",
+      "output_tail": "> kwzy-web@0.2.0 test:unit\r\n> vitest run\r\n\r\n\r\n RUN  v4.1.10 D:/重构python/kwzy-python/apps/web\r\n\r\n\r\n Test Files  3 passed (3)\r\n      Tests  6 passed (6)\r\n   Start at  16:36:09\r\n   Duration  5.59s (transform 265ms, setup 0ms, import 1.09s, tests 27ms, environment 13.72s)"
+    },
+    {
+      "step": "frontend_build",
+      "exit_code": 0,
+      "ms": 5758,
+      "started": "2026-08-14T16:36:21.4405910+08:00",
+      "output_tail": "> kwzy-web@0.2.0 build\r\n> vue-tsc --noEmit && vite build\r\n\r\nvite v6.4.3 building for production...\r\ntransforming...\r\n✓ 138 modules transformed.\r\nrendering chunks...\r\ncomputing gzip size...\r\ndist/index.html                   0.42 kB │ gzip:   0.30 kB\r\ndist/assets/index-BbR48VaT.css   62.38 kB │ gzip:  11.42 kB\r\ndist/assets/index-Do66UxS9.js   401.53 kB │ gzip: 122.44 kB\r\n✓ built in 1.93s"
+    },
+    {
+      "step": "playwright_browser_e2e",
+      "exit_code": 0,
+      "ms": 97397,
+      "started": "2026-08-14T16:37:58.8385080+08:00",
+      "output_tail": "[stack:api.log] INFO:     127.0.0.1:1928 - \"GET /api/v1/automation-executions HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1918 - \"GET /api/v1/scheduler/runs?limit=30 HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1926 - \"GET /api/v1/automation-rules HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1927 - \"GET /api/v1/business-events?page_size=30 HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1917 - \"OPTIONS /api/v1/workbench/layout/roles/1 HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1927 - \"GET /api/v1/workbench/layout/roles/1 HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1917 - \"OPTIONS /api/v1/workbench/layout/roles/1 HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1927 - \"PUT /api/v1/workbench/layout/roles/1 HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1926 - \"GET /api/v1/automation-executions HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1928 - \"GET /api/v1/scheduler/runs?limit=30 HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1925 - \"GET /api/v1/workbench/layout/roles HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1918 - \"GET /api/v1/scheduler/definitions HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1924 - \"GET /api/v1/business-events?page_size=30 HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1927 - \"GET /api/v1/automation-rules HTTP/1.1\" 200 OK\r\n[stack:api.log] INFO:     127.0.0.1:1926 - \"GET /api/v1/workbench/layout HTTP/1.1\" 200 OK\r\n  ok 50 e2e\\workbench.spec.ts:242:3 › workbench & todos › admin controls edit drafts, toggle schedules, and save role defaults (1.8s)\r\n[e2e-teardown] cleaning stack…\r\n[e2e-teardown] done\r\n\r\n  50 passed (1.6m)"
+    },
+    {
+      "step": "openapi_strict",
+      "exit_code": 0,
+      "ms": 15648,
+      "started": "2026-08-14T16:38:14.4900448+08:00",
+      "output_tail": ".........                                                                [100%]\r\n============================== warnings summary ===============================\r\n.venv\\lib\\site-packages\\fastapi\\testclient.py:1\r\n  D:\\�ع�python\\kwzy-python\\apps\\api\\.venv\\lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\r\n    from starlette.testclient import TestClient as TestClient  # noqa\r\n\r\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\r\n9 passed, 1 warning in 11.28s\r\nOPENAPI_YAML_STRICT=PASS"
+    },
+    {
+      "step": "openspec_strict",
+      "exit_code": 0,
+      "ms": 2386,
+      "started": "2026-08-14T16:38:16.8773478+08:00",
+      "output_tail": "✓ spec/party-data-isolation\r\n✓ spec/party-domain\r\n✓ spec/party-master-delivery\r\n✓ spec/party-migration-ops\r\n✓ spec/party-openapi-contract\r\n✓ spec/party-park-relations\r\n✓ spec/party-persistence-dialect\r\n✓ spec/party-risk-status\r\n✓ spec/party-roles\r\n✓ spec/party-test-matrix\r\n✓ spec/position-assignment-governance\r\n✓ spec/rent-control-query\r\n✓ spec/rentable-unit-versioning\r\n✓ change/repair-postgres-baseline-boolean-portability\r\n✓ spec/secretless-bootstrap\r\n✓ spec/spatial-hierarchy-management\r\n✓ spec/step1-db-migration-ops\r\n✓ spec/unit-opportunity-locking\r\n✓ spec/workbench-ops\r\nTotals: 61 passed, 0 failed (61 items)"
+    },
+    {
+      "step": "secrets_scan",
+      "exit_code": 0,
+      "ms": 3445,
+      "started": "2026-08-14T16:38:20.3238073+08:00",
+      "output_tail": "SECRETS_SCAN=PASS files_scanned=733"
+    },
+    {
+      "step": "git_diff_check",
+      "exit_code": 0,
+      "ms": 1734,
+      "started": "2026-08-14T16:38:22.0583098+08:00",
+      "output_tail": "warning: in the working copy of 'apps/api/app/modules/workbench/application/summary_service.py', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/api/app/modules/workbench/application/work_item_service.py', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/api/app/modules/workbench/infrastructure/work_item_repository.py', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/api/app/modules/workbench/interface/api.py', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/api/app/modules/workbench/interface/schemas.py', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/api/app/modules/workflow/application/approval_service.py', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/api/app/shared/deps.py', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/api/app/shared/tenant_context.py', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/api/tests/test_openapi_contract.py', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/api/tests/test_work_item_api.py', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/web/e2e/helpers.ts', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/web/e2e/smoke.spec.ts', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/web/e2e/workbench.spec.ts', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/web/src/views/TodosView.vue', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'apps/web/src/views/WorkbenchView.vue', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'docs/04-api/openapi-v1-core.yaml', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'infra/local-staging/run_full_acceptance.ps1', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'infra/production/compose.production.example.yaml', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'scripts/e2e_seed.py', LF will be replaced by CRLF the next time Git touches it\r\nwarning: in the working copy of 'scripts/http_performance_gate.py', LF will be replaced by CRLF the next time Git touches it"
+    },
+    {
+      "step": "cleanup_test_resources",
+      "exit_code": 0,
+      "ms": 2825,
+      "started": "2026-08-14T16:38:24.8842492+08:00",
+      "output_tail": "Container kwzy_party_test_pg Stopping \r\n Container kwzy_party_test_pg Stopped \r\n Container kwzy_party_test_pg Removing \r\n Container kwzy_party_test_pg Removed \r\n Network kwzy_party_test_net Removing \r\n Volume kwzy_party_test_pgdata Removing \r\n Volume kwzy_party_test_pgdata Removed \r\n Network kwzy_party_test_net Removed \r\nCLEANUP=PASS"
+    }
+  ],
+  "playwright_report": "D:\\重构python\\kwzy-python\\apps\\web\\playwright-report",
+  "test_results": "D:\\重构python\\kwzy-python\\apps\\web\\test-results",
+  "etl_fast": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\etl_fast",
+  "etl_acceptance": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\etl_acceptance",
+  "identity_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\identity_etl\\identity_etl.json",
+  "asset_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\asset_etl\\asset_etl.json",
+  "crm_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\crm_etl\\crm_etl.json",
+  "contract_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\contract_etl\\contract_etl.json",
+  "organization_governance_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\organization_governance_etl\\organization_governance_etl.json",
+  "approval_audit_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\approval_audit_etl\\approval_audit_etl.json",
+  "workbench_automation_etl": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\workbench_automation_etl\\workbench-automation-etl.json",
+  "http_performance": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\performance\\http-performance.json",
+  "approval_audit_http": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\performance\\approval-audit-http-journey.json",
+  "workbench_automation_http": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\performance\\workbench-automation-http-journey.json",
+  "backup": "D:\\重构python\\kwzy-python\\infra\\local-staging\\out\\backup"
+}
