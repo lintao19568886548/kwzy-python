@@ -1,7 +1,7 @@
 # 平台审批与审计中心纵切验收证据
 
 > 工作树验收日期：2026-08-14（Asia/Shanghai）
-> 分支：`feat/full-rebuild-completion`；实现基线 `c3f653ebef26ab68cbc74f037b34a906001ca88b`
+> 分支：`feat/full-rebuild-completion`；clean-SHA 复验 `13243b4488a79ee6eccfc505812b5315263d7c83`
 > 判定：平台审批/审计组合能力已实现并经真实栈验证；全项目仍为 `CONDITIONAL/BLOCKED`，真实旧数据与生产均未获授权。
 
 ## 交付范围
@@ -18,17 +18,19 @@
 | 类别 | 当前证据 |
 | --- | --- |
 | Alembic | 唯一 head `o1d79e4f6a53`；fresh upgrade、`downgrade -1 → upgrade head`、current=heads 通过；并修复任务投影在降升级后残留导致的 ID 冲突 |
-| 后端 | 聚焦状态机/安全 6 条、审批/组织 PostgreSQL 并发 7 条通过；最终完整后端 `264 passed, 1 warning`，85.58 秒 |
+| 后端 | 聚焦状态机/安全 6 条、审批/组织 PostgreSQL 并发 7 条通过；clean-SHA 完整后端 `264 passed, 1 warning`，97.22 秒 |
 | 前端聚焦 | ESLint、Vue typecheck、6 Vitest、production build 通过 |
 | 浏览器 | 审批聚焦 3/3、完整真栈 46/46：定义→委托→申请→受托决定→已处理回看→审计/导出、已发布只读、平板只读/伪造权限 403、移动 503/重试；409 时表单保持 |
-| 真实 HTTP | 13 阶段 694.25 ms：登录、定义、发布、提交与重复提交、任务、决定与重复决定、审计查询/校验/导出、详情均通过 |
+| 真实 HTTP | clean-SHA 13 阶段 799.63 ms：登录、定义、发布、提交与重复提交、任务、决定与重复决定、审计查询/校验/导出、详情均通过 |
 | ETL | dry-run、中断恢复、首次 apply、零重复、9 表逐项对账、零原始 PII、零伪造决定、授权行不变和 rollback 全通过 |
 | OpenAPI | 21 条审批/审计路由的 runtime/YAML 方法与 schema 断言及 strict validator 通过 |
-| 性能 | 真实 HTTP 1,000 请求、并发 25、失败 0、p95 297.179 ms、135.976 RPS，门槛通过 |
-| 备份恢复 | `pg_dump` 1,046,850 bytes；新建恢复库后验证 72 张表，再删除恢复库，结果通过 |
-| 总门禁 | 26/26 步通过，392.557 秒；OpenAPI 8/8、OpenSpec 54/54、secrets 689 文件、diff check 与隔离资源清理通过 |
+| 性能 | clean-SHA 真实 HTTP 1,000 请求、并发 25、失败 0、p95 306.849 ms、128.659 RPS，门槛通过 |
+| 备份恢复 | clean-SHA `pg_dump` 1,046,636 bytes；新建恢复库后验证 72 张表，再删除恢复库，结果通过 |
+| 总门禁 | clean-SHA 26/26 步通过，417.065 秒；OpenAPI 8/8、OpenSpec 54/54、secrets 695 文件、diff check 与隔离资源清理通过 |
 
-工作树机器报告：`acceptance-worktree-20260814.json`；专项证据：`approval-audit-etl-worktree.json`、`approval-audit-http-worktree.json`、`http-performance-worktree.json`。提交后的 clean-SHA 总门禁仍须单独复跑，不以前述工作树报告替代。
+clean-SHA 机器报告：`acceptance-clean-13243b4.json`；专项证据：`approval-audit-etl-clean-13243b4.json`、`approval-audit-http-clean-13243b4.json`、`http-performance-clean-13243b4.json`。工作树报告仍保留用于审计前后差异，但不替代 clean-SHA 结论。
+
+OpenSpec delta 已完整同步到 9 个主规格，并归档为 `2026-08-14-complete-platform-approval-audit-center`；归档未使用跳过规格或跳过验证参数。
 
 修复循环保留了 `acceptance-repair-loop-python310-failure.json`：首次总闸门在审批/审计 ETL 导入 `datetime.UTC` 时因实际 Python 3.10.11 失败；已恢复 3.10 兼容写法并在第二次总闸门关闭。该失败没有被删除或改写。
 

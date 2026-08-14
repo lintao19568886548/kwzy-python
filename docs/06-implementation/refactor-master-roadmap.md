@@ -30,7 +30,7 @@
 ## 下一执行队列
 
 1. `complete-platform-organization-governance`：已提交、clean-SHA 复验、同步并归档。
-2. `complete-platform-approval-audit-center`：版本化审批、任务委托/SLA、WorkItem 投影、可验证审计和 PC 五区已实现；PG16、264 后端、46 浏览器、独立 HTTP、性能、备份恢复和合成 ETL 的 26/26 工作树总门禁通过，待提交、clean-SHA 复验、同步归档。
+2. `complete-platform-approval-audit-center`：实现提交 `13243b4` 已推送；PG16、264 后端、46 浏览器、独立 HTTP、性能、备份恢复和合成 ETL 的 26/26 clean-SHA 总门禁通过；9 个 delta 已同步主规格并归档，待闭环证据提交。
 3. 下一平台纵切：消息/规则/定时任务驱动的多角色可配置工作台。
 4. 依次关闭资产模板、招商自动分配/意向审批、企业画像、账收匹配催缴、租户服务、设备巡检 IoT、档案签章、HR、供应链、园企服务、驾驶舱、AI/集成。
 5. 建设员工移动端与租户微信小程序并完成真实 API/数据库/浏览器（或小程序运行器）旅程，不能用 WebView 壳或本地 JSON替代。

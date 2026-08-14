@@ -1,7 +1,7 @@
 # 瞰维智管 V2 独立验收能力矩阵
 
 > 审计日期：2026-08-14（Asia/Shanghai）
-> 最近 clean-SHA 证据：组织治理提交 `8bb87707251de1e4c22cf4009928c71d84958b8a`；审批/审计纵切 26/26 工作树总门禁已通过，仍需以本轮提交后的 clean-SHA 报告替换。
+> 最近 clean-SHA 证据：审批/审计实现提交 `13243b4488a79ee6eccfc505812b5315263d7c83`，26/26 总门禁通过；组织治理 clean-SHA `8bb87707251de1e4c22cf4009928c71d84958b8a` 仍保留。
 > 判定规则：只使用 `IMPLEMENTED_AND_VERIFIED`、`APPROVED_RETIRED`、`APPROVED_DEFERRED`、`BLOCKED`、`MISSING`。子能力通过但组合需求未闭环时，组合项必须判为 `MISSING`；没有人工批准，不使用 retired/deferred。
 
 ## 当前整改纵切

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-14T06:43:39.361063+00:00",
+  "target": "http://127.0.0.1:8010/api/v1",
+  "runtime": {
+    "requests": 1000,
+    "concurrency": 25,
+    "warmup": 40,
+    "endpoints": [
+      "/workbench/summary",
+      "/leases?page=1&page_size=50",
+      "/parties?page=1&page_size=50",
+      "/units?page=1&page_size=50"
+    ]
+  },
+  "thresholds": {
+    "max_p95_ms": 500.0,
+    "max_error_rate_percent": 1.0,
+    "min_requests_per_second": 20.0
+  },
+  "aggregate": {
+    "requests": 1000,
+    "failures": 0,
+    "error_rate_percent": 0.0,
+    "elapsed_seconds": 7.772,
+    "requests_per_second": 128.659,
+    "mean_ms": 192.622,
+    "p50_ms": 162.089,
+    "p95_ms": 306.849,
+    "p99_ms": 385.628,
+    "max_ms": 426.358,
+    "by_endpoint": {
+      "/leases?page=1&page_size=50": {
+        "requests": 250,
+        "failures": 0,
+        "p50_ms": 153.635,
+        "p95_ms": 210.191,
+        "p99_ms": 251.609,
+        "max_ms": 266.721
+      },
+      "/parties?page=1&page_size=50": {
+        "requests": 250,
+        "failures": 0,
+        "p50_ms": 153.374,
+        "p95_ms": 212.244,
+        "p99_ms": 249.774,
+        "max_ms": 264.65
+      },
+      "/units?page=1&page_size=50": {
+        "requests": 250,
+        "failures": 0,
+        "p50_ms": 155.155,
+        "p95_ms": 210.048,
+        "p99_ms": 251.635,
+        "max_ms": 269.072
+      },
+      "/workbench/summary": {
+        "requests": 250,
+        "failures": 0,
+        "p50_ms": 276.62,
+        "p95_ms": 379.125,
+        "p99_ms": 416.707,
+        "max_ms": 426.358
+      }
+    },
+    "failure_examples": []
+  },
+  "gate": {
+    "passed": true,
+    "failures": []
+  }
+}

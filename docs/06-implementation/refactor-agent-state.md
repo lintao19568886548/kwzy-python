@@ -7,12 +7,12 @@
 | 更新时间 | 2026-08-14（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | 最近 clean-SHA 为 `8bb87707251de1e4c22cf4009928c71d84958b8a`；当前审批/审计实现基于 `c3f653ebef26ab68cbc74f037b34a906001ca88b`，待总闸门后提交复验 |
-| 远程同步 | `origin/feat/full-rebuild-completion` 当前仍为 `c3f653e`；本轮未 force、未触达 main |
-| 工作树 | 审批/审计实现、测试、截图、迁移和证据文档尚未提交；26/26 工作树总门禁已通过，用户既有修改未覆盖 |
+| 已验证 HEAD | 审批/审计实现提交 `13243b4488a79ee6eccfc505812b5315263d7c83` 已完成 26/26 clean-SHA 总门禁 |
+| 远程同步 | `feat/full-rebuild-completion` 与 `origin/feat/full-rebuild-completion` 均含 `13243b4488a79ee6eccfc505812b5315263d7c83`；归档证据提交待推送 |
+| 工作树 | 仅 clean-SHA 机器报告、已同步归档的 OpenSpec 与闭环文档待提交；用户既有修改未覆盖 |
 | Alembic | 唯一 head `o1d79e4f6a53`；fresh upgrade 与 `head→-1→head` 通过，降级任务投影残留缺陷已修复并由真实 HTTP 复演关闭 |
 | 当前阶段 | 独立验收为 3 implemented / 1 blocked / 16 missing；组合能力 1 已升级，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | 组织治理已归档；`complete-platform-approval-audit-center` 共 58 项任务，必须按最终机器证据逐项关闭后才可同步/归档；Identity 两个真实旧数据任务继续外部门禁 |
+| 当前 OpenSpec | 组织治理与审批/审计均已同步主规格并归档；Identity 两个真实旧数据任务继续外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -72,7 +72,7 @@
 
 ## 最新机器证据（组织治理 clean SHA）
 
-审批/审计工作树证据：后端完整 264 passed；PG16 fresh/down-up 与唯一 head 通过；前端 lint/typecheck/Vitest 6/build 通过；Playwright 聚焦 3/3、全量 46/46；独立 HTTP 13 阶段 694.25 ms；性能 1,000 请求、p95 297.179 ms、0 错误；ETL 9 表对账、零重复/PII/伪造决定且 rollback 通过；备份恢复 72 表；OpenAPI 8/8、OpenSpec 54/54、secrets 689 文件；26/26 工作树总门禁通过。clean-SHA 数字待提交后复验。
+审批/审计 clean-SHA `13243b4` 证据：后端完整 264 passed；PG16 fresh/down-up 与唯一 head 通过；前端 lint/typecheck/Vitest 6/build 通过；Playwright 聚焦 3/3、全量 46/46；独立 HTTP 13 阶段 799.63 ms；性能 1,000 请求、p95 306.849 ms、0 错误；ETL 9 表对账、零重复/PII/伪造决定且 rollback 通过；备份恢复 72 表；OpenAPI 8/8、OpenSpec 54/54、secrets 695 文件；26/26 clean-SHA 总门禁通过。
 
 | 项 | 结果 |
 | --- | --- |
@@ -102,7 +102,7 @@
 
 ## 下一恢复点
 
-1. 正常提交/推送审批审计纵切，完成 clean-SHA 总门禁、delta 同步与归档。
+1. 提交并正常推送审批/审计 clean-SHA 证据与 OpenSpec 归档。
 2. 建设事件驱动待办、规则/定时任务和多角色可配置工作台，继续关闭组合能力 2。
 3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 
