@@ -17,10 +17,12 @@ from app.modules.billing.domain.entities import BillEntity, BillLineEntity
 from app.modules.billing.domain.rules import (
     assert_fee_code,
     assert_transition,
+    collectible_open_amount,
+    collectible_total,
+    effective_due_date,
     is_overdue,
     line_amount,
     money,
-    open_amount,
     status_from_paid,
 )
 from app.modules.billing.infrastructure.bill_repository import BillLineRepository, BillRepository
@@ -101,7 +103,10 @@ class BillService:
 
     def _to_dict(self, model, *, with_lines: bool = False) -> dict[str, Any]:
         e = BillMapper.to_entity(model)
-        oa = open_amount(e.total_amount, e.paid_amount)
+        oa = collectible_open_amount(
+            e.total_amount, e.paid_amount, e.waiver_amount, e.bad_debt_amount
+        )
+        effective_due = effective_due_date(e.due_date, e.deferred_due_date)
         data = {
             "id": e.id,
             "tenant_id": e.tenant_id,
@@ -116,12 +121,26 @@ class BillService:
             "status": e.status,
             "total_amount": str(money(e.total_amount)),
             "paid_amount": str(money(e.paid_amount)),
+            "waiver_amount": str(money(e.waiver_amount)),
+            "bad_debt_amount": str(money(e.bad_debt_amount)),
             "open_amount": str(money(oa)),
+            "collectible_total": str(
+                collectible_total(e.total_amount, e.waiver_amount, e.bad_debt_amount)
+            ),
+            "effective_due_date": effective_due.isoformat() if effective_due else None,
+            "deferred_due_date": e.deferred_due_date.isoformat() if e.deferred_due_date else None,
+            "collection_hold": e.collection_hold,
+            "dispute_status": e.dispute_status,
+            "lock_version": e.lock_version,
             "is_overdue": is_overdue(
                 status=e.status,
                 due_date=e.due_date,
                 total_amount=e.total_amount,
                 paid_amount=e.paid_amount,
+                waiver_amount=e.waiver_amount,
+                bad_debt_amount=e.bad_debt_amount,
+                deferred_due_date=e.deferred_due_date,
+                collection_hold=e.collection_hold,
             ),
             "currency": e.currency,
             "source": e.source,
@@ -131,6 +150,7 @@ class BillService:
             data["lines"] = [
                 {
                     "id": ln.id,
+                    "source_schedule_id": ln.source_schedule_id,
                     "fee_code": ln.fee_code,
                     "description": ln.description,
                     "quantity": str(ln.quantity),
@@ -143,7 +163,7 @@ class BillService:
 
     def _replace_lines(self, bill_id: int, lines: list[dict[str, Any]]) -> Decimal:
         self.lines.delete_for_bill(bill_id)
-        total = Decimal("0")
+        total = Decimal(0)
         for i, raw in enumerate(lines or []):
             try:
                 fee = assert_fee_code(str(raw.get("fee_code") or "OTHER"))
@@ -208,7 +228,9 @@ class BillService:
         ps = self._parse_date(data.get("period_start"), "period_start")
         pe = self._parse_date(data.get("period_end"), "period_end")
         if pe < ps:
-            raise AppError("period_end 不得早于 period_start", code="VALIDATION_ERROR", status_code=400)
+            raise AppError(
+                "period_end 不得早于 period_start", code="VALIDATION_ERROR", status_code=400
+            )
         dup = self.bills.find_duplicate_period(party_id, ps, pe)
         if dup:
             raise AppError("同期账单已存在", code="BILL_DUPLICATE_PERIOD", status_code=409)
@@ -254,7 +276,13 @@ class BillService:
         )
         self.session.commit()
         log_business_success(
-            logger, "创建账单草稿", ctx=self.ctx, module="billing", action="create", resource_id=model.id, park_id=park_id
+            logger,
+            "创建账单草稿",
+            ctx=self.ctx,
+            module="billing",
+            action="create",
+            resource_id=model.id,
+            park_id=park_id,
         )
         return self.get_bill(int(model.id))
 
@@ -411,7 +439,9 @@ class BillService:
         self.session.commit()
         return self.get_bill(bill_id)
 
-    def apply_payment_delta(self, bill_id: int, delta: Decimal, *, already_locked: bool = False) -> None:
+    def apply_payment_delta(
+        self, bill_id: int, delta: Decimal, *, already_locked: bool = False
+    ) -> None:
         """功能说明：收款核销回写 paid_amount 与 status（由 Payment 调用，同事务）。
 
         PostgreSQL 下对账单行 FOR UPDATE，防止并发丢失更新与超额核销。
@@ -422,10 +452,18 @@ class BillService:
         if paid < 0:
             raise AppError("核销金额非法", code="ALLOCATION_INVALID", status_code=400)
         total = money(model.total_amount)
-        if paid > total:
+        collectible = collectible_total(
+            total,
+            Decimal(str(model.waiver_amount or 0)),
+            Decimal(str(model.bad_debt_amount or 0)),
+        )
+        if paid > collectible:
             raise AppError("核销超过账单金额", code="ALLOCATION_EXCEEDS_BILL", status_code=409)
         model.paid_amount = paid
-        model.status = status_from_paid(total, paid, model.status if model.status != "DRAFT" else "ISSUED")
+        model.lock_version = int(model.lock_version or 1) + 1
+        model.status = status_from_paid(
+            total, paid, model.status if model.status != "DRAFT" else "ISSUED"
+        )
         if model.status == "PAID":
             model.overdue_since = None
             self._close_collect_todo_paid(bill_id)

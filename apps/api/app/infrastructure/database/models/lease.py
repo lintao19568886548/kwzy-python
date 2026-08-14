@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import (
     JSON,
@@ -77,23 +77,23 @@ class LeaseContract(Base, PrimaryKeyMixin, TimestampMixin):
     contract_type: Mapped[str] = mapped_column(String(32), nullable=False, default="LEASE")
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="CNY")
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="DRAFT")
-    approval_status: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    approval_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[date] = mapped_column(Date, nullable=False)
-    signed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
-    effective_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
-    terminated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
-    increase_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    increase_rate: Mapped[Optional[Decimal]] = mapped_column(Numeric(8, 4), nullable=True)
+    signed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
+    effective_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
+    terminated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
+    increase_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    increase_rate: Mapped[Decimal | None] = mapped_column(Numeric(8, 4), nullable=True)
     deposit_amount: Mapped[Decimal] = mapped_column(
-        Numeric(14, 2), nullable=False, default=Decimal("0")
+        Numeric(14, 2), nullable=False, default=Decimal(0)
     )
     current_version_no: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     lock_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     source_system: Mapped[str] = mapped_column(String(32), nullable=False, default="MANUAL")
-    source_ref: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
-    remark: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    created_by: Mapped[Optional[int]] = mapped_column(FK_TYPE, nullable=True)
+    source_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    remark: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_by: Mapped[int | None] = mapped_column(FK_TYPE, nullable=True)
 
 
 class LeaseContractUnit(Base, PrimaryKeyMixin):
@@ -113,10 +113,10 @@ class LeaseContractUnit(Base, PrimaryKeyMixin):
     )
     unit_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("units.id"), nullable=False)
     occupied_area: Mapped[Decimal] = mapped_column(
-        Numeric(12, 2), nullable=False, default=Decimal("0")
+        Numeric(12, 2), nullable=False, default=Decimal(0)
     )
     unit_rent_price: Mapped[Decimal] = mapped_column(
-        Numeric(12, 2), nullable=False, default=Decimal("0")
+        Numeric(12, 2), nullable=False, default=Decimal(0)
     )
 
 
@@ -133,11 +133,11 @@ class LeaseTerm(Base, PrimaryKeyMixin):
         FK_TYPE, ForeignKey("lease_contracts.id"), nullable=False
     )
     term_type: Mapped[str] = mapped_column(String(32), nullable=False)
-    effective_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    end_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    rate: Mapped[Optional[Decimal]] = mapped_column(Numeric(8, 4), nullable=True)
-    amount: Mapped[Optional[Decimal]] = mapped_column(Numeric(14, 2), nullable=True)
-    description: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    effective_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    rate: Mapped[Decimal | None] = mapped_column(Numeric(8, 4), nullable=True)
+    amount: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=False), nullable=False)
 
@@ -182,19 +182,19 @@ class LeaseChangeOrder(Base, PrimaryKeyMixin, TimestampMixin):
     change_type: Mapped[str] = mapped_column(String(32), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="DRAFT")
     base_version_no: Mapped[int] = mapped_column(Integer, nullable=False)
-    applied_version_no: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    applied_version_no: Mapped[int | None] = mapped_column(Integer, nullable=True)
     effective_date: Mapped[date] = mapped_column(Date, nullable=False)
     reason: Mapped[str] = mapped_column(Text, nullable=False)
     proposal_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     proposal_checksum: Mapped[str] = mapped_column(String(64), nullable=False)
     proposal_schema_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    approval_id: Mapped[Optional[int]] = mapped_column(
+    approval_id: Mapped[int | None] = mapped_column(
         FK_TYPE, ForeignKey("approval_requests.id"), nullable=True
     )
-    idempotency_key: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
     lock_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    applied_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
-    created_by: Mapped[Optional[int]] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
+    applied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
+    created_by: Mapped[int | None] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
 
 
 class LeaseExitSettlement(Base, PrimaryKeyMixin, TimestampMixin):
@@ -228,15 +228,15 @@ class LeaseExitSettlement(Base, PrimaryKeyMixin, TimestampMixin):
     contract_id: Mapped[int] = mapped_column(
         FK_TYPE, ForeignKey("lease_contracts.id"), nullable=False
     )
-    change_order_id: Mapped[Optional[int]] = mapped_column(
+    change_order_id: Mapped[int | None] = mapped_column(
         FK_TYPE, ForeignKey("lease_change_orders.id"), nullable=True, unique=True
     )
     settlement_no: Mapped[str] = mapped_column(String(64), nullable=False)
     contract_version_no: Mapped[int] = mapped_column(Integer, nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="DRAFT")
-    handover_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    inspection_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    meter_readings_json: Mapped[Optional[list[dict[str, Any]]]] = mapped_column(JSON, nullable=True)
+    handover_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    inspection_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    meter_readings_json: Mapped[list[dict[str, Any]] | None] = mapped_column(JSON, nullable=True)
     held_deposit_amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False, default=0)
     outstanding_amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False, default=0)
     outstanding_source: Mapped[str] = mapped_column(
@@ -253,23 +253,21 @@ class LeaseExitSettlement(Base, PrimaryKeyMixin, TimestampMixin):
     financial_clearance_status: Mapped[str] = mapped_column(
         String(32), nullable=False, default="UNCONFIRMED"
     )
-    clearance_evidence_attachment_id: Mapped[Optional[int]] = mapped_column(
+    clearance_evidence_attachment_id: Mapped[int | None] = mapped_column(
         FK_TYPE, ForeignKey("attachments.id"), nullable=True
     )
-    clearance_reference: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
-    clearance_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    clearance_by: Mapped[Optional[int]] = mapped_column(
-        FK_TYPE, ForeignKey("users.id"), nullable=True
-    )
-    clearance_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
-    approval_id: Mapped[Optional[int]] = mapped_column(
+    clearance_reference: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    clearance_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    clearance_by: Mapped[int | None] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
+    clearance_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
+    approval_id: Mapped[int | None] = mapped_column(
         FK_TYPE, ForeignKey("approval_requests.id"), nullable=True
     )
     checksum: Mapped[str] = mapped_column(String(64), nullable=False, default="")
-    idempotency_key: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
     lock_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    created_by: Mapped[Optional[int]] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
-    closed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
+    created_by: Mapped[int | None] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
 
 
 class LeaseContractVersion(Base, PrimaryKeyMixin, TimestampMixin):
@@ -295,18 +293,18 @@ class LeaseContractVersion(Base, PrimaryKeyMixin, TimestampMixin):
     snapshot_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     checksum: Mapped[str] = mapped_column(String(64), nullable=False)
     reason: Mapped[str] = mapped_column(String(255), nullable=False)
-    base_version_no: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    change_order_id: Mapped[Optional[int]] = mapped_column(
+    base_version_no: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    change_order_id: Mapped[int | None] = mapped_column(
         FK_TYPE, ForeignKey("lease_change_orders.id"), nullable=True
     )
-    exit_settlement_id: Mapped[Optional[int]] = mapped_column(
+    exit_settlement_id: Mapped[int | None] = mapped_column(
         FK_TYPE, ForeignKey("lease_exit_settlements.id"), nullable=True
     )
-    approval_id: Mapped[Optional[int]] = mapped_column(
+    approval_id: Mapped[int | None] = mapped_column(
         FK_TYPE, ForeignKey("approval_requests.id"), nullable=True
     )
-    effective_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
-    created_by: Mapped[Optional[int]] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
+    effective_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
+    created_by: Mapped[int | None] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
 
 
 class LeaseChargeItem(Base, PrimaryKeyMixin, TimestampMixin):
@@ -314,9 +312,7 @@ class LeaseChargeItem(Base, PrimaryKeyMixin, TimestampMixin):
 
     __tablename__ = "lease_charge_items"
     __table_args__ = (
-        UniqueConstraint(
-            "tenant_id", "contract_id", "charge_code", name="uk_lease_charge_code"
-        ),
+        UniqueConstraint("tenant_id", "contract_id", "charge_code", name="uk_lease_charge_code"),
         Index("ix_lease_charge_contract", "tenant_id", "contract_id", "sort_order", "id"),
         Index("ix_lease_charge_contract_id", "contract_id"),
     )
@@ -333,11 +329,11 @@ class LeaseChargeItem(Base, PrimaryKeyMixin, TimestampMixin):
     start_date: Mapped[date] = mapped_column(Date, nullable=False)
     end_date: Mapped[date] = mapped_column(Date, nullable=False)
     due_day: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    amount: Mapped[Optional[Decimal]] = mapped_column(Numeric(14, 2), nullable=True)
-    unit_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(14, 4), nullable=True)
+    amount: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
+    unit_price: Mapped[Decimal | None] = mapped_column(Numeric(14, 4), nullable=True)
     tax_rate: Mapped[Decimal] = mapped_column(Numeric(8, 4), nullable=False, default=0)
-    rules_json: Mapped[Optional[list[dict[str, Any]]]] = mapped_column(JSON, nullable=True)
-    source_term_id: Mapped[Optional[int]] = mapped_column(FK_TYPE, nullable=True)
+    rules_json: Mapped[list[dict[str, Any]] | None] = mapped_column(JSON, nullable=True)
+    source_term_id: Mapped[int | None] = mapped_column(FK_TYPE, nullable=True)
     review_status: Mapped[str] = mapped_column(String(32), nullable=False, default="CONFIRMED")
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
@@ -347,9 +343,8 @@ class LeasePerformanceSchedule(Base, PrimaryKeyMixin, TimestampMixin):
 
     __tablename__ = "lease_performance_schedules"
     __table_args__ = (
-        UniqueConstraint(
-            "tenant_id", "deterministic_key", name="uk_lease_schedule_deterministic"
-        ),
+        UniqueConstraint("tenant_id", "deterministic_key", name="uk_lease_schedule_deterministic"),
+        UniqueConstraint("tenant_id", "id", name="uk_lease_schedules_tenant_id_id"),
         Index(
             "ix_lease_schedule_contract_period",
             "tenant_id",
@@ -364,7 +359,7 @@ class LeasePerformanceSchedule(Base, PrimaryKeyMixin, TimestampMixin):
     contract_id: Mapped[int] = mapped_column(
         FK_TYPE, ForeignKey("lease_contracts.id"), nullable=False
     )
-    charge_item_id: Mapped[Optional[int]] = mapped_column(
+    charge_item_id: Mapped[int | None] = mapped_column(
         FK_TYPE, ForeignKey("lease_charge_items.id", ondelete="SET NULL"), nullable=True
     )
     contract_version_no: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -374,13 +369,19 @@ class LeasePerformanceSchedule(Base, PrimaryKeyMixin, TimestampMixin):
     due_date: Mapped[date] = mapped_column(Date, nullable=False)
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="CNY")
     area: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, default=0)
-    unit_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(14, 4), nullable=True)
+    unit_price: Mapped[Decimal | None] = mapped_column(Numeric(14, 4), nullable=True)
     net_amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
     tax_amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False, default=0)
     gross_amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
-    rule_refs_json: Mapped[Optional[list[str]]] = mapped_column(JSON, nullable=True)
+    rule_refs_json: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     deterministic_key: Mapped[str] = mapped_column(String(128), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="PLANNED")
+    bill_id: Mapped[int | None] = mapped_column(
+        FK_TYPE,
+        ForeignKey("bills.id", name="fk_lease_schedule_bill", ondelete="SET NULL"),
+        nullable=True,
+    )
+    billed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
 
 
 class LeaseContractDocument(Base, PrimaryKeyMixin, TimestampMixin):
@@ -404,11 +405,11 @@ class LeaseContractDocument(Base, PrimaryKeyMixin, TimestampMixin):
     contract_id: Mapped[int] = mapped_column(
         FK_TYPE, ForeignKey("lease_contracts.id"), nullable=False
     )
-    contract_version_no: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    change_order_id: Mapped[Optional[int]] = mapped_column(
+    contract_version_no: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    change_order_id: Mapped[int | None] = mapped_column(
         FK_TYPE, ForeignKey("lease_change_orders.id"), nullable=True
     )
-    exit_settlement_id: Mapped[Optional[int]] = mapped_column(
+    exit_settlement_id: Mapped[int | None] = mapped_column(
         FK_TYPE, ForeignKey("lease_exit_settlements.id"), nullable=True
     )
     attachment_id: Mapped[int] = mapped_column(
@@ -419,11 +420,11 @@ class LeaseContractDocument(Base, PrimaryKeyMixin, TimestampMixin):
     checksum: Mapped[str] = mapped_column(String(64), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="DRAFT")
     is_main: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    signature_provider: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
-    signature_ref: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    signature_provider: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    signature_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
     live_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    signed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
-    created_by: Mapped[Optional[int]] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
+    signed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=False), nullable=True)
+    created_by: Mapped[int | None] = mapped_column(FK_TYPE, ForeignKey("users.id"), nullable=True)
 
 
 class LeaseExitItem(Base, PrimaryKeyMixin, TimestampMixin):
@@ -442,9 +443,9 @@ class LeaseExitItem(Base, PrimaryKeyMixin, TimestampMixin):
     description: Mapped[str] = mapped_column(String(255), nullable=False)
     amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
     approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    evidence_attachment_id: Mapped[Optional[int]] = mapped_column(
+    evidence_attachment_id: Mapped[int | None] = mapped_column(
         FK_TYPE, ForeignKey("attachments.id"), nullable=True
     )
-    source_type: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
-    source_ref: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    source_type: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    source_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

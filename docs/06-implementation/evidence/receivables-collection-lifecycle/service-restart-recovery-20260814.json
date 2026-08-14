@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-14T15:55:11.5333487Z",
+  "target": "loopback FastAPI with disposable PostgreSQL 16",
+  "procedure": [
+    "authenticate through POST /api/v1/auth/login",
+    "capture readiness and business row-count signature",
+    "gracefully stop the API process and verify the port is closed",
+    "start a new API process against the same database",
+    "authenticate again and compare readiness and row-count signature"
+  ],
+  "before_restart": {
+    "ready": "ready",
+    "database": "up",
+    "receipts": 5,
+    "payments": 5,
+    "cases": 5
+  },
+  "after_restart": {
+    "ready": "ready",
+    "database": "up",
+    "receipts": 5,
+    "payments": 5,
+    "cases": 5
+  },
+  "port_closed_between_processes": true,
+  "data_signature_equal": true,
+  "result": "PASS",
+  "production_touched": false
+}

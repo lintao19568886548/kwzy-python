@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-14T15:53:59.315539+00:00",
+  "target": "http://127.0.0.1:8010/api/v1",
+  "runtime": {
+    "requests": 1000,
+    "concurrency": 25,
+    "warmup": 40,
+    "endpoints": [
+      "GET /receipts?page=1&page_size=100",
+      "GET /receipts/capabilities",
+      "GET /payments?page=1&page_size=100",
+      "GET /bills?page=1&page_size=100",
+      "GET /collection/cases?page=1&page_size=100",
+      "GET /collection/runs/preview?as_of=2099-03-05",
+      "GET /receivable-adjustments",
+      "GET /billing/runs/preview?as_of=2099-03-05"
+    ]
+  },
+  "thresholds": {
+    "max_p95_ms": 500.0,
+    "max_error_rate_percent": 0.0,
+    "min_requests_per_second": 20.0
+  },
+  "aggregate": {
+    "requests": 1000,
+    "failures": 0,
+    "error_rate_percent": 0.0,
+    "elapsed_seconds": 4.727,
+    "requests_per_second": 211.529,
+    "mean_ms": 116.588,
+    "p50_ms": 111.022,
+    "p95_ms": 151.678,
+    "p99_ms": 238.515,
+    "max_ms": 275.346,
+    "by_endpoint": {
+      "GET /billing/runs/preview?as_of=2099-03-05": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 104.433,
+        "p95_ms": 134.68,
+        "p99_ms": 223.202,
+        "max_ms": 229.124
+      },
+      "GET /bills?page=1&page_size=100": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 124.118,
+        "p95_ms": 146.296,
+        "p99_ms": 250.134,
+        "max_ms": 258.261
+      },
+      "GET /collection/cases?page=1&page_size=100": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 123.098,
+        "p95_ms": 141.813,
+        "p99_ms": 239.245,
+        "max_ms": 247.032
+      },
+      "GET /collection/runs/preview?as_of=2099-03-05": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 105.343,
+        "p95_ms": 130.97,
+        "p99_ms": 218.17,
+        "max_ms": 219.494
+      },
+      "GET /payments?page=1&page_size=100": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 140.213,
+        "p95_ms": 168.5,
+        "p99_ms": 264.973,
+        "max_ms": 275.346
+      },
+      "GET /receipts/capabilities": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 98.133,
+        "p95_ms": 120.925,
+        "p99_ms": 213.364,
+        "max_ms": 229.884
+      },
+      "GET /receipts?page=1&page_size=100": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 109.068,
+        "p95_ms": 133.357,
+        "p99_ms": 227.489,
+        "max_ms": 243.865
+      },
+      "GET /receivable-adjustments": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 105.425,
+        "p95_ms": 127.022,
+        "p99_ms": 217.724,
+        "max_ms": 222.728
+      }
+    },
+    "failure_examples": []
+  },
+  "gate": {
+    "passed": true,
+    "failures": []
+  }
+}

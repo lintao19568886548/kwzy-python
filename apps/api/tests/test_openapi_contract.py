@@ -122,9 +122,7 @@ def test_party_enterprise_openapi_matches_every_runtime_method_and_strict_comman
     credential = schemas["EnterpriseCredentialCreate"]["properties"]
     assert credential["identifier"]["writeOnly"] is True
     assert "identifier_fingerprint" not in credential
-    risk_description = paths["/parties/{party_id}/enterprise-risk-signals"]["get"][
-        "description"
-    ]
+    risk_description = paths["/parties/{party_id}/enterprise-risk-signals"]["get"]["description"]
     assert "不是外部信用评分" in risk_description
 
 
@@ -185,6 +183,66 @@ def test_step1_runtime_paths_covered_by_openapi() -> None:
             resource in op or resource in op.replace("/api/v1", "") for op in openapi_with_prefix
         )
         assert found, f"runtime route {rp} not reflected in OpenAPI ({resource})"
+
+
+def test_receivables_openapi_matches_every_runtime_method_and_strict_command() -> None:
+    """Every receivables write path is contract-controlled and rejects hidden fields."""
+
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    paths = document["paths"]
+    runtime_paths = create_app().openapi()["paths"]
+    expected_methods = {
+        "/billing/runs/preview": {"get"},
+        "/billing/runs": {"post"},
+        "/receipts/capabilities": {"get"},
+        "/receipts": {"get", "post"},
+        "/receipts/import": {"post"},
+        "/receipts/{receipt_id}": {"get"},
+        "/receipts/{receipt_id}/match": {"post"},
+        "/receipts/{receipt_id}/confirm": {"post"},
+        "/receipts/{receipt_id}/exception": {"post"},
+        "/receipts/{receipt_id}/dispute": {"post"},
+        "/receipts/{receipt_id}/dispute/resolve": {"post"},
+        "/payments/{payment_id}/allocations": {"post"},
+        "/collection/runs/preview": {"get"},
+        "/collection/runs": {"post"},
+        "/receivable-adjustments": {"get", "post"},
+        "/receivable-adjustments/{adjustment_id}/apply": {"post"},
+    }
+    for path, methods in expected_methods.items():
+        assert path in paths, path
+        assert methods == {
+            method.lower()
+            for method in paths[path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, path
+        runtime_path = "/api/v1" + path
+        assert runtime_path in runtime_paths, runtime_path
+        assert methods == {
+            method.lower()
+            for method in runtime_paths[runtime_path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, runtime_path
+
+    schemas = document["components"]["schemas"]
+    for command in (
+        "ReceiptCreate",
+        "ReceivableVersionCommand",
+        "ReceiptConfirm",
+        "ReceiptException",
+        "ReceiptDispute",
+        "ReceiptDisputeDecision",
+        "PaymentAllocate",
+        "DunningRunCommand",
+        "ReceivableAdjustmentCreate",
+        "CollectionCaseCreate",
+        "CollectionCaseUpdate",
+        "CollectionRecordCreate",
+    ):
+        assert schemas[command]["additionalProperties"] is False, command
+    assert schemas["ReceiptCreate"]["properties"]["payer_account"]["writeOnly"] is True
 
 
 def test_asset_portfolio_openapi_matches_every_runtime_method() -> None:

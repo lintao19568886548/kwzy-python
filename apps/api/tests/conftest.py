@@ -23,8 +23,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.core.config import get_settings
-from app.infrastructure.database.base import Base
-from app.infrastructure.database.base import utc_now
+from app.infrastructure.database.base import Base, utc_now
 from app.infrastructure.database.models.investment import (
     LeadIntentApplication,
     LeadIntentUnit,
@@ -58,6 +57,11 @@ def engine():
 
     Base.metadata.create_all(bind=eng)
     yield eng
+    # SQLite cannot topologically drop tables that contain a real circular-FK row
+    # (receipt_transactions.payment_id <-> payments.source_receipt_id). Enforcement
+    # stays enabled for the complete test; only schema teardown disables it.
+    with eng.connect() as connection:
+        connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
     Base.metadata.drop_all(bind=eng)
 
 
@@ -265,7 +269,9 @@ def governed_close_exit():
     """Close a zero-balance exit through approval and an approved handover document."""
 
     def run(client, headers: dict[str, str], contract_id: int):
-        detail = client.get(f"/api/v1/leases/{contract_id}/lifecycle", headers=headers).json()["data"]
+        detail = client.get(f"/api/v1/leases/{contract_id}/lifecycle", headers=headers).json()[
+            "data"
+        ]
         created = client.post(
             f"/api/v1/leases/{contract_id}/exit-settlements",
             headers=headers,

@@ -2,35 +2,44 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
-class BillLineIn(BaseModel):
+class StrictBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class BillLineIn(StrictBody):
     fee_code: str = "OTHER"
     description: str = ""
     quantity: Any = "0"
     unit_price: Any = "0"
-    amount: Optional[Any] = None
+    amount: Any | None = None
     sort_order: int = 0
 
 
-class BillCreate(BaseModel):
+class BillCreate(StrictBody):
     park_id: int
     party_id: int
     period_start: str
     period_end: str
-    contract_id: Optional[int] = None
-    bill_no: Optional[str] = None
-    title: Optional[str] = None
-    due_date: Optional[str] = None
-    remark: Optional[str] = None
+    contract_id: int | None = None
+    bill_no: str | None = None
+    title: str | None = None
+    due_date: str | None = None
+    remark: str | None = None
     lines: list[BillLineIn] = Field(default_factory=list)
 
 
-class BillUpdate(BaseModel):
-    title: Optional[str] = None
-    due_date: Optional[str] = None
-    remark: Optional[str] = None
-    lines: Optional[list[BillLineIn]] = None
+class BillUpdate(StrictBody):
+    title: str | None = None
+    due_date: str | None = None
+    remark: str | None = None
+    lines: list[BillLineIn] | None = None
+
+
+class ScheduleBillingRun(StrictBody):
+    as_of: str
+    park_id: int | None = Field(default=None, gt=0)

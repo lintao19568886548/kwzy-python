@@ -92,9 +92,7 @@ def test_main_chain_happy_path(client, governed_activate, approved_intent) -> No
     act = governed_activate(client, h, lease_id)
     assert act.status_code == 200, act.text
     assert act.json()["data"]["contract"]["status"] == "ACTIVE"
-    lead_after_activation = client.get(
-        f"/api/v1/leads/{lead['id']}", headers=h
-    ).json()["data"]
+    lead_after_activation = client.get(f"/api/v1/leads/{lead['id']}", headers=h).json()["data"]
     assert lead_after_activation["unit_locks"][0]["status"] == "CONSUMED"
     assert lead_after_activation["unit_locks"][0]["consumed_at"] is not None
 
@@ -127,6 +125,20 @@ def test_main_chain_happy_path(client, governed_activate, approved_intent) -> No
     ).json()["data"]
     assert any(x["source_id"] == str(bill["id"]) for x in unpaid["items"])
 
+    # 催缴必须基于尚有可收余额的账单；全额到账后应自动关闭案件。
+    case = client.post(
+        "/api/v1/collection/cases",
+        headers=h,
+        json={
+            "park_id": park["id"],
+            "party_id": party_id,
+            "bill_id": bill["id"],
+            "level": "L1",
+        },
+    )
+    assert case.status_code == 200, case.text
+    case_id = case.json()["data"]["id"]
+
     pay = client.post(
         "/api/v1/payments",
         headers=h,
@@ -143,19 +155,10 @@ def test_main_chain_happy_path(client, governed_activate, approved_intent) -> No
 
     bill_after = client.get(f"/api/v1/bills/{bill['id']}", headers=h).json()["data"]
     assert bill_after["status"] == "PAID"
-
-    # 催缴案件（过程）+ 工单
-    case = client.post(
-        "/api/v1/collection/cases",
-        headers=h,
-        json={
-            "park_id": park["id"],
-            "party_id": party_id,
-            "bill_id": bill["id"],
-            "level": "L1",
-        },
-    )
-    assert case.status_code == 200, case.text
+    closed_case = client.get(f"/api/v1/collection/cases/{case_id}", headers=h)
+    assert closed_case.status_code == 200, closed_case.text
+    assert closed_case.json()["data"]["status"] == "CLOSED"
+    assert closed_case.json()["data"]["resolution_code"] == "RECEIVABLE_SETTLED"
 
     wo = client.post(
         "/api/v1/work-orders",
@@ -192,9 +195,9 @@ def test_main_chain_permission_denies(client) -> None:
 
 def test_cross_tenant_isolation_on_party(client, db_session: Session) -> None:
     h1 = _bearer()
-    park = client.post(
-        "/api/v1/parks", headers=h1, json={"name": "T1园", "address": "a"}
-    ).json()["data"]
+    park = client.post("/api/v1/parks", headers=h1, json={"name": "T1园", "address": "a"}).json()[
+        "data"
+    ]
     party = client.post(
         "/api/v1/parties",
         headers=h1,

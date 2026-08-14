@@ -26,6 +26,7 @@ const allNav: NavItem[] = [
   { to: "/parties", label: "主体", testid: "nav-parties", permission: "party:read" },
   { to: "/leases", label: "合同", testid: "nav-leases", permission: "lease:read" },
   { to: "/bills", label: "账单", testid: "nav-bills", permission: "bill:read" },
+  { to: "/receipts", label: "到账中心", testid: "nav-receipts", permission: "payment:read" },
   { to: "/payments", label: "收款", testid: "nav-payments", permission: "payment:read" },
   { to: "/collection", label: "催缴", testid: "nav-collection", permission: "collection:read" },
   {

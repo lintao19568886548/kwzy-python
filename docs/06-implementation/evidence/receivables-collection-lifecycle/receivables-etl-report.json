@@ -1,0 +1,101 @@
+{
+  "generated_at": "2026-08-14T15:56:24.947136+00:00",
+  "result": "PASS",
+  "schema": "etl_receivables_fixture",
+  "synthetic_only": true,
+  "contains_real_customer_data": false,
+  "live_legacy_verified": false,
+  "readiness": "CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA",
+  "real_legacy_readiness": "BLOCKED_PENDING_AUTHORIZED_SCHEMA_AND_DESENSITIZED_SAMPLE",
+  "fixture_sha256": "21c67fa315effe86a302519b3c980db44a643426121bb8a7f27c7e9f5dcd478c",
+  "stages": {
+    "dry_run": {
+      "passed": true,
+      "mapped_counts": {
+        "bills": 2,
+        "bill_lines": 3,
+        "receipts": 2,
+        "payments": 1,
+        "allocations": 1,
+        "collection_cases": 1,
+        "collection_records": 1,
+        "quarantine": 1
+      }
+    },
+    "interruption_recovery": {
+      "passed": true,
+      "partial_rows_after_rollback": 0
+    },
+    "first_apply": {
+      "passed": true,
+      "inserted": {
+        "bills": 2,
+        "bill_lines": 3,
+        "receipts": 2,
+        "payments": 1,
+        "allocations": 1,
+        "collection_cases": 1,
+        "collection_records": 1,
+        "quarantine": 1
+      }
+    },
+    "idempotent_reapply": {
+      "passed": true,
+      "inserted": {
+        "bills": 0,
+        "bill_lines": 0,
+        "receipts": 0,
+        "payments": 0,
+        "allocations": 0,
+        "collection_cases": 0,
+        "collection_records": 0,
+        "quarantine": 0
+      }
+    },
+    "reconciliation": {
+      "passed": true,
+      "expected_counts": {
+        "bills": 2,
+        "bill_lines": 3,
+        "receipts": 2,
+        "payments": 1,
+        "allocations": 1,
+        "collection_cases": 1,
+        "collection_records": 1,
+        "quarantine": 1
+      },
+      "target_counts": {
+        "bills": 2,
+        "bill_lines": 3,
+        "receipts": 2,
+        "payments": 1,
+        "allocations": 1,
+        "collection_cases": 1,
+        "collection_records": 1,
+        "quarantine": 1
+      },
+      "source_bill_total": "1500.00",
+      "target_bill_total": "1500.00",
+      "line_mismatches": 0,
+      "payment_overallocations": 0,
+      "bill_allocation_mismatches": 0,
+      "orphan_rows": 0,
+      "unmasked_account_rows": 0,
+      "false_external_deliveries": 0,
+      "quarantine_reasons": {
+        "FINANCE_SOURCE_LINK_MISSING": 1
+      }
+    },
+    "rollback": {
+      "passed": true,
+      "schema_exists_after": false,
+      "authorization_rows_unchanged": true
+    }
+  },
+  "blockers": [
+    "authorized legacy amount_bill/receipt/finance schema dump not supplied",
+    "desensitized production-like finance snapshot and key maps not supplied",
+    "bank/payment provider settlement files and contracts not supplied",
+    "production freeze, backup, cutover and rollback are not authorized"
+  ]
+}

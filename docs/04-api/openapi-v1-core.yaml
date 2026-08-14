@@ -2675,6 +2675,272 @@ paths:
                     items:
                       $ref: '#/components/schemas/Bill'
 
+  /billing/runs/preview:
+    get:
+      tags: [Bills]
+      summary: 预览当前合同版本的履约计划出账，不写入账单
+      operationId: previewScheduleBillingRun
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: as_of, in: query, required: true, schema: { type: string, format: date } }
+        - { name: park_id, in: query, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /billing/runs:
+    post:
+      tags: [Bills]
+      summary: 从当前合同版本履约计划幂等生成并签发账单
+      operationId: applyScheduleBillingRun
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [as_of]
+              properties:
+                as_of: { type: string, format: date }
+                park_id: { type: integer, format: int64, minimum: 1 }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /receipts/capabilities:
+    get:
+      tags: [Receivables]
+      summary: 查询到账渠道的真实连接状态；未连接外部渠道必须 fail-closed
+      operationId: getReceiptCapabilities
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /receipts:
+    get:
+      tags: [Receivables]
+      summary: 到账待处理池
+      operationId: listReceiptTransactions
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - { name: status, in: query, schema: { type: string } }
+        - { name: park_id, in: query, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+    post:
+      tags: [Receivables]
+      summary: 导入一笔可追溯到账事实，不自动生成收款
+      operationId: createReceiptTransaction
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReceiptCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /receipts/import:
+    post:
+      tags: [Receivables]
+      summary: 原子批量导入到账事实，以 provider 和 source_ref 幂等
+      operationId: importReceiptTransactions
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [rows]
+              properties:
+                rows:
+                  type: array
+                  minItems: 1
+                  maxItems: 500
+                  items: { $ref: '#/components/schemas/ReceiptCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /receipts/{receipt_id}:
+    get:
+      tags: [Receivables]
+      summary: 到账详情、匹配候选和复核状态
+      operationId: getReceiptTransaction
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: receipt_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /receipts/{receipt_id}/match:
+    post:
+      tags: [Receivables]
+      summary: 生成可解释匹配建议；不得记账
+      operationId: matchReceiptTransaction
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: receipt_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReceivableVersionCommand' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /receipts/{receipt_id}/confirm:
+    post:
+      tags: [Receivables]
+      summary: 财务人工复核后生成收款及多账单核销
+      operationId: confirmReceiptTransaction
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: receipt_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReceiptConfirm' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /receipts/{receipt_id}/exception:
+    post:
+      tags: [Receivables]
+      summary: 标记财务匹配异常
+      operationId: markReceiptException
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: receipt_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReceiptException' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /receipts/{receipt_id}/dispute:
+    post:
+      tags: [Receivables]
+      summary: 提交到账争议并创建经理复核待办
+      operationId: disputeReceiptTransaction
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: receipt_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReceiptDispute' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /receipts/{receipt_id}/dispute/resolve:
+    post:
+      tags: [Receivables]
+      summary: 经理复核到账争议
+      operationId: resolveReceiptDispute
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: receipt_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReceiptDisputeDecision' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /payments/{payment_id}/allocations:
+    post:
+      tags: [Payments]
+      summary: 将收款未分配余额幂等核销到一个或多个账单
+      operationId: allocatePaymentBalance
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: payment_id, in: path, required: true, schema: { type: integer, format: int64 } }
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PaymentAllocate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /collection/runs/preview:
+    get:
+      tags: [Collection]
+      summary: 预览账龄分级催缴，不生成案件或通知
+      operationId: previewDunningRun
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: as_of, in: query, required: true, schema: { type: string, format: date } }
+        - { name: park_id, in: query, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /collection/runs:
+    post:
+      tags: [Collection]
+      summary: 幂等执行 L1-L4 账龄催缴计划，不伪造外部消息发送
+      operationId: applyDunningRun
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DunningRunCommand' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /receivable-adjustments:
+    get:
+      tags: [Receivables]
+      summary: 应收减免、延期、坏账和争议申请列表
+      operationId: listReceivableAdjustments
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: bill_id, in: query, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+    post:
+      tags: [Receivables]
+      summary: 发起应收调整审批，批准前不得改变账单
+      operationId: createReceivableAdjustment
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReceivableAdjustmentCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /receivable-adjustments/{adjustment_id}/apply:
+    post:
+      tags: [Receivables]
+      summary: 校验审批和账单快照后应用应收调整
+      operationId: applyReceivableAdjustment
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: adjustment_id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReceivableVersionCommand' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
   /payments:
     get:
       tags: [Payments]
@@ -5683,6 +5949,107 @@ components:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
 
   schemas:
+    ReceiptCreate:
+      type: object
+      additionalProperties: false
+      required: [park_id, amount, received_at, channel, source_ref]
+      properties:
+        park_id: { type: integer, format: int64, minimum: 1 }
+        party_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        amount: { type: number, exclusiveMinimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3, default: CNY }
+        received_at: { type: string, format: date-time }
+        channel:
+          type: string
+          enum: [BANK_IMPORT, BANK_API, OFFLINE_TRANSFER, PAYMENT_LINK, WECHAT, ALIPAY, AGGREGATE, CASH, POS]
+        source_provider: { type: string, minLength: 1, maxLength: 64, default: MANUAL }
+        source_ref: { type: string, minLength: 1, maxLength: 128 }
+        payer_name: { type: string, maxLength: 128, nullable: true }
+        payer_account:
+          type: string
+          maxLength: 128
+          nullable: true
+          writeOnly: true
+        bank_reference: { type: string, maxLength: 128, nullable: true }
+        purpose: { type: string, maxLength: 512, nullable: true }
+
+    ReceivableVersionCommand:
+      type: object
+      additionalProperties: false
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+
+    ReceiptConfirm:
+      type: object
+      additionalProperties: false
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        party_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        allocations:
+          type: array
+          maxItems: 200
+          nullable: true
+          items: { $ref: '#/components/schemas/PaymentAllocationInput' }
+        remark: { type: string, maxLength: 1000, nullable: true }
+
+    ReceiptException:
+      type: object
+      additionalProperties: false
+      required: [expected_version, code, remark]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        code: { type: string, minLength: 1, maxLength: 64 }
+        remark: { type: string, minLength: 1, maxLength: 1000 }
+
+    ReceiptDispute:
+      type: object
+      additionalProperties: false
+      required: [expected_version, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+
+    ReceiptDisputeDecision:
+      type: object
+      additionalProperties: false
+      required: [expected_version, decision, remark]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        decision: { type: string, enum: [RETURN_TO_FINANCE, REJECT_RECEIPT] }
+        remark: { type: string, minLength: 1, maxLength: 1000 }
+
+    PaymentAllocate:
+      type: object
+      additionalProperties: false
+      required: [allocations]
+      properties:
+        allocations:
+          type: array
+          minItems: 1
+          maxItems: 200
+          items: { $ref: '#/components/schemas/PaymentAllocationInput' }
+
+    DunningRunCommand:
+      type: object
+      additionalProperties: false
+      required: [as_of]
+      properties:
+        as_of: { type: string, format: date }
+        park_id: { type: integer, format: int64, minimum: 1, nullable: true }
+
+    ReceivableAdjustmentCreate:
+      type: object
+      additionalProperties: false
+      required: [bill_id, adjustment_type, reason]
+      properties:
+        bill_id: { type: integer, format: int64, minimum: 1 }
+        adjustment_type: { type: string, enum: [WAIVER, EXTENSION, BAD_DEBT, DISPUTE, DISPUTE_RESOLUTION] }
+        amount: { type: number, exclusiveMinimum: 0, nullable: true }
+        requested_due_date: { type: string, format: date, nullable: true }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+
     # ----- 统一响应 envelope（P0-3）-----
     ApiEnvelopeOk:
       type: object
@@ -7514,21 +7881,26 @@ components:
 
     CollectionCaseCreate:
       type: object
+      additionalProperties: false
       required: [park_id, party_id, bill_id]
       properties:
         park_id: { type: integer, format: int64 }
         party_id: { type: integer, format: int64 }
         bill_id: { type: integer, format: int64 }
-        level: { type: string, default: L1 }
+        level: { type: string, default: L1, pattern: '^L[1-4]$' }
         assignee_id: { type: integer, format: int64, nullable: true }
-        remark: { type: string }
+        remark: { type: string, maxLength: 2000, nullable: true }
     CollectionCaseUpdate:
       type: object
+      additionalProperties: false
+      required: [expected_version]
       properties:
+        expected_version: { type: integer, minimum: 1 }
         status: { type: string }
-        level: { type: string }
+        level: { type: string, pattern: '^L[1-4]$' }
         assignee_id: { type: integer, format: int64, nullable: true }
-        next_action_at: { type: string, format: date-time, nullable: true }
+        remark: { type: string, maxLength: 2000, nullable: true }
+        resolution_code: { type: string, maxLength: 32, nullable: true }
     CollectionCase:
       type: object
       properties:
@@ -7554,11 +7926,14 @@ components:
         created_at: { type: string, format: date-time }
     CollectionRecordCreate:
       type: object
-      required: [record_type]
+      additionalProperties: false
+      required: [action_type]
       properties:
-        record_type: { type: string }
-        content: { type: string }
-        result: { type: string }
+        action_type: { type: string, enum: [CALL, VISIT, SMS, WECHAT, EMAIL, NOTICE, NOTE] }
+        channel: { type: string, maxLength: 24, nullable: true }
+        note: { type: string, maxLength: 2000, nullable: true }
+        source_ref: { type: string, maxLength: 128, nullable: true }
+        next_follow_up_at: { type: string, format: date-time, nullable: true }
     CollectionCaseEnvelope:
       type: object
       properties:

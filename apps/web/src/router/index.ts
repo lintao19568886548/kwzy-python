@@ -7,6 +7,7 @@ import PartiesView from "@/views/PartiesView.vue";
 import LeasesView from "@/views/LeasesView.vue";
 import BillsView from "@/views/BillsView.vue";
 import PaymentsView from "@/views/PaymentsView.vue";
+import ReceiptsView from "@/views/ReceiptsView.vue";
 import TodosView from "@/views/TodosView.vue";
 import LeadsView from "@/views/LeadsView.vue";
 import WorkOrdersView from "@/views/WorkOrdersView.vue";
@@ -96,6 +97,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "lease:read" },
       },
       { path: "bills", name: "bills", component: BillsView, meta: { permission: "bill:read" } },
+      {
+        path: "receipts",
+        name: "receipts",
+        component: ReceiptsView,
+        meta: { permission: "payment:read" },
+      },
       {
         path: "payments",
         name: "payments",

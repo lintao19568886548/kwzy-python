@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Sequence
+from collections.abc import Sequence
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -29,9 +29,9 @@ class CollectionCaseRepository:
         *,
         offset: int = 0,
         limit: int = 20,
-        status: Optional[str] = None,
-        park_id: Optional[int] = None,
-        bill_id: Optional[int] = None,
+        status: str | None = None,
+        park_id: int | None = None,
+        bill_id: int | None = None,
     ) -> Sequence[CollectionCase]:
         stmt = self._scope(select(CollectionCase))
         if status:
@@ -49,9 +49,9 @@ class CollectionCaseRepository:
     def count(
         self,
         *,
-        status: Optional[str] = None,
-        park_id: Optional[int] = None,
-        bill_id: Optional[int] = None,
+        status: str | None = None,
+        park_id: int | None = None,
+        bill_id: int | None = None,
     ) -> int:
         vis = self._scope(select(CollectionCase.id))
         if status:
@@ -62,10 +62,15 @@ class CollectionCaseRepository:
             vis = vis.where(CollectionCase.bill_id == int(bill_id))
         return int(self.session.scalar(select(func.count()).select_from(vis.subquery())) or 0)
 
-    def get_by_id(self, case_id: int) -> Optional[CollectionCase]:
-        return self.session.scalars(
-            self._scope(select(CollectionCase).where(CollectionCase.id == case_id))
-        ).first()
+    def get_by_id(self, case_id: int, *, for_update: bool = False) -> CollectionCase | None:
+        stmt = self._scope(select(CollectionCase).where(CollectionCase.id == case_id))
+        if (
+            for_update
+            and self.session.bind is not None
+            and self.session.bind.dialect.name == "postgresql"
+        ):
+            stmt = stmt.with_for_update()
+        return self.session.scalars(stmt).first()
 
     def create(
         self,
@@ -74,8 +79,8 @@ class CollectionCaseRepository:
         party_id: int,
         bill_id: int,
         level: str,
-        assignee_user_id: Optional[int],
-        remark: Optional[str],
+        assignee_user_id: int | None,
+        remark: str | None,
     ) -> CollectionCase:
         model = CollectionCase(
             tenant_id=self.ctx.tenant_id,
@@ -83,6 +88,7 @@ class CollectionCaseRepository:
             party_id=party_id,
             bill_id=bill_id,
             status="OPEN",
+            active_bill_key=str(bill_id),
             level=level,
             assignee_user_id=assignee_user_id,
             remark=remark,

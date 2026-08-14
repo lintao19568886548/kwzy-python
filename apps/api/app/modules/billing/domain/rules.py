@@ -5,14 +5,10 @@ from __future__ import annotations
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 
-BILL_STATUSES = frozenset(
-    {"DRAFT", "ISSUED", "PARTIALLY_PAID", "PAID", "VOID", "DISCARDED"}
-)
+BILL_STATUSES = frozenset({"DRAFT", "ISSUED", "PARTIALLY_PAID", "PAID", "VOID", "DISCARDED"})
 FORBIDDEN_STATUSES = frozenset({"OVERDUE"})
 EDITABLE = frozenset({"DRAFT"})
-FEE_CODES = frozenset(
-    {"RENT", "WATER", "ELECTRIC", "MANAGEMENT", "SERVICE", "TAX", "OTHER"}
-)
+FEE_CODES = frozenset({"RENT", "WATER", "ELECTRIC", "MANAGEMENT", "SERVICE", "TAX", "OTHER"})
 
 _TRANSITIONS: dict[str, frozenset[str]] = {
     "DRAFT": frozenset({"ISSUED", "DISCARDED"}),
@@ -24,7 +20,7 @@ _TRANSITIONS: dict[str, frozenset[str]] = {
 }
 
 
-def money(value: Decimal | float | int | str) -> Decimal:
+def money(value: Decimal | float | str) -> Decimal:
     """功能说明：金额两位小数 HALF_UP。"""
 
     return Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
@@ -74,6 +70,53 @@ def open_amount(total: Decimal, paid: Decimal) -> Decimal:
     return money(Decimal(str(total)) - Decimal(str(paid)))
 
 
+def collectible_total(
+    total: Decimal, waiver_amount: Decimal = Decimal(0), bad_debt_amount: Decimal = Decimal(0)
+) -> Decimal:
+    """Amount still eligible for cash allocation after approved non-cash treatments."""
+
+    value = money(Decimal(str(total)) - Decimal(str(waiver_amount)) - Decimal(str(bad_debt_amount)))
+    if value < 0:
+        raise ValueError("receivable treatments exceed bill total")
+    return value
+
+
+def collectible_open_amount(
+    total: Decimal,
+    paid: Decimal,
+    waiver_amount: Decimal = Decimal(0),
+    bad_debt_amount: Decimal = Decimal(0),
+) -> Decimal:
+    """Cash-collectible balance; never conflates waiver/write-off with payment."""
+
+    value = money(collectible_total(total, waiver_amount, bad_debt_amount) - Decimal(str(paid)))
+    if value < 0:
+        raise ValueError("paid amount exceeds collectible total")
+    return value
+
+
+def effective_due_date(due_date: date | None, deferred_due_date: date | None) -> date | None:
+    if due_date is None:
+        return deferred_due_date
+    if deferred_due_date is None:
+        return due_date
+    return max(due_date, deferred_due_date)
+
+
+def aging_level(overdue_days: int) -> str | None:
+    """Bounded L1-L4 aging strategy."""
+
+    if overdue_days <= 0:
+        return None
+    if overdue_days <= 7:
+        return "L1"
+    if overdue_days <= 30:
+        return "L2"
+    if overdue_days <= 60:
+        return "L3"
+    return "L4"
+
+
 def status_from_paid(total: Decimal, paid: Decimal, current: str) -> str:
     """功能说明：按核销回写主状态（ISSUED/PARTIALLY_PAID/PAID）。"""
 
@@ -82,7 +125,7 @@ def status_from_paid(total: Decimal, paid: Decimal, current: str) -> str:
     total_m, paid_m = money(total), money(paid)
     if paid_m <= 0:
         return "ISSUED"
-    if paid_m >= total_m and total_m > 0:
+    if paid_m >= total_m > 0:
         return "PAID"
     return "PARTIALLY_PAID"
 
@@ -93,6 +136,10 @@ def is_overdue(
     due_date: date | None,
     total_amount: Decimal,
     paid_amount: Decimal,
+    waiver_amount: Decimal = Decimal(0),
+    bad_debt_amount: Decimal = Decimal(0),
+    deferred_due_date: date | None = None,
+    collection_hold: bool = False,
     today: date | None = None,
 ) -> bool:
     """功能说明：衍生逾期；不使用 status=OVERDUE。"""
@@ -100,6 +147,12 @@ def is_overdue(
     day = today or date.today()
     if status not in {"ISSUED", "PARTIALLY_PAID"}:
         return False
-    if due_date is None:
+    if collection_hold:
         return False
-    return due_date < day and open_amount(total_amount, paid_amount) > 0
+    effective = effective_due_date(due_date, deferred_due_date)
+    if effective is None:
+        return False
+    return (
+        effective < day
+        and collectible_open_amount(total_amount, paid_amount, waiver_amount, bad_debt_amount) > 0
+    )

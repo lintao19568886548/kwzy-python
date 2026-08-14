@@ -1,14 +1,13 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Response, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from sqlalchemy import text
 
 from app import __version__
 from app.core.config import get_settings
-from fastapi.exceptions import RequestValidationError
-
 from app.core.errors import (
     AppError,
     app_error_handler,
@@ -16,26 +15,28 @@ from app.core.errors import (
     validation_error_handler,
 )
 from app.core.logging_config import configure_logging
+from app.core.query_parameter_guard import QueryParameterGuardMiddleware
 from app.core.request_context import RequestIdMiddleware
 from app.core.security_headers import SecurityHeadersMiddleware
 from app.infrastructure.database.session import SessionLocal
+from app.modules.attachments.interface.api import router as attachments_router
+from app.modules.billing.interface.api import router as billing_router
+from app.modules.collection.interface.api import router as collection_router
+from app.modules.collection.interface.receivables_api import router as receivables_router
+from app.modules.facility_ops.interface.api import router as facility_ops_router
 from app.modules.identity.application.bootstrap import ensure_default_tenant
 from app.modules.identity.interface.api import router as identity_router
 from app.modules.identity.interface.organization_governance_api import (
     router as organization_governance_router,
 )
+from app.modules.investment.interface.api import router as investment_router
+from app.modules.lease.interface.api import router as lease_router
 from app.modules.park_property.interface.api import router as park_router
 from app.modules.party.interface.api import router as party_router
 from app.modules.party.interface.enterprise_api import router as party_enterprise_router
-from app.modules.lease.interface.api import router as lease_router
-from app.modules.billing.interface.api import router as billing_router
-from app.modules.collection.interface.api import router as collection_router
-from app.modules.workbench.interface.api import router as workbench_router
-from app.modules.investment.interface.api import router as investment_router
-from app.modules.facility_ops.interface.api import router as facility_ops_router
 from app.modules.platform_integrations.interface.api import router as integrations_router
+from app.modules.workbench.interface.api import router as workbench_router
 from app.modules.workflow.interface.api import router as workflow_router
-from app.modules.attachments.interface.api import router as attachments_router
 
 
 @asynccontextmanager
@@ -76,6 +77,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.add_middleware(RequestIdMiddleware)
+    app.add_middleware(QueryParameterGuardMiddleware)
     app.add_middleware(
         TrustedHostMiddleware,
         allowed_hosts=[host.strip() for host in settings.trusted_hosts.split(",") if host.strip()]
@@ -95,6 +97,7 @@ def create_app() -> FastAPI:
     app.include_router(lease_router, prefix=prefix)
     app.include_router(billing_router, prefix=prefix)
     app.include_router(collection_router, prefix=prefix)
+    app.include_router(receivables_router, prefix=prefix)
     app.include_router(workbench_router, prefix=prefix)
     app.include_router(investment_router, prefix=prefix)
     app.include_router(facility_ops_router, prefix=prefix)

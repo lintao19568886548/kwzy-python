@@ -21,9 +21,9 @@ def _h() -> dict:
 
 def test_collection_case_create_list(client) -> None:
     h = _h()
-    park = client.post(
-        "/api/v1/parks", headers=h, json={"name": "催缴园", "address": "t"}
-    ).json()["data"]
+    park = client.post("/api/v1/parks", headers=h, json={"name": "催缴园", "address": "t"}).json()[
+        "data"
+    ]
     party = client.post(
         "/api/v1/parties",
         headers=h,
@@ -63,7 +63,19 @@ def test_collection_case_create_list(client) -> None:
     patched = client.patch(
         f"/api/v1/collection/cases/{cid}",
         headers=h,
-        json={"status": "CLOSED", "remark": "已结清"},
+        json={
+            "expected_version": case.json()["data"]["lock_version"],
+            "status": "CLOSED",
+            "remark": "已结清",
+        },
     )
     assert patched.status_code == 200
     assert patched.json()["data"]["status"] == "CLOSED"
+
+    stale = client.patch(
+        f"/api/v1/collection/cases/{cid}",
+        headers=h,
+        json={"expected_version": case.json()["data"]["lock_version"], "status": "OPEN"},
+    )
+    assert stale.status_code == 409
+    assert stale.json()["code"] == "COLLECTION_CASE_VERSION_CONFLICT"

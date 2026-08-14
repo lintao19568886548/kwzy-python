@@ -4,18 +4,27 @@
 
 | 字段 | 当前值 |
 | --- | --- |
-| 更新时间 | 2026-08-14（Asia/Shanghai） |
+| 更新时间 | 2026-08-15（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | Party 企业画像精确提交 `36805823ad2e88311b9744e9e720b282b7cc74c8` 完成 31/31 clean-SHA 总门禁 |
-| 远程同步 | `feat/full-rebuild-completion` 与远端同步到性能修复 `3680582`；本轮未 force、未触达 main |
-| 工作树 | 仅 Party 归档与最终状态待提交；11 张既有审批、组织和资产视觉证据为用户修改，必须继续保持未暂存、不得删除或还原 |
-| Alembic | 唯一 head `t6c24e9f1a08`；PG16 fresh head 与 `head→-1→head` 通过，既有历史迁移未修改 |
-| 当前阶段 | 独立验收为 7 implemented / 1 blocked / 12 missing；组合能力 1–7 已关闭，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | Party 9 份 delta 已同步并归档为 `2026-08-14-complete-party-enterprise-profile`，43/43 任务、归档后 strict 77/77；`complete-investment-crm-journey` 因任务 5.5 的审批 `revoked` 语义未定义而保持 active |
+| 已验证 HEAD | 应收闭环 worktree 门禁通过，待正常提交后的 clean-SHA 复验；上一 Party 精确提交 `36805823ad2e88311b9744e9e720b282b7cc74c8` 证据继续有效 |
+| 远程同步 | `feat/full-rebuild-completion` 远端当前到 Party 归档 `9ca0c88`；应收实现待本轮正常提交/推送，未 force、未触达 main |
+| 工作树 | 应收实现/测试/迁移/文档待提交；11 张既有审批、组织和资产视觉证据为用户修改，必须继续保持未暂存、不得删除或还原 |
+| Alembic | 唯一 head `w9f57b2c4d31`；PG16 fresh head、`current == heads`、`head→-1→head` 和 `alembic check` 通过，既有历史迁移未修改 |
+| 当前阶段 | 独立验收为 8 implemented / 1 blocked / 11 missing；组合能力 1–8 已关闭，完整项目仍 `CONDITIONAL/BLOCKED` |
+| 当前 OpenSpec | `complete-receivables-collection-lifecycle` 的业务与验证任务完成，待 clean-SHA/提交/同步/归档；`complete-investment-crm-journey` 因任务 5.5 的审批 `revoked` 语义未定义而保持 active |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
+
+- [x] 独立取证旧账单/流水/核销/催缴与当前基础实现，发布财务字段映射、外部渠道真相和真实旧数据阻塞边界。
+- [x] 完成履约计划出账、到账单箱、确定性匹配候选、财务确认/异常、经理争议、多账单/预收后续核销、追加式冲正、L1-L4 催缴和调整双人审批。
+- [x] 新增 `u7d35f0a2b19`、`v8e46a1b3c20`、`w9f57b2c4d31` 前向迁移；w9 的 16 个复合租户外键、21 项数据库约束和资金竞态回归通过。
+- [x] 关闭外租户园区导入、重复查询参数污染和 Application 直接构造 ORM 三项 P1；加入服务/数据库/中间件/架构防回归。
+- [x] 完成应收 PC 出账、到账、分配和催缴工作区；真实 PG/FastAPI/production Vite 的 2 条 Playwright 及桌面/平板/390×844 四张截图通过。
+- [x] worktree 全量 334 pytest、前端 lint/typecheck/6 Vitest/141 modules build、OpenAPI、OpenSpec 78/78、904 文件 secrets、Python/npm 已知漏洞 0 均通过。
+- [x] 真实 HTTP 1000/25 为 p95 151.678 ms、211.529 RPS、0 错误；API 重启前后 5/5/5 签名一致；PG dump/删除恢复签名精确一致。
+- [x] 应收 synthetic ETL dry/interruption/apply/reapply/reconcile/rollback 通过；金额 1500.00 精确对账，真实旧 schema/脱敏快照仍保持 BLOCKED。
 
 - [x] 独立取证旧 rental tenant、Radar 企业画像和当前 Party 边界，发布字段映射与旧接口替代/保留/阻塞处置；个人身份材料、真实工商提供商和旧数据不被伪造为完成。
 - [x] 新增 `t6c24e9f1a08` 单一前向迁移、纯领域企业规则、租户安全仓储、严格 API/OpenAPI 与数据库派生的受控证件/风险权限。
@@ -97,7 +106,11 @@
 - [x] 将已落地基础合同 5 份 delta 同步主规格并归档 `2026-08-13-implement-lease-contract`，消除合同 V2 增量基线缺口。
 - [x] 完成 `implement-contract-lifecycle-v2` proposal/design、10 份 delta specs 和 102 项任务；change strict 与全量 OpenSpec 49/49 PASS。
 
-## 最新机器证据（Party 企业画像 clean SHA）
+## 最新工作树证据（应收闭环，待 clean SHA 固化）
+
+证据目录 `docs/06-implementation/evidence/receivables-collection-lifecycle/`：334 pytest；2 条应收 Playwright；HTTP 1000/25 p95 151.678 ms、211.529 RPS、0 错误；PG16 唯一 head `w9f57b2c4d31`；合成 ETL、API 重启和 630,540 bytes 备份删除恢复通过。提交后必须补记精确 SHA 并重跑关键门禁，不能把此段提前当 clean-SHA。
+
+## 历史机器证据（Party 企业画像 clean SHA）
 
 版本化报告 `docs/06-implementation/evidence/party-enterprise-profile/acceptance-clean-3680582.json`：精确对应 `36805823ad2e88311b9744e9e720b282b7cc74c8`，31/31 步 exit 0，521,943 ms；PG16 fresh/down-up 与唯一 head `t6c24e9f1a08`、315 pytest、8 租户 worker、全套合成 ETL、Party 21 阶段真实 HTTP 626.54 ms、1,000 请求性能（p95 225.85 ms、172.617 RPS、0 错误）、备份恢复 1,265,613 bytes/100 表、前端 lint/typecheck/6 Vitest/build、57 Playwright、OpenAPI 11/11+strict、OpenSpec 71/71、856 文件 secrets scan 和资源清理均通过。报告 SHA-256 为 `FB03AA7BFC9F9D6024D657D3B39C7220536EAAFCDFAD994BE54199BA97BA963E`。
 
@@ -134,17 +147,17 @@
 
 - `apps/employee-mobile` 不存在；员工移动端未实现。
 - `apps/tenant-miniprogram` 不存在；租户微信小程序未实现。
-- `analytics`、`ai_assist`、`finance`、`tenant_ops` 仍是未挂载的空响应或 stub，不能计为驾驶舱、AI、完整财务或租户服务；已实现的工作台自动化不外推这些能力。
+- `analytics`、`ai_assist`、`tenant_ops` 仍是未挂载的空响应或 stub，不能计为驾驶舱、AI 或租户服务；完整应收本地产品闭环已关闭，但外部银行/支付/税票/财务软件仍 `NOT_CONNECTED`。
 - 资产模板与组合租控本地产品范围已闭合；集团/区域/园区归属治理已闭合；商业 GIS/CAD/BIM 和真实旧坐标迁移未获合同/数据，保持 NOT_CONNECTED/BLOCKED_EXTERNAL。
-- CRM/锁房、合同 V2 与 Party 企业画像本地产品范围已形成代码和机器证据；外部工商提供商、真实外部渠道、企微回调/自动触达、AI 评分、自动计费/对账催缴、IoT/巡检、HR/供应链、完整驾驶舱和真实旧数据迁移仍未完成。
+- CRM/锁房、合同 V2、Party 企业画像与应收闭环本地产品范围已形成代码和机器证据；外部工商/银行/支付提供商、真实外部渠道、企微回调/自动触达、AI 评分、IoT/巡检、HR/供应链、完整驾驶舱和真实旧数据迁移仍未完成。
 - 外部短信/微信/邮件/OSS/支付/签章/发票/IoT 无真实凭据，生产联调均 `NOT_LIVE`。
 - ETL 只验证合成 fixture；缺少经授权的脱敏旧库快照、字段闭合签字和新旧结果对账。
 - 无登记的远程预发环境；性能基线、容灾/监控/告警和生产 Runbook 尚未完成。
 
 ## 下一恢复点
 
-1. 从能力矩阵第 8 项账单/收款/匹配/核销/欠费/催缴开始下一纵切。
-2. 从能力矩阵第 8 项账单/收款/匹配/核销/欠费/催缴继续，关闭剩余 12 个 `MISSING`，不把基础分配/冲正冒充组合闭环。
+1. 正常提交/推送应收实现，在该精确 SHA 重跑关键门禁，补记机器证据，同步主规格并归档 `complete-receivables-collection-lifecycle`。
+2. 从能力矩阵第 9 项租户服务/工单/报价/验收/评价进入下一纵切，关闭剩余 11 个 `MISSING`。
 3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 
 ## 不可变安全约束

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Sequence
+from collections.abc import Sequence
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -30,17 +30,19 @@ class PaymentRepository:
         *,
         offset: int = 0,
         limit: int = 20,
-        party_id: Optional[int] = None,
-        park_id: Optional[int] = None,
+        party_id: int | None = None,
+        park_id: int | None = None,
     ) -> Sequence[Payment]:
         stmt = self._scope(select(Payment))
         if party_id is not None:
             stmt = stmt.where(Payment.party_id == int(party_id))
         if park_id is not None:
             stmt = stmt.where(Payment.park_id == int(park_id))
-        return list(self.session.scalars(stmt.order_by(Payment.id.desc()).offset(offset).limit(limit)).all())
+        return list(
+            self.session.scalars(stmt.order_by(Payment.id.desc()).offset(offset).limit(limit)).all()
+        )
 
-    def count(self, *, party_id: Optional[int] = None, park_id: Optional[int] = None) -> int:
+    def count(self, *, party_id: int | None = None, park_id: int | None = None) -> int:
         vis = self._scope(select(Payment.id))
         if party_id is not None:
             vis = vis.where(Payment.party_id == int(party_id))
@@ -48,7 +50,7 @@ class PaymentRepository:
             vis = vis.where(Payment.park_id == int(park_id))
         return int(self.session.scalar(select(func.count()).select_from(vis.subquery())) or 0)
 
-    def get_by_id(self, payment_id: int, *, for_update: bool = False) -> Optional[Payment]:
+    def get_by_id(self, payment_id: int, *, for_update: bool = False) -> Payment | None:
         stmt = self._scope(select(Payment).where(Payment.id == payment_id))
         if for_update:
             dialect = self.session.bind.dialect.name if self.session.bind is not None else ""
@@ -73,6 +75,7 @@ class PaymentRepository:
         paid_at,
         operator_id,
         remark,
+        source_receipt_id: int | None = None,
     ) -> Payment:
         model = Payment(
             park_id=park_id,
@@ -82,6 +85,7 @@ class PaymentRepository:
             method=method,
             paid_at=paid_at,
             status="CONFIRMED",
+            source_receipt_id=source_receipt_id,
             operator_id=operator_id,
             remark=remark,
         )
@@ -100,14 +104,24 @@ class PaymentAllocationRepository:
         self.session = session
         self.ctx = ctx
 
-    def list_for_payment(self, payment_id: int) -> list[PaymentAllocation]:
-        return list(
-            self.session.scalars(
-                select(PaymentAllocation).where(
-                    PaymentAllocation.tenant_id == self.ctx.tenant_id,
-                    PaymentAllocation.payment_id == payment_id,
-                )
-            ).all()
+    def list_for_payment(
+        self, payment_id: int, *, active_only: bool = False
+    ) -> list[PaymentAllocation]:
+        stmt = select(PaymentAllocation).where(
+            PaymentAllocation.tenant_id == self.ctx.tenant_id,
+            PaymentAllocation.payment_id == payment_id,
+        )
+        if active_only:
+            stmt = stmt.where(PaymentAllocation.reversed_at.is_(None))
+        return list(self.session.scalars(stmt.order_by(PaymentAllocation.id)).all())
+
+    def active_sum(self, payment_id: int):
+        return self.session.scalar(
+            select(func.coalesce(func.sum(PaymentAllocation.amount), 0)).where(
+                PaymentAllocation.tenant_id == self.ctx.tenant_id,
+                PaymentAllocation.payment_id == int(payment_id),
+                PaymentAllocation.reversed_at.is_(None),
+            )
         )
 
     def add(self, model: PaymentAllocation) -> PaymentAllocation:
@@ -116,12 +130,21 @@ class PaymentAllocationRepository:
         self.session.flush()
         return model
 
-    def create(self, *, payment_id: int, bill_id: int, amount, created_at) -> PaymentAllocation:
+    def create(
+        self,
+        *,
+        payment_id: int,
+        bill_id: int,
+        amount,
+        created_at,
+        allocation_key: str | None = None,
+    ) -> PaymentAllocation:
         return self.add(
             PaymentAllocation(
                 payment_id=payment_id,
                 bill_id=bill_id,
                 amount=amount,
                 created_at=created_at,
+                allocation_key=allocation_key,
             )
         )

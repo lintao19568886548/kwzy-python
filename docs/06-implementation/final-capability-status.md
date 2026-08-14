@@ -1,24 +1,25 @@
 # 瞰维智管 V2 当前能力状态
 
-> 更新时间：2026-08-14（Asia/Shanghai）
-> 独立验收实现 SHA：`a9267d4c30096a7c80d66588ab06bc6838b32b0d`
+> 更新时间：2026-08-15（Asia/Shanghai）
+> 最新已完成纵切：应收、到账、匹配、核销、欠费与催缴；本轮提交后补记精确实现 SHA
 > 完整报告：`independent-final-acceptance-report-20260814.md`
 > 能力权威表：`full-rebuild-traceability-matrix.md`
 
 ## 已独立验证的范围
 
 - 合同 V2：多出租单元、多费用、履约计划、审批、文档门禁、不可变版本、七类变更、续租和退租结算。
-- 现有 PC 切片：Identity/System、Party、资产租控、招商 CRM、合同、基础账单/收款、待办、简版工单/催缴。
+- 现有 PC 切片：Identity/System、Party、资产租控、招商 CRM、合同、应收全生命周期、待办、简版工单。
+- 应收闭环：履约计划自动出账、到账单箱、可解释候选、财务确认/经理争议、多账单与预收后续核销、冲正、L1-L4 催缴和调整双人审批；外部渠道连接状态不伪造。
 - 安全加固：密码策略、JWT/会话撤销、附件归属、RBAC/tenant/park scope、CSRF/Host/安全头、生产 fail-closed。
 - 工程门禁：PG16 单 head 升降级、ORM/迁移契约、并发/回滚、OpenAPI、OpenSpec、依赖漏洞、容器、备份恢复和本地 HTTP 性能。
 
-精确 SHA 的机器报告为 `evidence/independent-final-audit/acceptance-a9267d4.json`，24/24 步通过；这只证明已实现范围。
+应收当前代码已通过 334 pytest、真实 PG16、2 条专项 Playwright、1000 请求性能、合成 ETL、备份恢复和依赖审计；提交后 clean-SHA 机器证据将在 `evidence/receivables-collection-lifecycle/` 补记。既有精确 SHA 机器报告继续保留；所有证据只证明已实现范围。
 
 ## 不能外推为完成的范围
 
 - 员工移动端和租户微信小程序不存在。
 - 设备/巡检/IoT、HR、供应链、园企服务、完整驾驶舱、真实 AI 业务层缺失。
-- 组织/资产/招商/Party/账收/工单/档案/外部平台等组合能力仍有关键环节缺失。
+- 工单/租户服务、设备巡检/IoT、档案印章、HR、供应链、园企服务、驾驶舱、AI、外部平台等组合能力仍有关键环节缺失。
 - 没有经授权的旧生产 schema 或脱敏快照，无法完成真实迁移、对账、增量和切换演练。
 - 没有外部厂商凭据、远程预发证据或生产部署授权。
 

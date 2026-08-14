@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-08-14T23:55:56.5230749+08:00",
+  "result": "PASS",
+  "scope": "isolated localhost PostgreSQL 16 acceptance database",
+  "production_connected": false,
+  "backup": {
+    "format": "pg_dump custom",
+    "container_path": "/tmp/kwzy_receivables_acceptance.dump",
+    "size_bytes": 630540,
+    "sha256": "acc85e479b310efd8b391251657ea85769cfcfb987ff9d4f87b4acd61bd1140a"
+  },
+  "restore_database": "kwzy_receivables_restore_test",
+  "source_signature": "alembic=w9f57b2c4d31,bills=20,receipts=5,payments=5,cases=5,adjustments=0",
+  "restored_signature": "alembic=w9f57b2c4d31,bills=20,receipts=5,payments=5,cases=5,adjustments=0",
+  "signatures_match": true,
+  "restore_database_dropped_after_verification": true,
+  "limitations": [
+    "Synthetic/local acceptance data only",
+    "No production backup, deletion or restore was authorized or attempted",
+    "Real RPO/RTO remains blocked until an authorized staging-scale snapshot is supplied"
+  ]
+}
