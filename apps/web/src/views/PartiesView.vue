@@ -284,8 +284,8 @@ async function saveProfile() {
     );
     hydrateProfile(result.data.data);
     conflict.value = false;
-    success.value = "企业画像已保存";
     await load();
+    success.value = "企业画像已保存";
   } catch (reason) {
     conflict.value = reason instanceof ApiRequestError && reason.status === 409;
     detailError.value = errorText(reason, "企业画像保存失败");
