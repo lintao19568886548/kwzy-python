@@ -1,0 +1,101 @@
+{
+  "metadata": {
+    "source_schema_version": "kwzy.party-enterprise.synthetic.v1",
+    "synthetic_only": true,
+    "contains_real_customer_data": false,
+    "description": "Deterministic enterprise-profile migration rehearsal fixture; no personal identity values."
+  },
+  "enterprises": [
+    {
+      "source_id": "enterprise-001",
+      "tenant_ref": "tenant-demo",
+      "company_name": "合成星港科技有限公司",
+      "credit_code": "91310000SYNTHET01A",
+      "legal_representative": "合成人员甲",
+      "established_on": "2020-06-18",
+      "registered_capital": "5000000.00",
+      "capital_currency": "CNY",
+      "registration_status": "ACTIVE",
+      "industry_code": "I65",
+      "industry_name": "软件和信息技术服务业",
+      "business_scope": "合成园区数字化服务",
+      "provider_status": "NOT_CONNECTED"
+    },
+    {
+      "source_id": "enterprise-002",
+      "tenant_ref": "tenant-demo",
+      "company_name": "合成云湾服务有限公司",
+      "credit_code": "91310000SYNTHET02B",
+      "legal_representative": null,
+      "established_on": null,
+      "registered_capital": null,
+      "capital_currency": null,
+      "registration_status": "UNKNOWN",
+      "industry_code": "L72",
+      "industry_name": "商务服务业",
+      "business_scope": null,
+      "provider_status": "NOT_CONNECTED"
+    }
+  ],
+  "relationships": [
+    {
+      "source_id": "relationship-001",
+      "tenant_ref": "tenant-demo",
+      "source_enterprise_ref": "enterprise-001",
+      "target_enterprise_ref": "enterprise-002",
+      "relationship_type": "PARENT_OF",
+      "ownership_percent": "60.00"
+    },
+    {
+      "source_id": "relationship-bad-orphan",
+      "tenant_ref": "tenant-demo",
+      "source_enterprise_ref": "enterprise-001",
+      "target_enterprise_ref": "enterprise-missing",
+      "relationship_type": "BUSINESS_PARTNER",
+      "ownership_percent": null
+    }
+  ],
+  "credentials": [
+    {
+      "source_id": "credential-001",
+      "tenant_ref": "tenant-demo",
+      "enterprise_ref": "enterprise-001",
+      "credential_type": "BUSINESS_LICENSE",
+      "organization_identifier": "91310000SYNTHET01A",
+      "attachment_ref": "synthetic-attachment-001",
+      "issuer": "合成市场监督管理机构",
+      "issued_on": "2020-06-18",
+      "expires_on": null
+    }
+  ],
+  "tags": [
+    {
+      "source_id": "tag-001",
+      "tenant_ref": "tenant-demo",
+      "enterprise_ref": "enterprise-001",
+      "name": "高新技术企业",
+      "tag_type": "QUALIFICATION",
+      "confidence": "1.0000"
+    }
+  ],
+  "risk_signals": [
+    {
+      "source_id": "risk-001",
+      "tenant_ref": "tenant-demo",
+      "enterprise_ref": "enterprise-002",
+      "category": "COMPLIANCE",
+      "severity": "MEDIUM",
+      "summary": "合成迁移待核查事项",
+      "occurred_at": "2025-01-15T08:00:00Z"
+    }
+  ],
+  "quarantine_cases": [
+    {
+      "source_type": "legacy_enterprise_personal_identity",
+      "source_id": "forbidden-personal-identity-001",
+      "tenant_ref": "tenant-demo",
+      "reason_code": "PERSONAL_IDENTITY_FORBIDDEN",
+      "value_fingerprint": "sha256:synthetic-forbidden-field-only"
+    }
+  ]
+}

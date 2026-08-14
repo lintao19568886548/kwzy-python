@@ -72,6 +72,62 @@ def test_party_schema_has_no_master_park_id_or_address() -> None:
     assert "/parties/{party_id}/park-relations" in (doc.get("paths") or {})
 
 
+def test_party_enterprise_openapi_matches_every_runtime_method_and_strict_command() -> None:
+    """Enterprise profile routes must be method-exact and reject hidden-field injection."""
+
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    paths = document["paths"]
+    runtime_paths = create_app().openapi()["paths"]
+    expected_methods = {
+        "/enterprise-parties": {"get"},
+        "/parties/{party_id}/enterprise-profile": {"get", "put"},
+        "/parties/{party_id}/enterprise-relationships": {"get", "post"},
+        "/parties/{party_id}/enterprise-relationships/{relationship_id}/end": {"post"},
+        "/parties/{party_id}/enterprise-credentials": {"get", "post"},
+        "/parties/{party_id}/enterprise-credentials/{credential_id}/review": {"post"},
+        "/parties/{party_id}/enterprise-credentials/{credential_id}/transition": {"post"},
+        "/parties/{party_id}/enterprise-tags": {"get", "post"},
+        "/parties/{party_id}/enterprise-tags/{tag_id}/deactivate": {"post"},
+        "/parties/{party_id}/enterprise-risk-signals": {"get", "post"},
+        "/parties/{party_id}/enterprise-risk-signals/{signal_id}/resolve": {"post"},
+    }
+    for path, methods in expected_methods.items():
+        assert path in paths, path
+        assert methods == {
+            method.lower()
+            for method in paths[path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, path
+        runtime_path = "/api/v1" + path
+        assert runtime_path in runtime_paths, runtime_path
+        assert methods == {
+            method.lower()
+            for method in runtime_paths[runtime_path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, runtime_path
+
+    schemas = document["components"]["schemas"]
+    for command in (
+        "EnterpriseProfileSave",
+        "EnterpriseRelationshipCreate",
+        "EnterpriseVersionReason",
+        "EnterpriseCredentialCreate",
+        "EnterpriseTagCreate",
+        "EnterpriseRiskSignalCreate",
+        "EnterpriseRiskResolve",
+    ):
+        assert schemas[command]["additionalProperties"] is False, command
+    credential = schemas["EnterpriseCredentialCreate"]["properties"]
+    assert credential["identifier"]["writeOnly"] is True
+    assert "identifier_fingerprint" not in credential
+    risk_description = paths["/parties/{party_id}/enterprise-risk-signals"]["get"][
+        "description"
+    ]
+    assert "不是外部信用评分" in risk_description
+
+
 def test_step1_runtime_paths_covered_by_openapi() -> None:
     """运行时路由应出现在 OpenAPI 契约中。"""
     from app.main import create_app

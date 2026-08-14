@@ -89,8 +89,14 @@ class TenantContext:
                 "lead.viewing.",
                 "lead.intent.",
                 "lead.channel.",
+                "party:credential_",
             )
-        ) or permission_code in {"work_item:reassign", "work_item:override_source"}
+        ) or permission_code in {
+            "party:risk_read",
+            "party:risk_manage",
+            "work_item:reassign",
+            "work_item:override_source",
+        }
         if not sensitive or self.database_permissions is None:
             return True
         grants = self.database_permissions or []

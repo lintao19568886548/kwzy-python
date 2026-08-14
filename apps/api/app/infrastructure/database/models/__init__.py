@@ -76,6 +76,14 @@ from app.infrastructure.database.models.party import (
     PartyRiskEvent,
     PartyRole,
 )
+from app.infrastructure.database.models.party_enterprise import (
+    PartyEnterpriseCredential,
+    PartyEnterpriseProfile,
+    PartyEnterpriseRelationship,
+    PartyEnterpriseRiskResolution,
+    PartyEnterpriseRiskSignal,
+    PartyEnterpriseTag,
+)
 from app.infrastructure.database.models.platform import IdempotencyKey, NumberSequence
 from app.infrastructure.database.models.system_config import (
     DictItem,
@@ -136,6 +144,12 @@ __all__ = [
     "PartyContact",
     "PartyAddress",
     "PartyRiskEvent",
+    "PartyEnterpriseProfile",
+    "PartyEnterpriseRelationship",
+    "PartyEnterpriseCredential",
+    "PartyEnterpriseTag",
+    "PartyEnterpriseRiskSignal",
+    "PartyEnterpriseRiskResolution",
     "LeaseContract",
     "LeaseContractUnit",
     "LeaseTerm",

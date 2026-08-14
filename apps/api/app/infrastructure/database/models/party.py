@@ -44,6 +44,7 @@ class Party(Base, PrimaryKeyMixin, TimestampMixin):
 
     __tablename__ = "parties"
     __table_args__ = (
+        UniqueConstraint("tenant_id", "id", name="uk_parties_tenant_id_id"),
         UniqueConstraint("tenant_id", "credit_code", name="uk_parties_tenant_credit"),
         Index("idx_parties_tenant_status", "tenant_id", "status"),
         Index("idx_parties_tenant_risk", "tenant_id", "risk_status"),

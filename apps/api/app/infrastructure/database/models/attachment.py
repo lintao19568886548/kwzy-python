@@ -13,6 +13,7 @@ from app.infrastructure.database.base import FK_TYPE, Base, PrimaryKeyMixin, Tim
 class Attachment(Base, PrimaryKeyMixin, TimestampMixin):
     __tablename__ = "attachments"
     __table_args__ = (
+        UniqueConstraint("tenant_id", "id", name="uk_attachments_tenant_id_id"),
         UniqueConstraint("tenant_id", "object_key", name="uk_attachment_object_key"),
     )
 

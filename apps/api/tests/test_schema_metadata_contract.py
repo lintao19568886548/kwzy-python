@@ -5,6 +5,7 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     ForeignKeyConstraint,
+    Integer,
     UniqueConstraint,
 )
 
@@ -40,6 +41,23 @@ EXPECTED_INDEXES = {
         "idx_parties_tenant_status",
     },
     "party_addresses": {"uk_party_addr_primary"},
+    "party_enterprise_credentials": {
+        "ix_party_enterprise_credentials_expiry",
+        "uk_party_enterprise_credential_active_attachment",
+    },
+    "party_enterprise_profiles": {
+        "ix_party_enterprise_profiles_tenant_industry",
+        "ix_party_enterprise_profiles_tenant_registration",
+    },
+    "party_enterprise_relationships": {
+        "ix_party_enterprise_relationship_target",
+        "uk_party_enterprise_relationship_active",
+    },
+    "party_enterprise_risk_signals": {
+        "ix_party_enterprise_risk_open",
+        "uk_party_enterprise_risk_source",
+    },
+    "party_enterprise_tags": {"uk_party_enterprise_tag_active"},
     "party_park_relations": {"uk_ppr_active"},
     "payment_allocations": {"idx_pa_bill", "idx_pa_payment"},
     "verification_codes": {"ix_verification_codes_lookup"},
@@ -58,6 +76,12 @@ NON_NULL_CREATED_AT_TABLES = {
     "menus",
     "org_units",
     "page_access_proofs",
+    "party_enterprise_credentials",
+    "party_enterprise_profiles",
+    "party_enterprise_relationships",
+    "party_enterprise_risk_resolutions",
+    "party_enterprise_risk_signals",
+    "party_enterprise_tags",
     "refresh_tokens",
     "system_params",
     "verification_codes",
@@ -126,3 +150,51 @@ def test_asset_template_schema_has_boolean_keys_and_database_invariants() -> Non
         for constraint in units.constraints
         if isinstance(constraint, ForeignKeyConstraint)
     } >= {"fk_units_tenant_asset_template_version"}
+
+
+def test_party_enterprise_schema_has_tenant_composite_references_and_checks() -> None:
+    profiles = Base.metadata.tables["party_enterprise_profiles"]
+    relationships = Base.metadata.tables["party_enterprise_relationships"]
+    credentials = Base.metadata.tables["party_enterprise_credentials"]
+    tags = Base.metadata.tables["party_enterprise_tags"]
+    signals = Base.metadata.tables["party_enterprise_risk_signals"]
+    resolutions = Base.metadata.tables["party_enterprise_risk_resolutions"]
+
+    expected_constraints = {
+        profiles: {
+            "fk_party_enterprise_profile_tenant_party",
+            "ck_party_enterprise_profile_lock_version",
+        },
+        relationships: {
+            "fk_party_enterprise_relationship_tenant_source",
+            "fk_party_enterprise_relationship_tenant_target",
+            "ck_party_enterprise_relationship_self",
+        },
+        credentials: {
+            "fk_party_enterprise_credential_tenant_party",
+            "fk_party_enterprise_credential_tenant_attachment",
+            "ck_party_enterprise_credential_dates",
+        },
+        tags: {
+            "fk_party_enterprise_tag_tenant_party",
+            "ck_party_enterprise_tag_confidence",
+        },
+        signals: {
+            "fk_party_enterprise_risk_tenant_party",
+            "fk_party_enterprise_risk_tenant_attachment",
+        },
+        resolutions: {
+            "fk_party_enterprise_resolution_tenant_party",
+            "fk_party_enterprise_resolution_tenant_signal",
+        },
+    }
+    for table, expected in expected_constraints.items():
+        actual = {
+            constraint.name
+            for constraint in table.constraints
+            if isinstance(constraint, (CheckConstraint, ForeignKeyConstraint))
+        }
+        assert expected <= actual, table.name
+
+    assert isinstance(profiles.c.lock_version.type, Integer)
+    assert isinstance(credentials.c.lock_version.type, Integer)

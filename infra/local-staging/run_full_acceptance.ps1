@@ -210,6 +210,11 @@ try {
     & $Py (Join-Path $Root "tools\etl\run_workbench_automation_etl_drill.py") --database-url $pgUrl --out $workbenchAutomationReport
   }
 
+  Step "party_enterprise_etl_acceptance" {
+    $partyEnterpriseReport = Join-Path $ReportDir "party_enterprise_etl\party-enterprise-etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_party_enterprise_etl_drill.py") --report $partyEnterpriseReport
+  }
+
   Step "http_performance_seed" {
     & $Py (Join-Path $Root "scripts\e2e_seed.py")
   }
@@ -260,6 +265,11 @@ try {
         --username "admin" --password "admin123" `
         --output (Join-Path $perfDir "asset-portfolio-http-journey.json")
       Assert-NativeSuccess "asset portfolio HTTP journey"
+      & $Py (Join-Path $Root "scripts\party_enterprise_http_journey.py") `
+        --base-url "http://127.0.0.1:8010/api/v1" `
+        --username "admin" --password $env:LOCAL_ADMIN_PASSWORD `
+        --output (Join-Path $perfDir "party-enterprise-http-journey.json")
+      Assert-NativeSuccess "party enterprise HTTP journey"
     } finally {
       Remove-Item Env:PERF_PASSWORD -ErrorAction SilentlyContinue
       if ($apiProc -and -not $apiProc.HasExited) {
@@ -425,10 +435,12 @@ $summary = [ordered]@{
   organization_governance_etl = (Join-Path $ReportDir "organization_governance_etl\organization_governance_etl.json")
   approval_audit_etl = (Join-Path $ReportDir "approval_audit_etl\approval_audit_etl.json")
   workbench_automation_etl = (Join-Path $ReportDir "workbench_automation_etl\workbench-automation-etl.json")
+  party_enterprise_etl = (Join-Path $ReportDir "party_enterprise_etl\party-enterprise-etl.json")
   http_performance = (Join-Path $ReportDir "performance\http-performance.json")
   approval_audit_http = (Join-Path $ReportDir "performance\approval-audit-http-journey.json")
   workbench_automation_http = (Join-Path $ReportDir "performance\workbench-automation-http-journey.json")
   asset_portfolio_http = (Join-Path $ReportDir "performance\asset-portfolio-http-journey.json")
+  party_enterprise_http = (Join-Path $ReportDir "performance\party-enterprise-http-journey.json")
   backup = (Join-Path $ReportDir "backup")
 }
 $summary | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding utf8

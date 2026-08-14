@@ -1,0 +1,85 @@
+{
+  "generated_at": "2026-08-14T13:56:32.784824+00:00",
+  "source_schema_version": "kwzy.party-enterprise.synthetic.v1",
+  "fixture_sha256": "125effe9011ecb264cb71e9fd4bcf24566db104e3b1201130be7eef401c7c376",
+  "schema": "etl_party_enterprise_fixture",
+  "synthetic_only": true,
+  "live_legacy_verified": false,
+  "stages": {
+    "dry_run": {
+      "passed": true,
+      "mapped_counts": {
+        "enterprise_profiles": 2,
+        "relationships": 1,
+        "credentials": 1,
+        "tags": 1,
+        "risk_signals": 1,
+        "quarantine": 2
+      }
+    },
+    "interruption_recovery": {
+      "passed": true,
+      "partial_rows_after_rollback": 0
+    },
+    "first_apply": {
+      "passed": true,
+      "inserted": {
+        "enterprise_profiles": 2,
+        "relationships": 1,
+        "credentials": 1,
+        "tags": 1,
+        "risk_signals": 1,
+        "quarantine": 2
+      }
+    },
+    "idempotent_reapply": {
+      "passed": true,
+      "inserted": {
+        "enterprise_profiles": 0,
+        "relationships": 0,
+        "credentials": 0,
+        "tags": 0,
+        "risk_signals": 0,
+        "quarantine": 0
+      }
+    },
+    "reconciliation": {
+      "passed": true,
+      "expected_counts": {
+        "enterprise_profiles": 2,
+        "relationships": 1,
+        "credentials": 1,
+        "tags": 1,
+        "risk_signals": 1,
+        "quarantine": 2
+      },
+      "target_counts": {
+        "enterprise_profiles": 2,
+        "relationships": 1,
+        "credentials": 1,
+        "tags": 1,
+        "risk_signals": 1,
+        "quarantine": 2
+      },
+      "orphan_relationships": 0,
+      "bad_identifier_fingerprints": 0,
+      "raw_identifier_columns": 0,
+      "provider_status_errors": 0,
+      "quarantine_reasons": {
+        "PERSONAL_IDENTITY_FORBIDDEN": 1,
+        "ORPHAN_ENTERPRISE_REFERENCE": 1
+      }
+    },
+    "rollback": {
+      "passed": true,
+      "schema_exists_after": false,
+      "authorization_rows_unchanged": true
+    }
+  },
+  "blockers": [
+    "real legacy schema/dictionary and authorized desensitized snapshot not supplied",
+    "external enterprise-registry credentials and contract not supplied",
+    "production migration/cutover not authorized"
+  ],
+  "passed": true
+}

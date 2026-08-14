@@ -42,6 +42,8 @@ DEFAULT_PERMISSIONS = (
     ("party:manage_unscoped", "管理未关联园区主体", "party"),
     ("party:risk_read", "查看主体风险历史", "party"),
     ("party:risk_manage", "管理主体黑名单", "party"),
+    ("party:credential_read", "查看企业证照", "party"),
+    ("party:credential_manage", "管理企业证照", "party"),
     ("lease:read", "查看租赁合同", "lease"),
     ("lease:write", "维护租赁合同", "lease"),
     ("lease:activate", "提交/激活租赁合同", "lease"),

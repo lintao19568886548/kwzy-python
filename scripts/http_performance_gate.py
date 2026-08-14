@@ -30,6 +30,7 @@ DEFAULT_ENDPOINTS = (
     "POST /business-events/dispatch?limit=10",
     "GET /leases?page=1&page_size=50",
     "GET /parties?page=1&page_size=50",
+    "GET /enterprise-parties?page=1&page_size=50&sort_by=updated_at&sort_order=desc",
     "GET /units?page=1&page_size=50",
 )
 
@@ -240,7 +241,7 @@ def main() -> int:
     )
     report = {
         "schema_version": 1,
-        "generated_at": datetime.now(timezone.utc).isoformat(),  # noqa: UP017 - Python 3.10
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "target": args.base_url,
         "runtime": {
             "requests": args.requests,

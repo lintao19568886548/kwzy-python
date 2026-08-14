@@ -1539,6 +1539,295 @@ paths:
               schema:
                 $ref: '#/components/schemas/PartyEnvelope'
 
+  /enterprise-parties:
+    get:
+      tags: [Parties]
+      summary: 企业画像目录（仅组织主体）
+      description: 所有完整度与本地风险汇总均由实时数据库子资源派生；外部提供商未接入时明确返回 NOT_CONNECTED。
+      operationId: listEnterpriseParties
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - name: page_size
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - name: keyword
+          in: query
+          schema: { type: string, maxLength: 128 }
+        - name: status
+          in: query
+          schema: { type: string, enum: [ACTIVE, INACTIVE] }
+        - name: blacklist_status
+          in: query
+          schema: { type: string, enum: [NORMAL, BLACKLISTED] }
+        - name: registration_status
+          in: query
+          schema: { $ref: '#/components/schemas/EnterpriseRegistrationStatus' }
+        - name: industry
+          in: query
+          schema: { type: string, maxLength: 128 }
+        - name: min_completeness
+          in: query
+          schema: { type: integer, minimum: 0, maximum: 100 }
+        - name: max_completeness
+          in: query
+          schema: { type: integer, minimum: 0, maximum: 100 }
+        - name: local_risk_level
+          in: query
+          description: 需要 party:risk_read；无权限时不允许以隐藏风险筛选。
+          schema: { type: string, enum: [NONE, LOW, MEDIUM, HIGH, CRITICAL] }
+        - name: sort_by
+          in: query
+          schema: { type: string, enum: [name, updated_at, completeness], default: updated_at }
+        - name: sort_order
+          in: query
+          schema: { type: string, enum: [asc, desc], default: desc }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /parties/{party_id}/enterprise-profile:
+    parameters:
+      - $ref: '#/components/parameters/PartyIdPath'
+    get:
+      tags: [Parties]
+      summary: 查询企业画像与精确完整度
+      operationId: getEnterpriseProfile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '404': { description: 企业不存在或超出可见范围 }
+    put:
+      tags: [Parties]
+      summary: 创建或以乐观锁更新企业画像
+      operationId: saveEnterpriseProfile
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnterpriseProfileSave' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /parties/{party_id}/enterprise-relationships:
+    parameters:
+      - $ref: '#/components/parameters/PartyIdPath'
+    get:
+      tags: [Parties]
+      summary: 查询企业关联关系及历史
+      operationId: listEnterpriseRelationships
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: include_ended
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+    post:
+      tags: [Parties]
+      summary: 创建规范化且防环的企业关系
+      operationId: createEnterpriseRelationship
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnterpriseRelationshipCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { description: 外部关系提供商未连接 }
+
+  /parties/{party_id}/enterprise-relationships/{relationship_id}/end:
+    parameters:
+      - $ref: '#/components/parameters/PartyIdPath'
+      - name: relationship_id
+        in: path
+        required: true
+        schema: { type: integer, format: int64, minimum: 1 }
+    post:
+      tags: [Parties]
+      summary: 以乐观锁结束企业关系并保留历史
+      operationId: endEnterpriseRelationship
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnterpriseVersionReason' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /parties/{party_id}/enterprise-credentials:
+    parameters:
+      - $ref: '#/components/parameters/PartyIdPath'
+    get:
+      tags: [Parties]
+      summary: 查询脱敏的企业证照元数据
+      description: 需要数据库派生的 party:credential_read；不返回原始标识或标识指纹。
+      operationId: listEnterpriseCredentials
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: include_archived
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Parties]
+      summary: 绑定同租户同范围附件并创建企业证照
+      operationId: createEnterpriseCredential
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnterpriseCredentialCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /parties/{party_id}/enterprise-credentials/{credential_id}/review:
+    parameters:
+      - $ref: '#/components/parameters/PartyIdPath'
+      - $ref: '#/components/parameters/EnterpriseCredentialIdPath'
+    post:
+      tags: [Parties]
+      summary: 本地复核或拒绝企业证照
+      description: 未配置真实适配器时禁止 EXTERNALLY_VERIFIED。
+      operationId: reviewEnterpriseCredential
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnterpriseCredentialReview' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /parties/{party_id}/enterprise-credentials/{credential_id}/transition:
+    parameters:
+      - $ref: '#/components/parameters/PartyIdPath'
+      - $ref: '#/components/parameters/EnterpriseCredentialIdPath'
+    post:
+      tags: [Parties]
+      summary: 以乐观锁变更企业证照生命周期
+      operationId: transitionEnterpriseCredential
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnterpriseCredentialTransition' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /parties/{party_id}/enterprise-tags:
+    parameters:
+      - $ref: '#/components/parameters/PartyIdPath'
+    get:
+      tags: [Parties]
+      summary: 查询带来源的企业标签
+      operationId: listEnterpriseTags
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: include_inactive
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+    post:
+      tags: [Parties]
+      summary: 创建带来源和置信度的企业标签
+      operationId: createEnterpriseTag
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnterpriseTagCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { description: 外部标签提供商未连接 }
+
+  /parties/{party_id}/enterprise-tags/{tag_id}/deactivate:
+    parameters:
+      - $ref: '#/components/parameters/PartyIdPath'
+      - name: tag_id
+        in: path
+        required: true
+        schema: { type: integer, format: int64, minimum: 1 }
+    post:
+      tags: [Parties]
+      summary: 以乐观锁停用企业标签
+      operationId: deactivateEnterpriseTag
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnterpriseVersionReason' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /parties/{party_id}/enterprise-risk-signals:
+    parameters:
+      - $ref: '#/components/parameters/PartyIdPath'
+    get:
+      tags: [Parties]
+      summary: 查询本地企业风险信号与确定性汇总
+      description: 需要 party:risk_read；该汇总不是外部信用评分，也不改变 Party 黑名单状态。
+      operationId: listEnterpriseRiskSignals
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Parties]
+      summary: 追加本地企业风险信号
+      operationId: createEnterpriseRiskSignal
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnterpriseRiskSignalCreate' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { description: 外部风险提供商未连接 }
+
+  /parties/{party_id}/enterprise-risk-signals/{signal_id}/resolve:
+    parameters:
+      - $ref: '#/components/parameters/PartyIdPath'
+      - name: signal_id
+        in: path
+        required: true
+        schema: { type: integer, format: int64, minimum: 1 }
+    post:
+      tags: [Parties]
+      summary: 追加不可变企业风险处置记录
+      operationId: resolveEnterpriseRiskSignal
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnterpriseRiskResolve' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
   /leases:
     get:
       tags: [Leases]
@@ -5360,6 +5649,16 @@ components:
       in: path
       required: true
       schema: { type: integer, format: int64, minimum: 1 }
+    PartyIdPath:
+      name: party_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+    EnterpriseCredentialIdPath:
+      name: credential_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
 
   responses:
     ApiOkResponse:
@@ -5891,6 +6190,129 @@ components:
       required: [reason]
       properties:
         reason: { type: string, minLength: 1 }
+
+    EnterpriseRegistrationStatus:
+      type: string
+      enum: [ACTIVE, SUSPENDED, REVOKED, CANCELLED, UNKNOWN]
+
+    EnterpriseProfileSave:
+      type: object
+      additionalProperties: false
+      properties:
+        expected_lock_version: { type: integer, minimum: 0, nullable: true }
+        short_name: { type: string, maxLength: 128, nullable: true }
+        legal_representative: { type: string, maxLength: 128, nullable: true }
+        established_on: { type: string, format: date, nullable: true }
+        registered_capital: { type: number, minimum: 0, nullable: true }
+        capital_currency: { type: string, minLength: 3, maxLength: 3, nullable: true }
+        registration_status:
+          allOf: [{ $ref: '#/components/schemas/EnterpriseRegistrationStatus' }]
+          nullable: true
+        registration_authority: { type: string, maxLength: 255, nullable: true }
+        industry_code: { type: string, maxLength: 32, nullable: true }
+        industry_name: { type: string, maxLength: 128, nullable: true }
+        employee_size_band:
+          type: string
+          enum: [MICRO, SMALL, MEDIUM, LARGE, UNKNOWN]
+          nullable: true
+        website: { type: string, format: uri, maxLength: 512, nullable: true }
+        business_scope: { type: string, maxLength: 4000, nullable: true }
+
+    EnterpriseRelationshipCreate:
+      type: object
+      additionalProperties: false
+      required: [target_party_id, relationship_type]
+      properties:
+        target_party_id: { type: integer, format: int64, minimum: 1 }
+        relationship_type:
+          type: string
+          enum: [PARENT_OF, INVESTED_IN, COMMON_CONTROL, BUSINESS_PARTNER]
+        ownership_percent: { type: number, minimum: 0, maximum: 100, nullable: true }
+        source_type: { type: string, enum: [MANUAL, MIGRATION, EXTERNAL], default: MANUAL }
+        source_reference: { type: string, maxLength: 128, nullable: true }
+        attachment_id: { type: integer, format: int64, minimum: 1, nullable: true }
+        started_on: { type: string, format: date, nullable: true }
+
+    EnterpriseVersionReason:
+      type: object
+      additionalProperties: false
+      required: [expected_lock_version, reason]
+      properties:
+        expected_lock_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 512 }
+
+    EnterpriseCredentialCreate:
+      type: object
+      additionalProperties: false
+      required: [attachment_id, credential_type]
+      properties:
+        attachment_id: { type: integer, format: int64, minimum: 1 }
+        credential_type:
+          type: string
+          enum: [BUSINESS_LICENSE, TAX_REGISTRATION, ORGANIZATION_CODE, INDUSTRY_LICENSE, OTHER]
+        identifier:
+          type: string
+          minLength: 4
+          maxLength: 128
+          nullable: true
+          writeOnly: true
+          description: 仅在请求中接收；服务端立即约减为 SHA-256 指纹和掩码，不返回或审计原值。
+        issuer: { type: string, maxLength: 255, nullable: true }
+        issued_on: { type: string, format: date, nullable: true }
+        expires_on: { type: string, format: date, nullable: true }
+
+    EnterpriseCredentialReview:
+      allOf:
+        - $ref: '#/components/schemas/EnterpriseVersionReason'
+        - type: object
+          additionalProperties: false
+          required: [verification_status]
+          properties:
+            verification_status:
+              type: string
+              enum: [LOCALLY_REVIEWED, REJECTED, EXTERNALLY_VERIFIED]
+              description: EXTERNALLY_VERIFIED 在外部适配器未连接时固定返回 409。
+
+    EnterpriseCredentialTransition:
+      allOf:
+        - $ref: '#/components/schemas/EnterpriseVersionReason'
+        - type: object
+          additionalProperties: false
+          required: [status]
+          properties:
+            status: { type: string, enum: [EXPIRED, REVOKED, ARCHIVED] }
+
+    EnterpriseTagCreate:
+      type: object
+      additionalProperties: false
+      required: [name, tag_type]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 128 }
+        tag_type: { type: string, enum: [INDUSTRY, CAPABILITY, QUALIFICATION, INTENT, CUSTOM] }
+        source_type: { type: string, enum: [MANUAL, MIGRATION, EXTERNAL], default: MANUAL }
+        source_reference: { type: string, maxLength: 128, nullable: true }
+        confidence: { type: number, minimum: 0, maximum: 1, default: 1 }
+
+    EnterpriseRiskSignalCreate:
+      type: object
+      additionalProperties: false
+      required: [category, severity, summary]
+      properties:
+        category: { type: string, enum: [LEGAL, FINANCIAL, COMPLIANCE, OPERATIONAL, REPUTATION, OTHER] }
+        severity: { type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL] }
+        summary: { type: string, minLength: 1, maxLength: 1000 }
+        source_type: { type: string, enum: [MANUAL, MIGRATION, EXTERNAL], default: MANUAL }
+        source_reference: { type: string, maxLength: 128, nullable: true }
+        occurred_at: { type: string, format: date-time, nullable: true }
+        attachment_id: { type: integer, format: int64, minimum: 1, nullable: true }
+
+    EnterpriseRiskResolve:
+      type: object
+      additionalProperties: false
+      required: [resolution_type, reason]
+      properties:
+        resolution_type: { type: string, enum: [MITIGATED, DISMISSED, ACCEPTED] }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
 
     ApiOk:
       description: Prefer ApiEnvelopeOk — same envelope shape

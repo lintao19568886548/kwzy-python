@@ -26,6 +26,7 @@ from app.modules.identity.interface.organization_governance_api import (
 )
 from app.modules.park_property.interface.api import router as park_router
 from app.modules.party.interface.api import router as party_router
+from app.modules.party.interface.enterprise_api import router as party_enterprise_router
 from app.modules.lease.interface.api import router as lease_router
 from app.modules.billing.interface.api import router as billing_router
 from app.modules.collection.interface.api import router as collection_router
@@ -90,6 +91,7 @@ def create_app() -> FastAPI:
     app.include_router(organization_governance_router, prefix=prefix)
     app.include_router(park_router, prefix=prefix)
     app.include_router(party_router, prefix=prefix)
+    app.include_router(party_enterprise_router, prefix=prefix)
     app.include_router(lease_router, prefix=prefix)
     app.include_router(billing_router, prefix=prefix)
     app.include_router(collection_router, prefix=prefix)

@@ -1,0 +1,116 @@
+{
+  "generated_at": "2026-08-14T13:56:58.704604+00:00",
+  "base_url": "http://127.0.0.1:8010/api/v1",
+  "synthetic_only": true,
+  "party_id": 32,
+  "stage_count": 21,
+  "stages": [
+    {
+      "name": "login",
+      "passed": true,
+      "ms": 188.5
+    },
+    {
+      "name": "create_enterprise_party",
+      "passed": true,
+      "ms": 24.92
+    },
+    {
+      "name": "create_related_party",
+      "passed": true,
+      "ms": 24.72
+    },
+    {
+      "name": "read_initial_profile",
+      "passed": true,
+      "ms": 24.39
+    },
+    {
+      "name": "save_governed_profile",
+      "passed": true,
+      "ms": 31.13
+    },
+    {
+      "name": "reject_stale_profile",
+      "passed": true,
+      "ms": 14.25
+    },
+    {
+      "name": "create_registered_address",
+      "passed": true,
+      "ms": 22.0
+    },
+    {
+      "name": "create_primary_contact",
+      "passed": true,
+      "ms": 21.19
+    },
+    {
+      "name": "upload_credential_evidence",
+      "passed": true,
+      "ms": 22.37
+    },
+    {
+      "name": "create_reduced_credential",
+      "passed": true,
+      "ms": 26.2
+    },
+    {
+      "name": "forbid_fabricated_external_review",
+      "passed": true,
+      "ms": 10.76
+    },
+    {
+      "name": "create_parent_relationship",
+      "passed": true,
+      "ms": 30.7
+    },
+    {
+      "name": "reject_parent_cycle",
+      "passed": true,
+      "ms": 12.16
+    },
+    {
+      "name": "create_provenance_tag",
+      "passed": true,
+      "ms": 32.3
+    },
+    {
+      "name": "tag_idempotent_reapply",
+      "passed": true,
+      "ms": 10.95
+    },
+    {
+      "name": "create_local_risk_signal",
+      "passed": true,
+      "ms": 25.97
+    },
+    {
+      "name": "verify_local_risk_summary",
+      "passed": true,
+      "ms": 9.91
+    },
+    {
+      "name": "resolve_local_risk",
+      "passed": true,
+      "ms": 30.88
+    },
+    {
+      "name": "verify_complete_profile",
+      "passed": true,
+      "ms": 11.69
+    },
+    {
+      "name": "reconcile_filtered_directory",
+      "passed": true,
+      "ms": 32.84
+    },
+    {
+      "name": "reject_parameter_pollution",
+      "passed": true,
+      "ms": 10.85
+    }
+  ],
+  "duration_ms": 671.22,
+  "passed": true
+}
