@@ -13,7 +13,7 @@ HR/排班/考勤/绩效/资质纵切已补齐为本地产品闭环：手机号�
 
 本轮新增单一前向迁移 `c5f02d8e9c87`，未修改已应用 `b4ea2c7d8f86`。PostgreSQL 16 fresh base→head、唯一 `current == heads`、c5→b4→c5、metadata/索引/外键/唯一/boolean 及排班、打卡、绩效和资质并发约束均通过。真实 HTTP 另覆盖小写审批定义码规范化、同幂等键异载荷冲突、已批请假阻断排班、PII/坐标不回传和跨租户 404。
 
-精确提交 `5577509` 全量脚本 37/37 步 exit 0、656,601 ms：380 pytest（205.41 s）、worker 无租户失败、全部合成 ETL、36/36 HR 真实 HTTP、1000 请求/并发 25性能 p95 264.836 ms、145.596 RPS、0 错误、1,697,402 bytes/162 表备份删除恢复、前端 ESLint/vue-tsc/6 Vitest/150 modules production build、62 Playwright、16 OpenAPI 契约及 YAML strict、OpenSpec strict 111/111、1,091 文件 secrets scan 和资源清理全部通过。机器报告为 `evidence/workforce-scheduling-attendance-performance/acceptance-clean-5577509.json`。
+精确提交 `5577509` 全量脚本 37/37 步 exit 0、656,601 ms：380 pytest（205.41 s）、worker 无租户失败、全部合成 ETL、36/36 HR 真实 HTTP、1000 请求/并发 25 性能 p95 264.836 ms、145.596 RPS、0 错误、1,697,402 bytes/162 表备份删除恢复、前端 ESLint/vue-tsc/6 Vitest/150 modules production build、62 Playwright、16 OpenAPI 契约及 YAML strict、OpenSpec strict 111/111、1,091 文件 secrets scan 和资源清理全部通过。机器报告为 `evidence/workforce-scheduling-attendance-performance/acceptance-clean-5577509.json`。HR 36/36 OpenSpec 任务、9 份主规格同步归档完成，归档后 strict 119/119。
 
 HR 合成 ETL 对 2 员工、1 班次版本、2 排班、3 打卡、2 汇总、1 请假、3 隔离完成 dry/interruption/apply/reapply/reconcile/rollback；中断后零残留、重跑零新增、原始 PII/精确坐标列和伪造绩效/资质/工资结果均为 0。授权旧 HR schema/行数水位、脱敏快照、园区/用户键映射、旧请假审批证据和生产切换授权仍缺失，真实迁移保持 `BLOCKED`。
 

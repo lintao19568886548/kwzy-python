@@ -7,7 +7,7 @@
 ## 当前整改纵切
 
 - 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
-- OpenSpec：HR change 9.4/10.1 已完成，9 份 delta 待本轮同步归档；档案/签章/印章与设施设备/巡检/IoT 已归档；`complete-investment-crm-journey` 因任务 5.5 的 `revoked` 与审批 delta 状态定义冲突保持 active、未同步归档。
+- OpenSpec：HR 36/36 任务、9 份主规格已同步并归档为 `2026-08-14-complete-workforce-scheduling-attendance-performance`，归档后 strict 119/119；档案/签章/印章与设施设备/巡检/IoT 已归档；`complete-investment-crm-journey` 因任务 5.5 的 `revoked` 与审批 delta 状态定义冲突保持 active、未同步归档。
 - 已关闭证据：员工隐私档案、不可变班次版本/排班、考勤/异常调整、原生审批请假、绩效与资质到期闭环及 PC 响应式工作区。精确 `5577509` 的 PG16、380 条后端、62 条全量浏览器、28 个 workforce runtime/YAML 路径、36 阶段真实 HTTP、性能、备份恢复和合成 ETL 的 37/37 总门禁均通过。
 - 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 

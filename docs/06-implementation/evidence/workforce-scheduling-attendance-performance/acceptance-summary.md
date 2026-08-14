@@ -30,10 +30,12 @@
 | 合成迁移 | 2 员工、1 班次版本、2 排班、3 打卡、2 汇总、1 请假、3 隔离；中断零残留、重跑零新增、对账/回滚通过 |
 | 隐私真相 | 合成目标 PII 原文字段/精确坐标/轨迹列为 0；伪造绩效/资质/工资结果为 0 |
 | 备份恢复 | `pg_dump -Fc` 1,697,402 bytes；删除/重建临时库后恢复并验证 162 张 public 表 |
-| 契约/扫描 | OpenAPI 16/16 + YAML strict；OpenSpec 111/111；1,091 文件 secrets scan 0 hits |
+| 契约/扫描 | OpenAPI 16/16 + YAML strict；精确 SHA 时 OpenSpec 111/111，9 份主规格同步归档后 119/119；1,091 文件 secrets scan 0 hits |
 | 生产接触 | `production_contacted=false`，未获得生产部署或不可逆迁移授权 |
 
 机器证据：`acceptance-clean-5577509.json`、`workforce-etl-clean-5577509.json`、`workforce-http-clean-5577509.json`、`http-performance-clean-5577509.json`。总报告 SHA-256 为 `EFC333223D2BB2C394E5F0F6882C51B8CF93F449F74570C41A6B322835E2C865`。
+
+OpenSpec 36/36 任务完成，9 份 delta 主规格同步并归档为 `2026-08-14-complete-workforce-scheduling-attendance-performance`；归档后全量 strict 119/119。
 
 ## 视觉证据
 

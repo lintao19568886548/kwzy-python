@@ -23,7 +23,7 @@
 
 档案/签章/印章精确提交 `b04d738` 全验收已通过 36/36 步、366 pytest、真实 PG16、61 条全量 Playwright、前端 lint/typecheck/6 Vitest/production build、OpenAPI 15/15+YAML strict、OpenSpec 102/102、1000/25 性能（p95 240.541 ms、146.259 RPS、0 错误）、1,595,978 bytes/146 表备份恢复、21/21 真实 HTTP、档案合成 ETL和 1,041 文件 secrets scan。机器报告为 `evidence/records-signature-seal-governance/acceptance-clean-b04d738.json`；40/40 任务、11 份主规格同步、归档后 strict 110/110。合法电子签/CA/时间戳/存证、真实印章设备及真实旧档案/二进制迁移没有凭据或授权，不计 live 完成。
 
-HR 精确提交 `5577509` 全验收已通过 37/37 步、380 pytest、真实 PG16、62 条全量 Playwright、前端四门禁、OpenAPI 16/16+YAML strict、OpenSpec 111/111、36 阶段 HR 真实 HTTP、1000/25 性能（p95 264.836 ms、145.596 RPS、0 错误）、1,697,402 bytes/162 表备份恢复、HR 合成 ETL 和 1,091 文件 secrets scan。机器报告为 `evidence/workforce-scheduling-attendance-performance/acceptance-clean-5577509.json`。真实旧 HR schema/脱敏快照和考勤设备协议/凭据未获授权，不计迁移或 live 完成。
+HR 精确提交 `5577509` 全验收已通过 37/37 步、380 pytest、真实 PG16、62 条全量 Playwright、前端四门禁、OpenAPI 16/16+YAML strict、OpenSpec 111/111、36 阶段 HR 真实 HTTP、1000/25 性能（p95 264.836 ms、145.596 RPS、0 错误）、1,697,402 bytes/162 表备份恢复、HR 合成 ETL 和 1,091 文件 secrets scan。机器报告为 `evidence/workforce-scheduling-attendance-performance/acceptance-clean-5577509.json`；36/36 任务、9 份主规格同步归档后 strict 119/119。真实旧 HR schema/脱敏快照和考勤设备协议/凭据未获授权，不计迁移或 live 完成。
 
 ## 不能外推为完成的范围
 

@@ -8,11 +8,11 @@
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
 | 已验证 HEAD | `5577509a6ca2a473107038be1316a0ea9252fc8d`：HR/排班/考勤/绩效/资质 37/37 精确提交全验收，380 后端、62 浏览器、前端四门禁、36 阶段真实 HTTP、OpenAPI/OpenSpec、1000/25 性能、备份恢复和合成迁移通过 |
-| 远程同步 | 远端至档案证据 `b04d738bc75e865e1c6bfb180e93dc9b95109cf3`；HR 实现 `370c7f8` 与验收工具 `5577509` 本地领先、待证据提交后正常推送；未 force、未触达 main |
+| 远程同步 | HR 实现 `370c7f8`、验收工具 `5577509` 与证据 `11d29d8` 已正常推送；主规格同步/归档在本提交后继续正常推送；未 force、未触达 main |
 | 工作树 | 本轮只允许提交 HR 三张新视觉证据、机器报告、总控文档和 OpenSpec 收尾；全量 Playwright 重生成的其他纵切 27 张截图保持未暂存，不得删除、还原或混入本轮提交 |
 | Alembic | 唯一 head `c5f02d8e9c87`；PG16 fresh head、`current == heads`、`c5→b4→c5`、162 表备份删除恢复通过；既有已应用 `b4ea2c7d8f86` 未修改，HR 使用单一前向 `c5` |
 | 当前阶段 | 独立验收为 12 implemented / 1 blocked / 7 missing；组合能力 1–10、13–14 已关闭本地产品范围，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | HR 9.4/10.1 已完成，9 份 delta 待本轮同步归档；档案/签章/印章已归档。CRM `revoked` 语义冲突仍保持 active |
+| 当前 OpenSpec | HR 36/36 任务、9 份主规格已同步并归档为 `2026-08-14-complete-workforce-scheduling-attendance-performance`，归档后 strict 119/119；档案/签章/印章已归档。CRM `revoked` 语义冲突仍保持 active |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -141,6 +141,8 @@
 ## 最新机器证据（HR/排班/考勤/绩效/资质精确 SHA）
 
 版本化报告 `docs/06-implementation/evidence/workforce-scheduling-attendance-performance/acceptance-clean-5577509.json` 精确对应 `5577509a6ca2a473107038be1316a0ea9252fc8d`：37/37 步、656,601 ms、0 failed；PG16 唯一 head `c5f02d8e9c87`、380 pytest、62 Playwright、28 个 workforce 路径、前端四门禁、36/36 真实 HTTP、1000/25 p95 264.836 ms/145.596 RPS/0 错误、HR 合成 ETL、1,697,402 bytes/162 表备份恢复、111 OpenSpec 和 1,091 文件 secrets scan 通过。
+
+HR 36/36 OpenSpec 任务全部关闭，9 份 delta 同步主规格并归档；归档后全量 strict 119/119。
 
 ## 历史机器证据（档案/签章/印章精确 SHA）
 
