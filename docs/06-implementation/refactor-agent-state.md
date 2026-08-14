@@ -7,12 +7,12 @@
 | 更新时间 | 2026-08-14（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | repair 实现 `a9267d4c30096a7c80d66588ab06bc6838b32b0d`；完整推送记录 HEAD `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` |
-| 远程同步 | repair 已与 origin 同 SHA；完成分支尚未首次提交/推送；禁止 force |
-| 工作树 | 用户基线原为 clean；当前组织治理纵切 25/25 总闸门通过，待 commit/push |
+| 已验证 HEAD | `8bb87707251de1e4c22cf4009928c71d84958b8a`；clean SHA 25/25 总闸门通过 |
+| 远程同步 | `origin/feat/full-rebuild-completion` 与 `8bb8770` 一致；未 force；当前只在补充 clean-SHA 证据 |
+| 工作树 | 实现提交复验前为 clean；当前仅有复验截图与证据文档变更 |
 | Alembic | 唯一 head `n0c68d3e5f42`；fresh upgrade 和 head→-1→head 通过 |
 | 当前阶段 | 独立验收仍为 2 implemented / 1 blocked / 17 missing；关键旅程 1 已关闭，组合能力 1 因完整审批/审计仍缺失而保持 `MISSING` |
-| 当前 OpenSpec | `complete-platform-organization-governance` strict PASS、26/27，仅交付项待完成；`complete-identity-system-admin` 51/53，两个真实旧数据任务保持外部门禁 |
+| 当前 OpenSpec | `complete-platform-organization-governance` strict PASS、27/27，待同步主规格与归档；`complete-identity-system-admin` 51/53，两个真实旧数据任务保持外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -25,7 +25,7 @@
 - [x] 完成集团/区域生命周期、园区有效期归属历史、岗位任职和服务端字段投影；任职不隐式授予 RBAC 或园区范围。
 - [x] 完成 PC 组织治理工作区及桌面/平板/移动端加载、只读、403、409、503/重试和无横向溢出验收，三张截图已留存。
 - [x] 完成 PostgreSQL 16 约束/并发与组织治理合成 ETL 的 dry/apply/幂等/对账/回滚，真实旧 schema/脱敏样本仍保持外部门禁。
-- [x] 在 repair 基线加当前工作树上运行 25 项总验收，25/25 exit 0；等待正常提交、推送并在 clean SHA 复验。
+- [x] 正常提交并推送 `8bb8770 feat: complete platform organization governance`，未 force；在该 clean SHA 上再次运行 25 项总验收，25/25 exit 0。
 
 - [x] 读取用户全量 V2 目标和四份既有总控文档。
 - [x] 核对 Git：发现旧验收绑定 `23fa781`，当前代码已推进到 `d9c0b0b`。
@@ -61,12 +61,12 @@
 - [x] 将已落地基础合同 5 份 delta 同步主规格并归档 `2026-08-13-implement-lease-contract`，消除合同 V2 增量基线缺口。
 - [x] 完成 `implement-contract-lifecycle-v2` proposal/design、10 份 delta specs 和 102 项任务；change strict 与全量 OpenSpec 49/49 PASS。
 
-## 最新机器证据（组织治理工作树）
+## 最新机器证据（组织治理 clean SHA）
 
 | 项 | 结果 |
 | --- | --- |
-| 工作树报告 | `infra/local-staging/out/acceptance_20260814_125003.json`（gitignored，本机），25/25 PASS；追踪副本在本纵切证据目录 |
-| 时间/基线 | 2026-08-14 12:43:27–12:50:03 +08:00；395489 ms；Git HEAD `37d7cf7` 加当前整改 diff |
+| 精确提交报告 | `infra/local-staging/out/acceptance_20260814_130159.json`（gitignored，本机），25/25 PASS；追踪副本 `acceptance-clean-8bb8770.json` |
+| 时间/提交 | 2026-08-14 12:55:24–13:01:59 +08:00；395014 ms；`8bb87707251de1e4c22cf4009928c71d84958b8a` |
 | PostgreSQL 16 | fresh base→`n0c68d3e5f42` PASS；head→-1→head PASS；唯一 head |
 | pytest | 253 passed，1 dependency deprecation warning |
 | 前端 | lint PASS；typecheck PASS；Vitest 6 passed；production build PASS |
@@ -74,9 +74,9 @@
 | OpenAPI | 7 runtime/YAML contract tests + YAML strict PASS |
 | OpenSpec | strict 50 passed / 0 failed |
 | ETL | core fast + acceptance、Identity、Asset、CRM、Contract、Organization Governance 均 PASS；组织治理 1/2/3/2/2/2 对账、幂等、无授权行/原始 PII、rollback 全绿；真实旧数据未演练 |
-| 性能 | 1000 请求、并发 25、p95 356.22 ms、118.296 RPS、0% 错误，门槛 PASS |
-| 备份恢复 | PASS，dump 985808 bytes，restore 65 tables |
-| 扩展 secrets scan | PASS，650 tracked/untracked non-ignored files |
+| 性能 | 1000 请求、并发 25、p95 302.694 ms、128.8 RPS、0% 错误，门槛 PASS |
+| 备份恢复 | PASS，dump 985813 bytes，restore 65 tables |
+| 扩展 secrets scan | PASS，654 tracked/untracked non-ignored files |
 
 ## 已确认的产品级阻塞
 
@@ -91,7 +91,7 @@
 
 ## 下一恢复点
 
-1. 正常 commit/push `complete-platform-organization-governance`，在 clean SHA 复跑总闸门并回填交付提交。
+1. 同步并归档 27/27 的 `complete-platform-organization-governance`，严格校验主规格。
 2. 创建并实施完整审批中心/审计中心的下一垂直切片，继续关闭组合能力 1。
 3. 建设事件驱动待办、规则/定时任务和多角色可配置工作台，继续关闭组合能力 2。
 4. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。

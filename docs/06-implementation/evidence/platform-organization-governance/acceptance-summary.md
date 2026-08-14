@@ -1,7 +1,7 @@
 # 平台组织治理纵切验收证据
 
-> 执行时间：2026-08-14 12:43:27–12:50:03（Asia/Shanghai）
-> 执行基线：`37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 加当前组织治理整改工作树
+> clean-SHA 复验时间：2026-08-14 12:55:24–13:01:59（Asia/Shanghai）
+> 精确提交：`8bb87707251de1e4c22cf4009928c71d84958b8a`，与 `origin/feat/full-rebuild-completion` 一致
 > 判定：本纵切 25/25 自动闸门通过；全项目仍为 `CONDITIONAL/BLOCKED`。
 
 ## 本纵切范围
@@ -16,15 +16,17 @@
 
 | 类别 | 结果 |
 | --- | --- |
-| 总闸门 | 25/25 exit 0，395489 ms |
+| 总闸门 | 25/25 exit 0，395014 ms |
 | PostgreSQL 16 | fresh upgrade 到唯一 head `n0c68d3e5f42`；downgrade -1 后 re-upgrade PASS |
 | 后端测试 | 253 passed |
 | 前端 | ESLint、Vue typecheck、6 Vitest、production build 全 PASS |
 | 浏览器 | Playwright 43 passed；组织治理 3 条包含真实 HTTP/DB/UI |
 | OpenAPI / OpenSpec | 7 tests + YAML strict PASS；50/50 strict PASS |
-| 性能 | 1000 请求、并发 25、p95 356.22 ms、118.296 RPS、0% 错误 |
-| 备份恢复 | dump 985808 bytes；恢复 65 tables；PASS |
-| 敏感信息 | 650 个 tracked/untracked non-ignored 文件扫描 PASS |
+| 性能 | 1000 请求、并发 25、p95 302.694 ms、128.8 RPS、0% 错误 |
+| 备份恢复 | dump 985813 bytes；恢复 65 tables；PASS |
+| 敏感信息 | 654 个 tracked/untracked non-ignored 文件扫描 PASS |
+
+clean-SHA 机器副本：`acceptance-clean-8bb8770.json`、`organization-governance-etl-clean-8bb8770.json` 和 `http-performance-clean-8bb8770.json`。工作树首轮报告同时保留，用于证明提交前后门槛一致。
 
 ## 组织治理 ETL
 

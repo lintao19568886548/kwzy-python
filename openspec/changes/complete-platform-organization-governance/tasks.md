@@ -44,4 +44,4 @@
 
 - [x] 7.1 Run focused backend/frontend tests, type checks, build, migration drill and strict OpenSpec validation
 - [x] 7.2 Run the full acceptance suite on PostgreSQL 16 and update evidence, capability matrix, roadmap and agent state with exact results
-- [ ] 7.3 Commit the complete vertical slice and normally push `feat/full-rebuild-completion` without force
+- [x] 7.3 Commit the complete vertical slice and normally push `feat/full-rebuild-completion` without force

@@ -1,13 +1,13 @@
 # 瞰维智管 V2 独立验收能力矩阵
 
 > 审计日期：2026-08-14（Asia/Shanghai）
-> 实现证据基线：repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 加当前组织治理整改工作树；交付提交待正常 push 后回填。
+> 组织治理实现证据提交：`8bb87707251de1e4c22cf4009928c71d84958b8a`，与 `origin/feat/full-rebuild-completion` 一致并在 clean SHA 上复验。
 > 判定规则：只使用 `IMPLEMENTED_AND_VERIFIED`、`APPROVED_RETIRED`、`APPROVED_DEFERRED`、`BLOCKED`、`MISSING`。子能力通过但组合需求未闭环时，组合项必须判为 `MISSING`；没有人工批准，不使用 retired/deferred。
 
 ## 当前整改纵切
 
 - 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
-- 当前 OpenSpec：`complete-platform-organization-governance`，proposal/design/6 specs/tasks strict PASS，实施进度 26/27；仅正常 commit/push 交付项待执行。
+- 当前 OpenSpec：`complete-platform-organization-governance`，proposal/design/6 specs/tasks strict PASS，实施进度 27/27；实现提交已正常推送，未 force。
 - 已关闭证据：集团→区域→园区历史归属、岗位任职、服务端字段策略及 PC 真实旅程；PostgreSQL 16 迁移/并发、真实 HTTP、43 条浏览器 E2E、合成 ETL、OpenAPI/OpenSpec 均通过。
 - 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 
