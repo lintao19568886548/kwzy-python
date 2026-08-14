@@ -188,6 +188,9 @@ const canDeviceRetire = computed(() => auth.can("*") || auth.can("facility_devic
 const canInspectionRead = computed(
   () => auth.can("*") || auth.can("inspection:read") || auth.can("inspection:execute")
 );
+const canInspectionScheduleRead = computed(
+  () => auth.can("*") || auth.can("inspection:read") || auth.can("inspection:schedule_manage")
+);
 const canInspectionExecute = computed(
   () => auth.can("*") || auth.can("inspection:execute")
 );
@@ -279,6 +282,8 @@ async function loadAll() {
             tasks.value = response.data.data.items;
           })
       );
+    }
+    if (canInspectionScheduleRead.value) {
       calls.push(
         http.get<Envelope<InspectionSchedule[]>>("/inspection-schedules").then((response) => {
           schedules.value = response.data.data;
