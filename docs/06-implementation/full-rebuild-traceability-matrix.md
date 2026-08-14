@@ -1,14 +1,14 @@
 # 瞰维智管 V2 独立验收能力矩阵
 
 > 审计日期：2026-08-14（Asia/Shanghai）
-> 最近 clean-SHA 证据：资产模板/组合租控精确提交 `44ae618aa4b0a83bbb89eff2b040475bbfcb0479`，报告 `evidence/platform-asset-portfolio-views/acceptance-clean-44ae618.json`，30/30 总门禁通过。
+> 最近 clean-SHA 证据：招商 CRM 精确提交 `4f870af20c7c3b574b0f9cc8498e3c2dfb14e5fe`，报告 `evidence/investment-crm-completion/acceptance-clean-4f870af.json`，30/30 总门禁通过。
 > 判定规则：只使用 `IMPLEMENTED_AND_VERIFIED`、`APPROVED_RETIRED`、`APPROVED_DEFERRED`、`BLOCKED`、`MISSING`。子能力通过但组合需求未闭环时，组合项必须判为 `MISSING`；没有人工批准，不使用 retired/deferred。
 
 ## 当前整改纵切
 
 - 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
-- OpenSpec：`2026-08-14-complete-asset-portfolio-views` 已完成 proposal/design/specs/实现、clean-SHA 验收、主规格同步和归档；组织治理、审批/审计和工作台自动化已归档。
-- 已关闭证据：七类版本化业态模板、精确版本绑定、空间几何、矩阵/地图/列表/空置/到期/分析、拆并和历史；PG16、真实 HTTP、52 条浏览器、性能、备份恢复和合成 ETL 均有独立证据。
+- OpenSpec：`complete-investment-crm-journey` 已完成实现及 clean-SHA 验收，但任务 5.5 的 `revoked` 与审批 delta 状态定义冲突，保持 active、未同步归档；组织治理、审批/审计、工作台自动化和资产组合已归档。
+- 已关闭证据：招商自动分配/公海/带看/版本化意向/统一审批/锁房/签名渠道本地契约；PG16、真实 HTTP、54 条浏览器、性能、备份恢复和合成 ETL 均有独立 clean-SHA 证据。
 - 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 
 ## 产品能力

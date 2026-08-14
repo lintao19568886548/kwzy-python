@@ -65,5 +65,5 @@
 ## 10. Closure
 
 - [x] 10.1 Run focused backend/frontend tests, Ruff error gate, typecheck/build, strict OpenSpec and targeted stub/layer scans
-- [ ] 10.2 Run full PG16 acceptance, backup/restore, performance and clean-SHA browser evidence
+- [x] 10.2 Run full PG16 acceptance, backup/restore, performance and clean-SHA browser evidence
 - [ ] 10.3 Update reports/matrix/roadmap/state, normally commit/push, sync main specs and archive without force

@@ -7,12 +7,12 @@
 | 更新时间 | 2026-08-14（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | 资产组合精确实现提交 `44ae618aa4b0a83bbb89eff2b040475bbfcb0479` 完成 30/30 clean-SHA 总门禁 |
-| 远程同步 | `feat/full-rebuild-completion` 与远端同步到归档提交 `ca08c33`；实现和闭环证据均已正常推送；本轮未 force、未触达 main |
-| 工作树 | 仅 8 张既有审批/组织截图因二进制归属保护保持未暂存，未删除、未还原、未提交 |
-| Alembic | 唯一 head `r4a02c7d9e86`；PG16 fresh q3→r4 与 `r4→q3→r4` 通过，已应用 q3 未修改 |
-| 当前阶段 | 独立验收为 5 implemented / 1 blocked / 14 missing；组合能力 1、2、3、6、7 已关闭，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | `2026-08-14-complete-asset-portfolio-views` 已同步主规格并归档；Identity 真实旧数据任务继续外部门禁 |
+| 已验证 HEAD | 招商 CRM 精确实现提交 `4f870af20c7c3b574b0f9cc8498e3c2dfb14e5fe` 完成 30/30 clean-SHA 总门禁 |
+| 远程同步 | `feat/full-rebuild-completion` 与远端同步到实现提交 `4f870af`；本轮未 force、未触达 main |
+| 工作树 | 11 张既有/验收重生成的审批、组织和资产视觉证据保持未暂存，未删除、未还原、未纳入招商提交 |
+| Alembic | 唯一 head `s5b13d8e0f97`；PG16 fresh head 与 `head→-1→head` 通过，既有历史迁移未修改 |
+| 当前阶段 | 独立验收为 6 implemented / 1 blocked / 13 missing；组合能力 1、2、3、4、6、7 已关闭，完整项目仍 `CONDITIONAL/BLOCKED` |
+| 当前 OpenSpec | `complete-investment-crm-journey` 因任务 5.5 的审批 `revoked` 语义未定义而保持 active；10.2 clean-SHA 门禁已关闭，未同步/归档 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -88,7 +88,13 @@
 - [x] 将已落地基础合同 5 份 delta 同步主规格并归档 `2026-08-13-implement-lease-contract`，消除合同 V2 增量基线缺口。
 - [x] 完成 `implement-contract-lifecycle-v2` proposal/design、10 份 delta specs 和 102 项任务；change strict 与全量 OpenSpec 49/49 PASS。
 
-## 最新机器证据（工作台/自动化 clean SHA）
+## 最新机器证据（招商 CRM clean SHA）
+
+版本化报告 `docs/06-implementation/evidence/investment-crm-completion/acceptance-clean-4f870af.json`：报告精确对应 `4f870af20c7c3b574b0f9cc8498e3c2dfb14e5fe`，30/30 步、0 failed，484,424 ms；PG16 fresh/down-up 与唯一 head `s5b13d8e0f97`、298 pytest、全部合成 ETL、真实 HTTP、1,000 请求性能（p95 239.342 ms、159.254 RPS、0 错误）、备份恢复 1,213,678 bytes/94 表、前端 lint/typecheck/6 Vitest/build、54 Playwright、OpenAPI strict、OpenSpec 70/70、817 文件 secrets scan 和资源清理均通过。
+
+招商 change 任务 5.5 仍未关闭：delta spec 的审批状态只有 `PENDING/APPROVED/REJECTED/RETURNED/WITHDRAWN`，没有 `REVOKED`。现有回归已经覆盖园区授权撤销、审批撤回、拒绝、退回、过期、异线索和并发，但不会未经业务架构决策扩展共享审批状态机。
+
+## 历史机器证据（工作台/自动化 clean SHA）
 
 版本化报告 `docs/06-implementation/evidence/platform-workbench-automation/acceptance-clean-fedc98e.json`：报告内 HEAD 精确为 `fedc98efb7a33f39240216fbb861b57f6142649b`，28/28 步 exit 0，485,199 ms；PG16 唯一 head `p2e80a5b7c64`，277 pytest，5 租户 worker 零失败，全部合成 ETL 通过，工作台真实 HTTP 通过，性能 1,000 请求/并发 25/p95 250.49 ms/146.018 RPS/0 错误，备份恢复 1,115,283 bytes/82 表，前端 lint/typecheck/6 Vitest/build、50 Playwright、OpenAPI 9/9+strict、OpenSpec 61/61、741 文件 secrets scan 和清理均通过。
 
@@ -124,8 +130,8 @@
 
 ## 下一恢复点
 
-1. 从能力矩阵第 4 项开始，独立复核招商线索自动分配、意向审批和外部渠道缺口，按原始证据建立下一纵切并继续整改。
-2. 继续关闭能力矩阵剩余 14 个 `MISSING`，优先选择下一个能形成完整真实旅程的业务纵切。
+1. 从能力矩阵第 5 项开始，独立复核 Party 企业画像、关联企业、受控证件和风险画像，按原始证据建立下一纵切并继续整改。
+2. 继续关闭能力矩阵剩余 13 个 `MISSING`，优先选择下一个能形成完整真实旅程的业务纵切。
 3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 
 ## 不可变安全约束

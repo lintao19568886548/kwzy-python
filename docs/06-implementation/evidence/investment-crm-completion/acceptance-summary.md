@@ -32,6 +32,8 @@
 
 | 类别 | 结果 |
 | --- | --- |
+| clean-SHA 总门禁 | 精确提交 `4f870af20c7c3b574b0f9cc8498e3c2dfb14e5fe`，独立干净工作树 30/30 步、0 failed，484,424 ms |
+| clean-SHA 后端 | 298 passed，0 failed，123.06 s；仅 1 条 Starlette `TestClient` 依赖弃用告警 |
 | 服务/API/OpenAPI/租户隔离/PG 并发/ETL 聚合 | 42 passed，0 failed，32.13 s |
 | 招商闭环专项 | 4 passed；异线索、未批准、拒绝、退回、撤回、过期均 fail closed；规则成员园区授权撤销后从预演与执行排除并回落公海 |
 | Playwright 招商文件 | 8 passed，0 failed；真实 PG16、FastAPI、production Vite build、真实 HTTP；移动 loading/空态/403/offline/重试/无溢出已自动断言 |
@@ -39,6 +41,7 @@
 | 前端 | `vue-tsc --noEmit` PASS；ESLint 0 warning；production build PASS |
 | Ruff | 新文件全规则 PASS；全项目 `E9,F63,F7,F82` error gate PASS |
 | OpenAPI | YAML strict 与运行时方法集合测试通过；公开签名路由在 JWT 外，管理/重放路由仍需权限 |
+| clean-SHA 浏览器 | 54 passed，0 failed；真实 PG16、FastAPI、production Vite build、真实 HTTP |
 
 已分类的关键词扫描中，`placeholder` 只出现在真实表单提示；`demo` 只出现在合成 ETL 的 `tenant-demo` 值。招商实现无 TODO/FIXME/NotImplementedError/stub/mock/fake、本地 JSON 数据源或未挂载 router。
 
@@ -46,10 +49,11 @@
 
 - 真实 HTTP：1,000 请求、并发 25、预热 40，覆盖 Lead 列表、漏斗摘要、阶段看板、分配规则和渠道列表。
 - 结果：0 错误，p95 `256.359 ms`，吞吐 `156.018 req/s`；门槛 p95 ≤ 500 ms、错误率 ≤ 1%、吞吐 ≥ 20 req/s，PASS。
+- clean-SHA 全量基准：1,000 请求、并发 25、0 错误，p95 `239.342 ms`、吞吐 `159.254 req/s`；备份 `1,213,678 bytes`，恢复后 94 表并完成清理。
 - PG 并发覆盖：规则双发布、带看双完成、签名事件重复/并发、Unit 锁竞争、过期锁重获、锁与合同激活互斥；均保持单一获胜、幂等或显式 409。
 - 安全覆盖：数据库派生权限、敏感权限 fail closed、租户/园区 IDOR 404、严格额外字段 422、HMAC 篡改统一 401、原始密钥/电话不进入响应或日志、渠道载荷不能指定内部 owner/permission/approval/lock/contract。
 
-性能机器报告：`http-performance-worktree.json`。
+机器证据：`acceptance-clean-4f870af.json`、`crm-etl-clean-4f870af.json`、`http-performance-clean-4f870af.json`；工作树聚焦性能报告为 `http-performance-worktree.json`。
 
 ## 5. 浏览器与视觉
 

@@ -1,7 +1,7 @@
 # 瞰维智管 V2 全量重建主路线图
 
 > 更新时间：2026-08-14（Asia/Shanghai）
-> 当前独立验收基线：资产模板/组合租控精确实现提交 `44ae618aa4b0a83bbb89eff2b040475bbfcb0479` 的 30/30 clean-SHA 总门禁通过
+> 当前独立验收基线：招商 CRM 精确实现提交 `4f870af20c7c3b574b0f9cc8498e3c2dfb14e5fe` 的 30/30 clean-SHA 总门禁通过
 > 当前完成分支：`feat/full-rebuild-completion`，从 repair 推送记录 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建；三条本地 safety ref 已保留。
 > 总体状态：**BLOCKED — 已实现纵切通过，不等于三端、旧系统和全业务完成。**
 
@@ -17,7 +17,7 @@
 | --- | --- | --- | --- |
 | 平台安全与工程底座 | 会话/JWT/密码、scope、组织/岗位/字段策略、版本化审批/任务/委托/SLA、哈希审计、事务事件、受限规则、站内通知、持久调度/独立 worker、多角色布局、附件、生产配置、PG pool/readiness、CI/容器/Runbook | 远程监控/告警/灾备证据 | IN_PROGRESS |
 | 资产与租控 | 七类版本化业态模板、空间树/几何、单元精确模板版本、拆并血缘、矩阵/示意地图/列表/空置/到期/分析 | 商业 GIS/CAD/BIM 与真实旧坐标迁移需另有合同和授权数据，不冒充已接入 | CLOSED_LOCAL_PRODUCT_SCOPE |
-| 招商 CRM | 去重、人工/自动分配、公海、活动、第一类带看、匹配、版本化意向与统一审批、锁房、签名渠道适配器、转化 | 真实渠道/企微联调、自动触达与 AI 评分由外部/AI 条目继续关闭 | CLOSED_LOCAL_PRODUCT_SCOPE |
+| 招商 CRM | 去重、人工/自动分配、公海、活动、第一类带看、匹配、版本化意向与统一审批、锁房、签名渠道适配器、转化 | OpenSpec 5.5 的审批撤销语义待业务架构裁决；真实渠道/企微联调、自动触达与 AI 评分由外部/AI 条目继续关闭 | CONDITIONAL_LOCAL_PRODUCT_SCOPE |
 | Party 与合同 | Party 基础；合同多单元/多费用/版本/变更/退租 | 企业画像、完整档案/签章/印章和真实提供商 | IN_PROGRESS |
 | 账单、收款和催缴 | 基础账单/收款/分配/冲正/案件 | 自动出账、流水匹配、异常复核、多账单核销、分级催缴 | IN_PROGRESS |
 | 服务与运营业务 | 简版工单 | 租户服务、派单/SLA/报价/验收、设备巡检 IoT、HR、供应链、园企服务 | MISSING |
@@ -33,7 +33,7 @@
 2. `complete-platform-approval-audit-center`：实现提交 `13243b4` 与归档证据 `008d6ac` 已推送；PG16、264 后端、46 浏览器、独立 HTTP、性能、备份恢复和合成 ETL 的 26/26 clean-SHA 总门禁通过；9 个 delta 已同步主规格并归档，纵切关闭。
 3. `2026-08-14-complete-platform-workbench-automation`：实现提交 `fedc98e` 与证据/主规格同步 `7741351` 已正常推送；28/28 clean-SHA 总门禁、277 后端、50 浏览器、真实 HTTP、p95 250.49 ms、备份恢复和合成 ETL 已通过；归档后 strict 66/66，纵切关闭。
 4. `2026-08-14-complete-asset-portfolio-views`：实现提交 `44ae618` 已正常推送，30/30 clean-SHA 门禁、286 后端、52 浏览器、22 阶段真实 HTTP、七类模板/几何/多视图与合成 ETL 已通过；新增 r4 复合租户外键，拒绝跨租户/跨业态模板、空白名称和无效多边形；8 份 delta 已同步主规格并归档。
-5. `complete-investment-crm-journey`：自动分配、Viewing、Intent→Approval 门禁、签名渠道、PC 工作区和 17 类合成迁移已完成工作树验收；真实旧数据与供应商仍在独立条目阻塞，待 clean-SHA 复验、同步与归档后关闭变更。
+5. `complete-investment-crm-journey`：实现提交 `4f870af` 已正常推送，30/30 clean-SHA 门禁、298 后端、54 浏览器、真实 HTTP、p95 239.342 ms、备份恢复和 17 类合成迁移已通过；任务 5.5 的 `revoked` 与 delta spec 状态定义冲突，保持 active 且不伪归档，真实旧数据与供应商仍在独立条目阻塞。
 6. 下一业务纵切从企业画像、账收匹配催缴、租户服务、设备巡检 IoT、档案签章、HR、供应链、园企服务、驾驶舱、AI/集成中按证据顺序继续关闭。
 7. 建设员工移动端与租户微信小程序并完成真实 API/数据库/浏览器（或小程序运行器）旅程，不能用 WebView 壳或本地 JSON替代。
 8. 数据负责人/DBA 提供经授权旧 schema dump 与脱敏快照；在隔离 PG16 重跑全量/增量/中断/回滚/对账。

@@ -1,0 +1,235 @@
+{
+  "started_at": "2026-08-14T20:39:35.4408965+08:00",
+  "ended_at": "2026-08-14T20:47:39.8650491+08:00",
+  "duration_ms": 484424,
+  "head": "4f870af20c7c3b574b0f9cc8498e3c2dfb14e5fe",
+  "steps": [
+    {
+      "step": "docker_clean_start",
+      "exit_code": 0,
+      "ms": 1534,
+      "started": "2026-08-14T20:39:36.9974146+08:00",
+      "output_tail": "Container kwzy_party_test_pg Stopping \n Container kwzy_party_test_pg Stopped \n Container kwzy_party_test_pg Removing \n Container kwzy_party_test_pg Removed \n Network kwzy_party_test_net Removing \n Volume kwzy_party_test_pgdata Removing \n Volume kwzy_party_test_pgdata Removed \n Network kwzy_party_test_net Removed \ncleaned"
+    },
+    {
+      "step": "docker_pg_up",
+      "exit_code": 0,
+      "ms": 6911,
+      "started": "2026-08-14T20:39:43.9191419+08:00",
+      "output_tail": "Network kwzy_party_test_net Creating \n Network kwzy_party_test_net Created \n Volume kwzy_party_test_pgdata Creating \n Volume kwzy_party_test_pgdata Created \n Container kwzy_party_test_pg Creating \n Container kwzy_party_test_pg Created \n Container kwzy_party_test_pg Starting \n Container kwzy_party_test_pg Started \nhealthy"
+    },
+    {
+      "step": "alembic_upgrade",
+      "exit_code": 0,
+      "ms": 4897,
+      "started": "2026-08-14T20:39:48.8180561+08:00",
+      "output_tail": "INFO  [alembic.runtime.migration] Running upgrade b8f46a1c9e20 -> c9a57b2d0f31, work items workbench\nINFO  [alembic.runtime.migration] Running upgrade c9a57b2d0f31 -> d0b68c3e1a42, investment leads\nINFO  [alembic.runtime.migration] Running upgrade d0b68c3e1a42 -> e1c79d4f2b53, identity org dict params + work orders + collection cases\nINFO  [alembic.runtime.migration] Running upgrade e1c79d4f2b53 -> f2a80e5c3b64, approval requests minimal\nINFO  [alembic.runtime.migration] Running upgrade f2a80e5c3b64 -> g3b91f6d4c75, integration outbox and attachments\nINFO  [alembic.runtime.migration] Running upgrade g3b91f6d4c75 -> h4c02d7e9a86, identity security events\nINFO  [alembic.runtime.migration] Running upgrade h4c02d7e9a86 -> i5d13e8f0b97, asset rent control v2\nINFO  [alembic.runtime.migration] Running upgrade i5d13e8f0b97 -> j6e24f9a1c08, investment crm v2\nINFO  [alembic.runtime.migration] Running upgrade j6e24f9a1c08 -> k7f35a0b2d19, contract lifecycle v2\nINFO  [alembic.runtime.migration] Running upgrade k7f35a0b2d19 -> l8a46b1c3e20, integration outbox idempotency uniqueness\nINFO  [alembic.runtime.migration] Running upgrade l8a46b1c3e20 -> m9b57c2d4e31, align timestamp nullability with the ORM contract\nINFO  [alembic.runtime.migration] Running upgrade m9b57c2d4e31 -> n0c68d3e5f42, platform organization governance\nINFO  [alembic.runtime.migration] Running upgrade n0c68d3e5f42 -> o1d79e4f6a53, versioned approval orchestration and tamper-evident audit ledger\nINFO  [alembic.runtime.migration] Running upgrade o1d79e4f6a53 -> p2e80a5b7c64, event-driven configurable workbench automation\nINFO  [alembic.runtime.migration] Running upgrade p2e80a5b7c64 -> q3f91b6c8d75, asset templates, spatial geometry and portfolio views\nINFO  [alembic.runtime.migration] Running upgrade q3f91b6c8d75 -> r4a02c7d9e86, enforce tenant-local asset template references\nINFO  [alembic.runtime.migration] Running upgrade r4a02c7d9e86 -> s5b13d8e0f97, investment crm assignment viewing intent and channel completion\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nALEMBIC_UNIQUE_CURRENT_HEAD=PASS revision=s5b13d8e0f97"
+    },
+    {
+      "step": "alembic_down_up",
+      "exit_code": 0,
+      "ms": 3757,
+      "started": "2026-08-14T20:39:52.5765276+08:00",
+      "output_tail": "INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nINFO  [alembic.runtime.migration] Running downgrade s5b13d8e0f97 -> r4a02c7d9e86, investment crm assignment viewing intent and channel completion\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade r4a02c7d9e86 -> s5b13d8e0f97, investment crm assignment viewing intent and channel completion\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nALEMBIC_UNIQUE_CURRENT_HEAD=PASS revision=s5b13d8e0f97"
+    },
+    {
+      "step": "backend_ruff_error_rules",
+      "exit_code": 0,
+      "ms": 150,
+      "started": "2026-08-14T20:39:52.7274895+08:00",
+      "output_tail": "All checks passed!"
+    },
+    {
+      "step": "pytest_non_pg_and_pg",
+      "exit_code": 0,
+      "ms": 131211,
+      "started": "2026-08-14T20:42:03.9398957+08:00",
+      "output_tail": "........................................................................ [ 24%]\n........................................................................ [ 48%]\n........................................................................ [ 72%]\n........................................................................ [ 96%]\n..........                                                               [100%]\n============================== warnings summary ===============================\n.venv\\lib\\site-packages\\fastapi\\testclient.py:1\n  C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\apps\\api\\.venv\\lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n298 passed, 1 warning in 123.06s (0:02:03)"
+    },
+    {
+      "step": "workbench_worker_once",
+      "exit_code": 0,
+      "ms": 1357,
+      "started": "2026-08-14T20:42:05.2978563+08:00",
+      "output_tail": "2026-08-14 20:42:05,077 INFO __main__ workbench worker cycle outcome={'tenants': 7, 'dispatched': 0, 'scheduled': 0, 'recovered': 0, 'failed_tenants': 0, 'tenant_results': {'1': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '2': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '3': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '4': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '5': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '6': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '7': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}}}"
+    },
+    {
+      "step": "etl_fast",
+      "exit_code": 0,
+      "ms": 16069,
+      "started": "2026-08-14T20:42:21.3678969+08:00",
+      "output_tail": "ETL_DRILL_REPORT_JSON=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\etl_fast\\drill_fast.json\nETL_DRILL_REPORT_MD=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\etl_fast\\drill_fast.md\nETL_DRILL=PASS"
+    },
+    {
+      "step": "etl_acceptance",
+      "exit_code": 0,
+      "ms": 147020,
+      "started": "2026-08-14T20:44:48.3893818+08:00",
+      "output_tail": "ETL_DRILL_REPORT_JSON=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\etl_acceptance\\drill_acceptance.json\nETL_DRILL_REPORT_MD=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\etl_acceptance\\drill_acceptance.md\nETL_DRILL=PASS"
+    },
+    {
+      "step": "identity_etl_acceptance",
+      "exit_code": 0,
+      "ms": 504,
+      "started": "2026-08-14T20:44:48.8949378+08:00",
+      "output_tail": "IDENTITY_ETL_REPORT=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\identity_etl\\identity_etl.json\nIDENTITY_ETL_DRILL=PASS"
+    },
+    {
+      "step": "asset_etl_acceptance",
+      "exit_code": 0,
+      "ms": 515,
+      "started": "2026-08-14T20:44:49.4105064+08:00",
+      "output_tail": "ASSET_ETL_REPORT=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\asset_etl\\asset_etl.json\nASSET_ETL_DRILL=PASS"
+    },
+    {
+      "step": "asset_portfolio_etl_acceptance",
+      "exit_code": 0,
+      "ms": 511,
+      "started": "2026-08-14T20:44:49.9229223+08:00",
+      "output_tail": "ASSET_PORTFOLIO_ETL_REPORT=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\asset_portfolio_etl\\asset-portfolio-etl.json\nASSET_PORTFOLIO_ETL_DRILL=PASS"
+    },
+    {
+      "step": "crm_etl_acceptance",
+      "exit_code": 0,
+      "ms": 646,
+      "started": "2026-08-14T20:44:50.5702392+08:00",
+      "output_tail": "CRM_ETL_REPORT=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\crm_etl\\crm_etl.json\nCRM_ETL_DRILL=PASS\nKWZY_DATA_MIGRATION_READINESS=CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA"
+    },
+    {
+      "step": "contract_etl_acceptance",
+      "exit_code": 0,
+      "ms": 620,
+      "started": "2026-08-14T20:44:51.1913909+08:00",
+      "output_tail": "CONTRACT_ETL_REPORT=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\contract_etl\\contract_etl.json\nCONTRACT_ETL_DRILL=PASS\nCONTRACT_ETL_READINESS=CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA"
+    },
+    {
+      "step": "organization_governance_etl_acceptance",
+      "exit_code": 0,
+      "ms": 501,
+      "started": "2026-08-14T20:44:51.6935392+08:00",
+      "output_tail": "ORGANIZATION_GOVERNANCE_ETL_REPORT=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\organization_governance_etl\\organization_governance_etl.json\nORGANIZATION_GOVERNANCE_ETL_DRILL=PASS"
+    },
+    {
+      "step": "approval_audit_etl_acceptance",
+      "exit_code": 0,
+      "ms": 549,
+      "started": "2026-08-14T20:44:52.2437761+08:00",
+      "output_tail": "APPROVAL_AUDIT_ETL_REPORT=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\approval_audit_etl\\approval_audit_etl.json\nAPPROVAL_AUDIT_ETL_DRILL=PASS"
+    },
+    {
+      "step": "workbench_automation_etl_acceptance",
+      "exit_code": 0,
+      "ms": 516,
+      "started": "2026-08-14T20:44:52.7604336+08:00",
+      "output_tail": "WORKBENCH_AUTOMATION_ETL_REPORT=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\workbench_automation_etl\\workbench-automation-etl.json\nWORKBENCH_AUTOMATION_ETL_DRILL=PASS"
+    },
+    {
+      "step": "http_performance_seed",
+      "exit_code": 0,
+      "ms": 2639,
+      "started": "2026-08-14T20:44:55.3999406+08:00",
+      "output_tail": "E2E_SEED=OK tenant=default park_id=33 admin=admin e2e_limited=e2e_limited e2e_workbench_viewer=e2e_workbench_viewer e2e_asset_viewer=e2e_asset_viewer e2e_crm_viewer=e2e_crm_viewer e2e_lease_viewer=e2e_lease_viewer e2e_lease_submitter=e2e_lease_submitter tenant_b=admin_b"
+    },
+    {
+      "step": "http_performance_gate",
+      "exit_code": 0,
+      "ms": 20859,
+      "started": "2026-08-14T20:45:16.2601019+08:00",
+      "output_tail": "HTTP_PERFORMANCE_GATE=PASS requests=1000 p95_ms=239.342 rps=159.254 errors=0.0%\nREPORT=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\performance\\http-performance.json\nAPPROVAL_AUDIT_HTTP_REPORT=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\performance\\approval-audit-http-journey.json\nAPPROVAL_AUDIT_REAL_HTTP=PASS\nWORKBENCH_AUTOMATION_HTTP_REPORT=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\performance\\workbench-automation-http-journey.json\nWORKBENCH_AUTOMATION_REAL_HTTP=PASS\nASSET_PORTFOLIO_HTTP_REPORT=C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\performance\\asset-portfolio-http-journey.json\nASSET_PORTFOLIO_REAL_HTTP=PASS"
+    },
+    {
+      "step": "backup_restore",
+      "exit_code": 0,
+      "ms": 3794,
+      "started": "2026-08-14T20:45:20.0561229+08:00",
+      "output_tail": "NOTICE:  database \"kwzy_restore_check\" does not exist, skipping\nDROP DATABASE\nCREATE DATABASE\nDROP DATABASE\nBACKUP_RESTORE=PASS dump_bytes=1213678 restored_tables=94"
+    },
+    {
+      "step": "frontend_lint",
+      "exit_code": 0,
+      "ms": 2212,
+      "started": "2026-08-14T20:45:22.2690334+08:00",
+      "output_tail": "> kwzy-web@0.2.0 lint\n> eslint \"src/**/*.{ts,vue}\" --max-warnings 0"
+    },
+    {
+      "step": "frontend_typecheck",
+      "exit_code": 0,
+      "ms": 3231,
+      "started": "2026-08-14T20:45:25.5012268+08:00",
+      "output_tail": "> kwzy-web@0.2.0 typecheck\n> vue-tsc --noEmit"
+    },
+    {
+      "step": "frontend_unit",
+      "exit_code": 0,
+      "ms": 1859,
+      "started": "2026-08-14T20:45:27.3607399+08:00",
+      "output_tail": "> kwzy-web@0.2.0 test:unit\n> vitest run\n\n\n RUN  v4.1.10 C:/Users/Administrator/Documents/codex-show/.kwzy-clean-crm-4f870af/apps/web\n\n\n Test Files  3 passed (3)\n      Tests  6 passed (6)\n   Start at  20:45:26\n   Duration  988ms (transform 128ms, setup 0ms, import 453ms, tests 26ms, environment 1.65s)"
+    },
+    {
+      "step": "frontend_build",
+      "exit_code": 0,
+      "ms": 5760,
+      "started": "2026-08-14T20:45:33.1219694+08:00",
+      "output_tail": "> kwzy-web@0.2.0 build\n> vue-tsc --noEmit && vite build\n\nvite v6.4.3 building for production...\ntransforming...\n✓ 138 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.42 kB │ gzip:   0.30 kB\ndist/assets/index-MVp04hvZ.css   70.58 kB │ gzip:  12.86 kB\ndist/assets/index-DWasH2YP.js   443.88 kB │ gzip: 133.62 kB\n✓ built in 1.97s"
+    },
+    {
+      "step": "playwright_browser_e2e",
+      "exit_code": 0,
+      "ms": 104260,
+      "started": "2026-08-14T20:47:17.3833787+08:00",
+      "output_tail": "[stack:api.log] INFO:     127.0.0.1:10735 - \"GET /api/v1/automation-executions HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10736 - \"GET /api/v1/automation-rules HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10734 - \"GET /api/v1/business-events?page_size=30 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10737 - \"GET /api/v1/workbench/layout/roles HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10731 - \"OPTIONS /api/v1/workbench/layout/roles/1 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10737 - \"GET /api/v1/workbench/layout/roles/1 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10731 - \"OPTIONS /api/v1/workbench/layout/roles/1 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10737 - \"PUT /api/v1/workbench/layout/roles/1 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10734 - \"GET /api/v1/automation-executions HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10733 - \"GET /api/v1/workbench/layout/roles HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10736 - \"GET /api/v1/scheduler/definitions HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10735 - \"GET /api/v1/scheduler/runs?limit=30 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10727 - \"GET /api/v1/business-events?page_size=30 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10737 - \"GET /api/v1/automation-rules HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:10734 - \"GET /api/v1/workbench/layout HTTP/1.1\" 200 OK\n  ok 54 e2e\\workbench.spec.ts:242:3 › workbench & todos › admin controls edit drafts, toggle schedules, and save role defaults (1.5s)\n[e2e-teardown] cleaning stack…\n[e2e-teardown] done\n\n  54 passed (1.7m)"
+    },
+    {
+      "step": "openapi_strict",
+      "exit_code": 0,
+      "ms": 18072,
+      "started": "2026-08-14T20:47:35.4632483+08:00",
+      "output_tail": "..........                                                               [100%]\n============================== warnings summary ===============================\n.venv\\lib\\site-packages\\fastapi\\testclient.py:1\n  C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\apps\\api\\.venv\\lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n10 passed, 1 warning in 13.46s\nOPENAPI_YAML_STRICT=PASS"
+    },
+    {
+      "step": "openspec_strict",
+      "exit_code": 0,
+      "ms": 1072,
+      "started": "2026-08-14T20:47:36.5357734+08:00",
+      "output_tail": "✓ spec/party-openapi-contract\n✓ spec/party-park-relations\n✓ spec/party-persistence-dialect\n✓ spec/party-risk-status\n✓ spec/party-roles\n✓ spec/party-test-matrix\n✓ spec/position-assignment-governance\n✓ spec/rent-control-portfolio-analysis\n✓ spec/rent-control-query\n✓ spec/rentable-unit-versioning\n✓ change/repair-postgres-baseline-boolean-portability\n✓ spec/scheduler-operations\n✓ spec/secretless-bootstrap\n✓ spec/spatial-hierarchy-management\n✓ spec/step1-db-migration-ops\n✓ spec/unit-opportunity-locking\n✓ spec/workbench-automation-migration\n✓ spec/workbench-layout-pc\n✓ spec/workbench-ops\nTotals: 70 passed, 0 failed (70 items)"
+    },
+    {
+      "step": "secrets_scan",
+      "exit_code": 0,
+      "ms": 606,
+      "started": "2026-08-14T20:47:37.1429811+08:00",
+      "output_tail": "SECRETS_SCAN=PASS files_scanned=817"
+    },
+    {
+      "step": "git_diff_check",
+      "exit_code": 0,
+      "ms": 86,
+      "started": "2026-08-14T20:47:37.2299614+08:00",
+      "output_tail": ""
+    },
+    {
+      "step": "cleanup_test_resources",
+      "exit_code": 0,
+      "ms": 2634,
+      "started": "2026-08-14T20:47:39.8645956+08:00",
+      "output_tail": "Container kwzy_party_test_pg Stopping \n Container kwzy_party_test_pg Stopped \n Container kwzy_party_test_pg Removing \n Container kwzy_party_test_pg Removed \n Network kwzy_party_test_net Removing \n Volume kwzy_party_test_pgdata Removing \n Volume kwzy_party_test_pgdata Removed \n Network kwzy_party_test_net Removed \nCLEANUP=PASS"
+    }
+  ],
+  "playwright_report": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\apps\\web\\playwright-report",
+  "test_results": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\apps\\web\\test-results",
+  "etl_fast": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\etl_fast",
+  "etl_acceptance": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\etl_acceptance",
+  "identity_etl": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\identity_etl\\identity_etl.json",
+  "asset_etl": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\asset_etl\\asset_etl.json",
+  "asset_portfolio_etl": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\asset_portfolio_etl\\asset-portfolio-etl.json",
+  "crm_etl": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\crm_etl\\crm_etl.json",
+  "contract_etl": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\contract_etl\\contract_etl.json",
+  "organization_governance_etl": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\organization_governance_etl\\organization_governance_etl.json",
+  "approval_audit_etl": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\approval_audit_etl\\approval_audit_etl.json",
+  "workbench_automation_etl": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\workbench_automation_etl\\workbench-automation-etl.json",
+  "http_performance": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\performance\\http-performance.json",
+  "approval_audit_http": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\performance\\approval-audit-http-journey.json",
+  "workbench_automation_http": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\performance\\workbench-automation-http-journey.json",
+  "asset_portfolio_http": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\performance\\asset-portfolio-http-journey.json",
+  "backup": "C:\\Users\\Administrator\\Documents\\codex-show\\.kwzy-clean-crm-4f870af\\infra\\local-staging\\out\\backup"
+}

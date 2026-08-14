@@ -1,0 +1,246 @@
+{
+  "started_at": "2026-08-14T12:44:50.174082+00:00",
+  "schema": "etl_investment_crm_fixture",
+  "synthetic_only": true,
+  "readiness": "CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA",
+  "real_legacy_readiness": "BLOCKED_PENDING_AUTHORIZED_SCHEMA_AND_DESENSITIZED_SAMPLE",
+  "stages": {
+    "dry_run": {
+      "passed": true,
+      "errors": [],
+      "source_groups": {
+        "CRM": 3,
+        "RADAR_LIKE": 1,
+        "TRADITIONAL_INVESTMENT": 1
+      }
+    },
+    "interruption_recovery": {
+      "passed": true,
+      "attempted_inserted": {
+        "leads": 5,
+        "activities": 4,
+        "assignments": 4,
+        "merge_links": 1,
+        "assignment_rules": 1
+      },
+      "counts_after_interruption": {
+        "leads": 0,
+        "activities": 0,
+        "assignments": 0,
+        "merge_links": 0,
+        "assignment_rules": 0,
+        "assignment_rule_versions": 0,
+        "assignment_rule_members": 0,
+        "viewings": 0,
+        "viewing_units": 0,
+        "intent_applications": 0,
+        "intent_versions": 0,
+        "intent_units": 0,
+        "approval_links": 0,
+        "channels": 0,
+        "channel_inbox": 0,
+        "pii_quarantine": 0,
+        "migration_quarantine": 0
+      },
+      "transaction_rolled_back": true
+    },
+    "first_apply": {
+      "passed": true,
+      "inserted": {
+        "leads": 5,
+        "activities": 4,
+        "assignments": 4,
+        "merge_links": 1,
+        "assignment_rules": 1,
+        "assignment_rule_versions": 1,
+        "assignment_rule_members": 1,
+        "viewings": 1,
+        "viewing_units": 1,
+        "intent_applications": 1,
+        "intent_versions": 1,
+        "intent_units": 1,
+        "approval_links": 1,
+        "channels": 1,
+        "channel_inbox": 1,
+        "pii_quarantine": 1,
+        "migration_quarantine": 4
+      }
+    },
+    "idempotent_reapply": {
+      "passed": true,
+      "inserted": {
+        "leads": 0,
+        "activities": 0,
+        "assignments": 0,
+        "merge_links": 0,
+        "assignment_rules": 0,
+        "assignment_rule_versions": 0,
+        "assignment_rule_members": 0,
+        "viewings": 0,
+        "viewing_units": 0,
+        "intent_applications": 0,
+        "intent_versions": 0,
+        "intent_units": 0,
+        "approval_links": 0,
+        "channels": 0,
+        "channel_inbox": 0,
+        "pii_quarantine": 0,
+        "migration_quarantine": 0
+      }
+    },
+    "reconciliation": {
+      "passed": true,
+      "counts": {
+        "leads": {
+          "source": 5,
+          "target": 5
+        },
+        "activities": {
+          "source": 4,
+          "target": 4
+        },
+        "assignments": {
+          "source": 4,
+          "target": 4
+        },
+        "merge_links": {
+          "source": 1,
+          "target": 1
+        },
+        "assignment_rules": {
+          "source": 1,
+          "target": 1
+        },
+        "assignment_rule_versions": {
+          "source": 1,
+          "target": 1
+        },
+        "assignment_rule_members": {
+          "source": 1,
+          "target": 1
+        },
+        "viewings": {
+          "source": 1,
+          "target": 1
+        },
+        "viewing_units": {
+          "source": 1,
+          "target": 1
+        },
+        "intent_applications": {
+          "source": 1,
+          "target": 1
+        },
+        "intent_versions": {
+          "source": 1,
+          "target": 1
+        },
+        "intent_units": {
+          "source": 1,
+          "target": 1
+        },
+        "approval_links": {
+          "source": 1,
+          "target": 1
+        },
+        "channels": {
+          "source": 1,
+          "target": 1
+        },
+        "channel_inbox": {
+          "source": 1,
+          "target": 1
+        },
+        "pii_quarantine": {
+          "source": 1,
+          "target": 1
+        },
+        "migration_quarantine": {
+          "source": 4,
+          "target": 4
+        }
+      },
+      "distributions": {
+        "stage": {
+          "source": {
+            "CONTACTING": 1,
+            "MERGED": 1,
+            "NEGOTIATING": 1,
+            "NEW": 1,
+            "QUOTING": 1
+          },
+          "target": {
+            "CONTACTING": 1,
+            "MERGED": 1,
+            "NEGOTIATING": 1,
+            "NEW": 1,
+            "QUOTING": 1
+          }
+        },
+        "pool": {
+          "source": {
+            "PRIVATE": 4,
+            "PUBLIC": 1
+          },
+          "target": {
+            "PRIVATE": 4,
+            "PUBLIC": 1
+          }
+        },
+        "owner": {
+          "source": {
+            "PUBLIC_UNASSIGNED": 1,
+            "sales-a": 3,
+            "sales-b": 1
+          },
+          "target": {
+            "PUBLIC_UNASSIGNED": 1,
+            "sales-a": 3,
+            "sales-b": 1
+          }
+        }
+      },
+      "orphans": {
+        "activities": 0,
+        "assignments": 0,
+        "merge_source": 0,
+        "merge_target": 0,
+        "assignment_rule_versions": 0,
+        "assignment_rule_members": 0,
+        "viewings": 0,
+        "viewing_units": 0,
+        "intent_applications": 0,
+        "intent_versions": 0,
+        "intent_units": 0,
+        "approval_links": 0,
+        "channel_inbox_channel": 0,
+        "channel_inbox_lead": 0
+      },
+      "duplicate_source_refs": 0,
+      "pii": {
+        "source_rejected": 1,
+        "target_quarantined": 1,
+        "raw_value_persisted": false
+      },
+      "sensitive_columns": [],
+      "immutable_checksum_failures": {
+        "assignment_rule_versions": 0,
+        "intent_versions": 0,
+        "channel_inbox": 0
+      },
+      "quarantine_reasons": {
+        "AMBIGUOUS_OWNER": 1,
+        "INFERRED_APPROVER": 1,
+        "INVALID_UNIT_REFERENCE": 1,
+        "UNKNOWN_CHANNEL": 1
+      }
+    },
+    "rollback": {
+      "passed": true,
+      "schema_exists_after": false
+    }
+  },
+  "finished_at": "2026-08-14T12:44:50.526286+00:00",
+  "exit_code": 0,
+  "result": "PASS"
+}
