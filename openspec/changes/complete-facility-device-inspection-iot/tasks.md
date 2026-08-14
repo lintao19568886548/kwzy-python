@@ -52,17 +52,17 @@
 - [x] 8.1 Add live device registry, filters, detail/history and governed drawers
 - [x] 8.2 Add template/schedule/task generation and typed inspection execution workspace
 - [x] 8.3 Add alarm queue/timeline/correlation/escalation and WorkOrder drill-down
-- [ ] 8.4 Add role-aware loading/empty/403/409/offline/retry states at desktop/tablet/mobile widths
+- [x] 8.4 Add role-aware loading/empty/403/409/offline/retry states at desktop/tablet/mobile widths
 
 ## 9. Migration and verification
 
 - [x] 9.1 Add versioned synthetic maintenance/alarm fixture, field map and quarantine rules
 - [x] 9.2 Implement dry/apply/interruption/reapply/reconcile/rollback without raw PII or fake live delivery
-- [ ] 9.3 Add domain/repository/API/PG concurrency/real HTTP regression coverage
-- [ ] 9.4 Add Playwright role, responsive, conflict/error and visual evidence
-- [ ] 9.5 Run focused and full PG16/backend/frontend/OpenAPI/OpenSpec/stub/secrets/performance/backup gates
+- [x] 9.3 Add domain/repository/API/PG concurrency/real HTTP regression coverage
+- [x] 9.4 Add Playwright role, responsive, conflict/error and visual evidence
+- [x] 9.5 Run focused and full PG16/backend/frontend/OpenAPI/OpenSpec/stub/secrets/performance/backup gates
 
 ## 10. Closure
 
-- [ ] 10.1 Run clean-SHA acceptance and update matrix/register/roadmap/state/evidence
+- [x] 10.1 Run clean-SHA acceptance and update matrix/register/roadmap/state/evidence
 - [ ] 10.2 Normally commit/push, sync specs and archive without force

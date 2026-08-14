@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-14T20:09:11.504315+00:00",
+  "target": "http://127.0.0.1:8010/api/v1",
+  "runtime": {
+    "requests": 1000,
+    "concurrency": 25,
+    "warmup": 40,
+    "endpoints": [
+      "GET /workbench/summary",
+      "GET /workbench/layout",
+      "GET /business-events?page=1&page_size=30",
+      "POST /business-events/dispatch?limit=10",
+      "GET /leases?page=1&page_size=50",
+      "GET /parties?page=1&page_size=50",
+      "GET /enterprise-parties?page=1&page_size=50&sort_by=updated_at&sort_order=desc",
+      "GET /units?page=1&page_size=50"
+    ]
+  },
+  "thresholds": {
+    "max_p95_ms": 500.0,
+    "max_error_rate_percent": 1.0,
+    "min_requests_per_second": 20.0
+  },
+  "aggregate": {
+    "requests": 1000,
+    "failures": 0,
+    "error_rate_percent": 0.0,
+    "elapsed_seconds": 7.375,
+    "requests_per_second": 135.6,
+    "mean_ms": 182.829,
+    "p50_ms": 168.754,
+    "p95_ms": 320.076,
+    "p99_ms": 439.194,
+    "max_ms": 482.462,
+    "by_endpoint": {
+      "GET /business-events?page=1&page_size=30": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 157.492,
+        "p95_ms": 307.913,
+        "p99_ms": 440.658,
+        "max_ms": 468.027
+      },
+      "GET /enterprise-parties?page=1&page_size=50&sort_by=updated_at&sort_order=desc": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 179.257,
+        "p95_ms": 322.218,
+        "p99_ms": 455.242,
+        "max_ms": 482.462
+      },
+      "GET /leases?page=1&page_size=50": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 168.359,
+        "p95_ms": 313.909,
+        "p99_ms": 431.134,
+        "max_ms": 451.884
+      },
+      "GET /parties?page=1&page_size=50": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 172.585,
+        "p95_ms": 325.931,
+        "p99_ms": 427.988,
+        "max_ms": 452.235
+      },
+      "GET /units?page=1&page_size=50": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 168.089,
+        "p95_ms": 316.621,
+        "p99_ms": 418.423,
+        "max_ms": 431.391
+      },
+      "GET /workbench/layout": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 175.635,
+        "p95_ms": 308.359,
+        "p99_ms": 452.355,
+        "max_ms": 467.255
+      },
+      "GET /workbench/summary": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 178.21,
+        "p95_ms": 320.58,
+        "p99_ms": 444.875,
+        "max_ms": 467.834
+      },
+      "POST /business-events/dispatch?limit=10": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 155.083,
+        "p95_ms": 299.355,
+        "p99_ms": 419.999,
+        "max_ms": 430.901
+      }
+    },
+    "failure_examples": []
+  },
+  "gate": {
+    "passed": true,
+    "failures": []
+  }
+}

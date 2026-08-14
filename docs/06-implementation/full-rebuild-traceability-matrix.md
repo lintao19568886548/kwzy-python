@@ -1,14 +1,14 @@
 # 瞰维智管 V2 独立验收能力矩阵
 
 > 审计日期：2026-08-15（Asia/Shanghai）
-> 最近已完成纵切：租户服务、工单、自动派单/SLA、报价、履约成本、返工验收与评价；精确提交 `ffa72e2531396997cfe24ef1b1e42526cd4735fe` 的 33/33 门禁已通过并正常推送。应收精确提交 `1a11cfe08b8d2b800c7121d7462995ebb75eb75d` 的证据继续保留。
+> 最近已完成纵切：设施设备台账、周巡检、异常转工单、IoT 提供方/绑定和告警生命周期；精确提交 `e28678b5785b7f8bf03141bd7cffbd162932315b` 的 35/35 门禁已通过并正常推送。租户服务/工单精确提交 `ffa72e2531396997cfe24ef1b1e42526cd4735fe` 的证据继续保留。
 > 判定规则：只使用 `IMPLEMENTED_AND_VERIFIED`、`APPROVED_RETIRED`、`APPROVED_DEFERRED`、`BLOCKED`、`MISSING`。子能力通过但组合需求未闭环时，组合项必须判为 `MISSING`；没有人工批准，不使用 retired/deferred。
 
 ## 当前整改纵切
 
 - 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
-- OpenSpec：租户服务/工单 39/39 任务、8 份主规格同步完成并归档为 `2026-08-15-complete-tenant-service-work-order-lifecycle`，归档后 strict 93/93；`complete-party-enterprise-profile` 已归档；`complete-investment-crm-journey` 因任务 5.5 的 `revoked` 与审批 delta 状态定义冲突保持 active、未同步归档。
-- 已关闭证据：Party 绑定的租户服务主体、员工代受理/租户自助受理、不可变派单规则版本及显式退役、自动/人工派单、SLA、版本化报价、追加式成本/冲正、完工证据、返工/验收/评价和 PC 响应式工作区。精确 `ffa72e2` 的 PG16、342 条后端、59 条全量浏览器、25 个 runtime/YAML 方法对、性能、备份恢复和合成 ETL 总门禁均通过。
+- OpenSpec：设施设备/巡检/IoT 39 项任务的实现与 clean-SHA 证据已闭合，8 份 delta 待本次正常同步归档；`complete-investment-crm-journey` 因任务 5.5 的 `revoked` 与审批 delta 状态定义冲突保持 active、未同步归档。
+- 已关闭证据：受控设备台账和追加式历史、模板发布版本、周计划和确定性任务、类型化巡检、异常/漏检转 WorkItem/WorkOrder、IoT 提供方真相/绑定历史、严格授权幂等摄入、告警关联/升级/处置及 PC 响应式工作区。精确 `e28678b` 的 PG16、352 条后端、60 条全量浏览器、32 个 runtime/YAML 方法对、性能、备份恢复和合成 ETL 总门禁均通过。
 - 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 
 ## 产品能力
@@ -24,7 +24,7 @@
 | 7 | 合同变更单和版本链 | 不可变快照、校验和、七类变更、审批、续租/退租、并发和回滚证据 | — | `IMPLEMENTED_AND_VERIFIED` |
 | 8 | 账单、收款、匹配、核销、欠费和催缴 | 当前合同版本履约计划预览/批量出账、来源血缘；到账单箱与渠道真相；确定性候选与理由；财务确认、异常/争议经理复核；多账单分配、预收余额、后续核销、冲正历史；L1-L4 欠费、催缴记录、调整双人审批、结清联动；API/PC/PG16/真实 HTTP/浏览器/并发/合成 ETL 均通过 | 银行/支付供应商仍为 `NOT_CONNECTED`，真实旧财务数据与生产切换分别由第 19/20 项保持缺口或阻塞，不伪装成本能力的本地产品缺口 | `IMPLEMENTED_AND_VERIFIED` |
 | 9 | 租户服务、工单、报价、验收和评价 | User→Party→园区租户服务授权；租户自助与员工代受理；不可变派单规则草稿/发布/显式退役、确定性自动派单与人工改派；响应/解决 SLA 与幂等升级；Decimal 版本报价及租户决定；追加式人工/材料/外包/其他成本和冲正；完工证据、租户返工/验收、一次性评价；PC/移动响应式真栈、PG16 并发、真实 HTTP、合成迁移、性能与备份恢复均通过 | 员工独立移动应用、租户微信小程序、库存扣减、IoT/巡检来源、短信/企微/对象存储 live 和真实旧 `repair_order` 迁移由第 10/11/12/15/19/20 项保持缺口或阻塞，不伪装为本地 PC 产品能力 | `IMPLEMENTED_AND_VERIFIED` |
-| 10 | 设备台账、周巡检、告警和 IoT 接入 | 无挂载的完整业务模块 | 全能力缺失 | `MISSING` |
+| 10 | 设备台账、周巡检、告警和 IoT 接入 | 受控设备创建/版本更新/追加历史/依赖保护退役；不可变巡检模板版本、按周计划、确定性任务、类型化检查、异常/漏检与稳定 WorkOrder；提供方真相、无密钥引用、设备绑定历史、严格授权幂等事件摄入、告警关联/分级/确认/解决/关闭/升级；PC 桌面与 390px 真栈、PG16 并发、真实 HTTP、合成迁移均通过 | 真实 IoT 厂商协议/凭据/事件样本和真实旧设施数据未获授权，由第 19/20 项保持缺口或阻塞；本项不宣称 live 接入 | `IMPLEMENTED_AND_VERIFIED` |
 | 11 | 员工移动端 | 仓库仅有 `apps/api` 和 `apps/web` | 独立应用、现场旅程和设备/离线能力缺失 | `MISSING` |
 | 12 | 租户微信小程序 | 仓库无小程序应用 | 缴费、报修、访客、预约等端到端能力缺失 | `MISSING` |
 | 13 | 档案、签章、印章 | 附件元数据、合同文档和签章端口 fail-closed 已测 | 档案/印章业务、合法签章与真实厂商联调缺失 | `MISSING` |
@@ -36,7 +36,7 @@
 | 19 | 外部平台适配器 | SMS/通知/对象存储/签章有局部 fake/local/fail-closed 端口 | 银行、支付、税票、IoT、企微等多数适配器缺失；已有端口也未真实联调 | `MISSING` |
 | 20 | 数据迁移和切换 Runbook | PG16 合成 dry/apply/中断/幂等/对账/回滚和备份恢复通过 | 缺经授权旧 schema/脱敏快照、增量同步、停写切换与真实对账 | `BLOCKED` |
 
-汇总：`IMPLEMENTED_AND_VERIFIED=9`，`BLOCKED=1`，`MISSING=10`，`APPROVED_RETIRED=0`，`APPROVED_DEFERRED=0`。
+汇总：`IMPLEMENTED_AND_VERIFIED=10`，`BLOCKED=1`，`MISSING=9`，`APPROVED_RETIRED=0`，`APPROVED_DEFERRED=0`。
 
 ## 22 条关键旅程
 
@@ -56,18 +56,18 @@
 | 12 | 欠费分级催缴 | `IMPLEMENTED_AND_VERIFIED` | L1-L4 账龄、每账单唯一活动案件、preview/apply、重复安全升级、hold 抑制、记录/待办及调整双人审批通过 |
 | 13 | 租户报修 | `IMPLEMENTED_AND_VERIFIED` | Party 绑定主体通过真实 API/PC 租户视图提交、列表与查看脱敏请求；跨 Party 返回 404，离线提交保留草稿并可重试。微信小程序入口仍由第 20 条独立保持缺失 |
 | 14 | 自动派单、报价、处理、租户验收 | `IMPLEMENTED_AND_VERIFIED` | 规则版本、确定性派单/改派、SLA、报价接受、实际成本、完工证据、返工、验收、评价和 WorkItem/事件投影的 API/PG/真实浏览器主链通过 |
-| 15 | 周巡检与异常转工单 | `MISSING` | 无巡检模块 |
-| 16 | IoT 告警分级、去重和升级 | `MISSING` | 无 IoT 告警模块 |
+| 15 | 周巡检与异常转工单 | `IMPLEMENTED_AND_VERIFIED` | 发布模板→周计划→确定性任务→执行/类型化清单→异常证据→稳定 WorkItem/WorkOrder 及漏检重复安全升级的 API/PG/浏览器主链通过 |
+| 16 | IoT 告警分级、去重和升级 | `IMPLEMENTED_AND_VERIFIED` | 严格授权来源事件、精确重放、时间窗关联、严重度投影、确认/解决/关闭、重复安全升级和稳定 WorkOrder 通过；提供方保持 `SANDBOX/NOT_CONNECTED`，未伪称 live |
 | 17 | 合同变更、续租和退租 | `IMPLEMENTED_AND_VERIFIED` | 变更/版本/结算/占用释放通过 |
 | 18 | 驾驶舱指标与原始记录对账 | `MISSING` | 无完整驾驶舱 |
 | 19 | 员工移动端现场任务 | `MISSING` | 应用不存在 |
 | 20 | 租户小程序缴费/报修/访客/预约 | `MISSING` | 应用不存在 |
-| 21 | 越权、跨租户、重复提交、并发冲突 | `IMPLEMENTED_AND_VERIFIED` | 已实现切片的 HTTP/E2E/PG 测试通过；工单纵切新增数据库派生租户服务权限、Party/园区/联系人/子资源 404 隔离、伪造 JWT 权限拒绝、未知字段 422、重复查询参数 400、同键异命令 409、复合租户外键，以及派单和验收恰好一方提交的行锁回归；此前财务和 Party 门禁继续有效 |
+| 21 | 越权、跨租户、重复提交、并发冲突 | `IMPLEMENTED_AND_VERIFIED` | 已实现切片的 HTTP/E2E/PG 测试通过；设施纵切新增设备/模板/计划/任务/绑定/告警子资源 404 隔离、数据库派生权限、未知字段/重复参数、事件精确重放、乐观锁与并发唯一获胜门禁；此前工单、财务和 Party 门禁继续有效 |
 | 22 | AI 低风险操作与高风险确认 | `MISSING` | AI 业务层未实现 |
 
 ## 旧系统替代判定
 
-旧证据库 `D:\重构python\kwzg-Java-main` 的静态取证为 54 个 Controller、约 484 个 HTTP mapping、316 个 Vue 文件、30 张 SQL DDL 表。Python 仓库只有 API 与 PC Web 两个应用，且上表仍有 10 项 `MISSING` 和 1 项 `BLOCKED`，因此：
+旧证据库 `D:\重构python\kwzg-Java-main` 的静态取证为 54 个 Controller、约 484 个 HTTP mapping、316 个 Vue 文件、30 张 SQL DDL 表。Python 仓库目前仍只有 API 与 PC Web 两个应用，且上表仍有 9 项 `MISSING` 和 1 项 `BLOCKED`，因此：
 
 ```text
 KWZY_LEGACY_REPLACEMENT=BLOCKED

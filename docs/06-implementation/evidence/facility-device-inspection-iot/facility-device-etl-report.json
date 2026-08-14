@@ -1,0 +1,86 @@
+{
+  "generated_at": "2026-08-14T20:08:55.744790+00:00",
+  "result": "PASS",
+  "schema": "etl_facility_device_fixture",
+  "synthetic_only": true,
+  "contains_real_customer_data": false,
+  "live_legacy_verified": false,
+  "readiness": "CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA",
+  "real_legacy_readiness": "BLOCKED_PENDING_AUTHORIZED_SCHEMA_AND_DESENSITIZED_SAMPLE",
+  "fixture_sha256": "330c7f9cc7e65446d29089be93e4bb375a221db58c05ecd495dc468cf5cfa43a",
+  "stages": {
+    "dry_run": {
+      "passed": true,
+      "mapped_counts": {
+        "facility_devices": 4,
+        "facility_device_history": 4,
+        "quarantine": 1
+      }
+    },
+    "interruption_recovery": {
+      "passed": true,
+      "partial_rows_after_rollback": 0
+    },
+    "first_apply": {
+      "passed": true,
+      "inserted": {
+        "facility_devices": 4,
+        "facility_device_history": 4,
+        "quarantine": 1
+      }
+    },
+    "idempotent_reapply": {
+      "passed": true,
+      "inserted": {
+        "facility_devices": 0,
+        "facility_device_history": 0,
+        "quarantine": 0
+      }
+    },
+    "reconciliation": {
+      "passed": true,
+      "expected_counts": {
+        "facility_devices": 4,
+        "facility_device_history": 4,
+        "quarantine": 1
+      },
+      "target_counts": {
+        "facility_devices": 4,
+        "facility_device_history": 4,
+        "quarantine": 1
+      },
+      "expected_device_types": {
+        "FIRE": 1,
+        "ELEVATOR": 1,
+        "TRANSFORMER": 1,
+        "HVAC": 1
+      },
+      "target_device_types": {
+        "FIRE": 1,
+        "HVAC": 1,
+        "TRANSFORMER": 1,
+        "ELEVATOR": 1
+      },
+      "orphan_history": 0,
+      "bad_device_codes": 0,
+      "quarantine_reasons": {
+        "UNKNOWN_DEVICE_TYPE": 1
+      },
+      "fabricated_inspection_schedules": 0,
+      "fabricated_iot_bindings": 0,
+      "fabricated_iot_alarms": 0
+    },
+    "rollback": {
+      "passed": true,
+      "schema_exists_after": false,
+      "authorization_rows_unchanged": true
+    }
+  },
+  "blockers": [
+    "authorized legacy firefighting/elevator/transformer/factory_maint schema dump not supplied",
+    "desensitized production-like facility snapshot and dictionaries not supplied",
+    "park/unit/device key maps and duplicate-resolution decisions not supplied",
+    "real IoT provider credentials, protocol and event samples not supplied",
+    "production freeze, backup, cutover and rollback are not authorized"
+  ]
+}

@@ -1,0 +1,275 @@
+{
+  "started_at": "2026-08-15T04:02:39.1410651+08:00",
+  "ended_at": "2026-08-15T04:12:23.7351379+08:00",
+  "duration_ms": 584594,
+  "head": "e28678b5785b7f8bf03141bd7cffbd162932315b",
+  "steps": [
+    {
+      "step": "docker_clean_start",
+      "exit_code": 0,
+      "ms": 1667,
+      "started": "2026-08-15T04:02:40.8251372+08:00",
+      "output_tail": "Container kwzy_party_test_pg Stopping \n Container kwzy_party_test_pg Stopped \n Container kwzy_party_test_pg Removing \n Container kwzy_party_test_pg Removed \n Network kwzy_party_test_net Removing \n Volume kwzy_party_test_pgdata Removing \n Volume kwzy_party_test_pgdata Removed \n Network kwzy_party_test_net Removed \ncleaned"
+    },
+    {
+      "step": "docker_pg_up",
+      "exit_code": 0,
+      "ms": 7003,
+      "started": "2026-08-15T04:02:47.8362607+08:00",
+      "output_tail": "Network kwzy_party_test_net Creating \n Network kwzy_party_test_net Created \n Volume kwzy_party_test_pgdata Creating \n Volume kwzy_party_test_pgdata Created \n Container kwzy_party_test_pg Creating \n Container kwzy_party_test_pg Created \n Container kwzy_party_test_pg Starting \n Container kwzy_party_test_pg Started \nhealthy"
+    },
+    {
+      "step": "alembic_upgrade",
+      "exit_code": 0,
+      "ms": 6493,
+      "started": "2026-08-15T04:02:54.3306345+08:00",
+      "output_tail": "INFO  [alembic.runtime.migration] Running upgrade i5d13e8f0b97 -> j6e24f9a1c08, investment crm v2\nINFO  [alembic.runtime.migration] Running upgrade j6e24f9a1c08 -> k7f35a0b2d19, contract lifecycle v2\nINFO  [alembic.runtime.migration] Running upgrade k7f35a0b2d19 -> l8a46b1c3e20, integration outbox idempotency uniqueness\nINFO  [alembic.runtime.migration] Running upgrade l8a46b1c3e20 -> m9b57c2d4e31, align timestamp nullability with the ORM contract\nINFO  [alembic.runtime.migration] Running upgrade m9b57c2d4e31 -> n0c68d3e5f42, platform organization governance\nINFO  [alembic.runtime.migration] Running upgrade n0c68d3e5f42 -> o1d79e4f6a53, versioned approval orchestration and tamper-evident audit ledger\nINFO  [alembic.runtime.migration] Running upgrade o1d79e4f6a53 -> p2e80a5b7c64, event-driven configurable workbench automation\nINFO  [alembic.runtime.migration] Running upgrade p2e80a5b7c64 -> q3f91b6c8d75, asset templates, spatial geometry and portfolio views\nINFO  [alembic.runtime.migration] Running upgrade q3f91b6c8d75 -> r4a02c7d9e86, enforce tenant-local asset template references\nINFO  [alembic.runtime.migration] Running upgrade r4a02c7d9e86 -> s5b13d8e0f97, investment crm assignment viewing intent and channel completion\nINFO  [alembic.runtime.migration] Running upgrade s5b13d8e0f97 -> t6c24e9f1a08, governed party enterprise profile and evidence graph\nINFO  [alembic.runtime.migration] Running upgrade t6c24e9f1a08 -> u7d35f0a2b19, receivables matching allocation dunning and adjustment lifecycle\nINFO  [alembic.runtime.migration] Running upgrade u7d35f0a2b19 -> v8e46a1b3c20, add approval-gated receivable dispute resolution type\nINFO  [alembic.runtime.migration] Running upgrade v8e46a1b3c20 -> w9f57b2c4d31, enforce tenant-consistent foreign keys for finance records\nINFO  [alembic.runtime.migration] Running upgrade w9f57b2c4d31 -> x0a68c3d5e42, tenant service work-order quotation acceptance lifecycle\nINFO  [alembic.runtime.migration] Running upgrade x0a68c3d5e42 -> y1b79d4e6f53, harden work-order tenant and park references\nINFO  [alembic.runtime.migration] Running upgrade y1b79d4e6f53 -> z2c80e5f6a64, facility device inspection iot lifecycle\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nALEMBIC_UNIQUE_CURRENT_HEAD=PASS revision=z2c80e5f6a64"
+    },
+    {
+      "step": "alembic_down_up",
+      "exit_code": 0,
+      "ms": 4651,
+      "started": "2026-08-15T04:02:58.9825476+08:00",
+      "output_tail": "INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nINFO  [alembic.runtime.migration] Running downgrade z2c80e5f6a64 -> y1b79d4e6f53, facility device inspection iot lifecycle\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade y1b79d4e6f53 -> z2c80e5f6a64, facility device inspection iot lifecycle\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nALEMBIC_UNIQUE_CURRENT_HEAD=PASS revision=z2c80e5f6a64"
+    },
+    {
+      "step": "backend_ruff_error_rules",
+      "exit_code": 0,
+      "ms": 272,
+      "started": "2026-08-15T04:02:59.2552761+08:00",
+      "output_tail": "All checks passed!"
+    },
+    {
+      "step": "pytest_non_pg_and_pg",
+      "exit_code": 0,
+      "ms": 184307,
+      "started": "2026-08-15T04:06:03.5636440+08:00",
+      "output_tail": "\ntests/test_investment_completion.py::test_rule_viewing_intent_approval_and_lock_journey\ntests/test_investment_completion.py::test_rule_viewing_intent_approval_and_lock_journey\ntests/test_investment_completion.py::test_completion_routes_fail_closed_for_permission_park_tenant_and_pollution\n  D:\\重构python\\kwzy-python-accept-5d21d1c\\apps\\api\\app\\modules\\investment\\domain\\rules.py:202: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n    if snapshot.valid_until > datetime.utcnow() + timedelta(days=365):\n\ntests/test_main_chain_e2e.py::test_main_chain_happy_path\ntests/test_work_item_api.py::test_lease_activate_opens_and_exit_closes_expiring_todo\ntests/test_workbench_automation_api.py::test_layout_resolution_validation_and_optimistic_conflict\ntests/test_workbench_automation_api.py::test_layout_resolution_validation_and_optimistic_conflict\ntests/test_workbench_automation_api.py::test_layout_resolution_validation_and_optimistic_conflict\ntests/test_workbench_automation_api.py::test_layout_resolution_validation_and_optimistic_conflict\ntests/test_workbench_automation_postgres.py::test_pg_schedule_run_and_layout_versions_have_one_winner\ntests/test_workbench_automation_postgres.py::test_pg_schedule_run_and_layout_versions_have_one_winner\n  D:\\重构python\\kwzy-python-accept-5d21d1c\\apps\\api\\app\\modules\\workbench\\application\\summary_service.py:43: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n    now = datetime.utcnow()\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n352 passed, 370 warnings in 174.94s (0:02:54)"
+    },
+    {
+      "step": "workbench_worker_once",
+      "exit_code": 0,
+      "ms": 1790,
+      "started": "2026-08-15T04:06:05.3545084+08:00",
+      "output_tail": "2026-08-15 04:06:04,955 INFO __main__ workbench worker cycle outcome={'tenants': 13, 'dispatched': 0, 'scheduled': 0, 'recovered': 0, 'failed_tenants': 0, 'tenant_results': {'1': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '2': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '3': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '4': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '5': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '6': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '7': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '8': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '9': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '10': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '11': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '12': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}, '13': {'recovered': 0, 'dispatched': 0, 'scheduled': 0, 'status': 'SUCCEEDED'}}}"
+    },
+    {
+      "step": "facility_ops_worker_once",
+      "exit_code": 0,
+      "ms": 1941,
+      "started": "2026-08-15T04:06:07.2960877+08:00",
+      "output_tail": "2026-08-15 04:06:06,923 INFO __main__ facility worker cycle outcome={'tenants': 13, 'generated': 0, 'existing': 3, 'missed': 0, 'escalated': 0, 'failed_tenants': 0, 'tenant_results': {'1': {'generated': 0, 'existing': 3, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '2': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '3': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '4': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '5': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '6': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '7': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '8': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '9': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '10': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '11': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '12': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}, '13': {'generated': 0, 'existing': 0, 'missed': 0, 'escalated': 0, 'status': 'SUCCEEDED'}}}"
+    },
+    {
+      "step": "etl_fast",
+      "exit_code": 0,
+      "ms": 16015,
+      "started": "2026-08-15T04:06:23.3125013+08:00",
+      "output_tail": "ETL_DRILL_REPORT_JSON=D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\etl_fast\\drill_fast.json\nETL_DRILL_REPORT_MD=D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\etl_fast\\drill_fast.md\nETL_DRILL=PASS"
+    },
+    {
+      "step": "etl_acceptance",
+      "exit_code": 0,
+      "ms": 145235,
+      "started": "2026-08-15T04:08:48.5486043+08:00",
+      "output_tail": "ETL_DRILL_REPORT_JSON=D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\etl_acceptance\\drill_acceptance.json\nETL_DRILL_REPORT_MD=D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\etl_acceptance\\drill_acceptance.md\nETL_DRILL=PASS"
+    },
+    {
+      "step": "identity_etl_acceptance",
+      "exit_code": 0,
+      "ms": 569,
+      "started": "2026-08-15T04:08:49.1188918+08:00",
+      "output_tail": "IDENTITY_ETL_REPORT=D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\identity_etl\\identity_etl.json\nIDENTITY_ETL_DRILL=PASS"
+    },
+    {
+      "step": "asset_etl_acceptance",
+      "exit_code": 0,
+      "ms": 547,
+      "started": "2026-08-15T04:08:49.6667039+08:00",
+      "output_tail": "ASSET_ETL_REPORT=D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\asset_etl\\asset_etl.json\nASSET_ETL_DRILL=PASS"
+    },
+    {
+      "step": "asset_portfolio_etl_acceptance",
+      "exit_code": 0,
+      "ms": 737,
+      "started": "2026-08-15T04:08:50.4047099+08:00",
+      "output_tail": "ASSET_PORTFOLIO_ETL_REPORT=D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\asset_portfolio_etl\\asset-portfolio-etl.json\nASSET_PORTFOLIO_ETL_DRILL=PASS"
+    },
+    {
+      "step": "crm_etl_acceptance",
+      "exit_code": 0,
+      "ms": 688,
+      "started": "2026-08-15T04:08:51.0941853+08:00",
+      "output_tail": "CRM_ETL_REPORT=D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\crm_etl\\crm_etl.json\nCRM_ETL_DRILL=PASS\nKWZY_DATA_MIGRATION_READINESS=CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA"
+    },
+    {
+      "step": "contract_etl_acceptance",
+      "exit_code": 0,
+      "ms": 638,
+      "started": "2026-08-15T04:08:51.7337248+08:00",
+      "output_tail": "CONTRACT_ETL_REPORT=D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\contract_etl\\contract_etl.json\nCONTRACT_ETL_DRILL=PASS\nCONTRACT_ETL_READINESS=CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA"
+    },
+    {
+      "step": "organization_governance_etl_acceptance",
+      "exit_code": 0,
+      "ms": 565,
+      "started": "2026-08-15T04:08:52.2993729+08:00",
+      "output_tail": "ORGANIZATION_GOVERNANCE_ETL_REPORT=D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\organization_governance_etl\\organization_governance_etl.json\nORGANIZATION_GOVERNANCE_ETL_DRILL=PASS"
+    },
+    {
+      "step": "approval_audit_etl_acceptance",
+      "exit_code": 0,
+      "ms": 620,
+      "started": "2026-08-15T04:08:52.9203040+08:00",
+      "output_tail": "APPROVAL_AUDIT_ETL_REPORT=D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\approval_audit_etl\\approval_audit_etl.json\nAPPROVAL_AUDIT_ETL_DRILL=PASS"
+    },
+    {
+      "step": "workbench_automation_etl_acceptance",
+      "exit_code": 0,
+      "ms": 588,
+      "started": "2026-08-15T04:08:53.5088895+08:00",
+      "output_tail": "WORKBENCH_AUTOMATION_ETL_REPORT=D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\workbench_automation_etl\\workbench-automation-etl.json\nWORKBENCH_AUTOMATION_ETL_DRILL=PASS"
+    },
+    {
+      "step": "party_enterprise_etl_acceptance",
+      "exit_code": 0,
+      "ms": 601,
+      "started": "2026-08-15T04:08:54.1107628+08:00",
+      "output_tail": "      \"raw_identifier_columns\": 0,\n      \"provider_status_errors\": 0,\n      \"quarantine_reasons\": {\n        \"PERSONAL_IDENTITY_FORBIDDEN\": 1,\n        \"ORPHAN_ENTERPRISE_REFERENCE\": 1\n      }\n    },\n    \"rollback\": {\n      \"passed\": true,\n      \"schema_exists_after\": false,\n      \"authorization_rows_unchanged\": true\n    }\n  },\n  \"blockers\": [\n    \"real legacy schema/dictionary and authorized desensitized snapshot not supplied\",\n    \"external enterprise-registry credentials and contract not supplied\",\n    \"production migration/cutover not authorized\"\n  ],\n  \"passed\": true\n}"
+    },
+    {
+      "step": "receivables_etl_acceptance",
+      "exit_code": 0,
+      "ms": 595,
+      "started": "2026-08-15T04:08:54.7072442+08:00",
+      "output_tail": "      \"orphan_rows\": 0,\n      \"unmasked_account_rows\": 0,\n      \"false_external_deliveries\": 0,\n      \"quarantine_reasons\": {\n        \"FINANCE_SOURCE_LINK_MISSING\": 1\n      }\n    },\n    \"rollback\": {\n      \"passed\": true,\n      \"schema_exists_after\": false,\n      \"authorization_rows_unchanged\": true\n    }\n  },\n  \"blockers\": [\n    \"authorized legacy amount_bill/receipt/finance schema dump not supplied\",\n    \"desensitized production-like finance snapshot and key maps not supplied\",\n    \"bank/payment provider settlement files and contracts not supplied\",\n    \"production freeze, backup, cutover and rollback are not authorized\"\n  ]\n}"
+    },
+    {
+      "step": "work_order_etl_acceptance",
+      "exit_code": 0,
+      "ms": 550,
+      "started": "2026-08-15T04:08:55.2580947+08:00",
+      "output_tail": "        \"UNKNOWN_STATUS\": 1\n      },\n      \"fabricated_quotes\": 0,\n      \"fabricated_ratings\": 0,\n      \"fabricated_provider_deliveries\": 0\n    },\n    \"rollback\": {\n      \"passed\": true,\n      \"schema_exists_after\": false,\n      \"authorization_rows_unchanged\": true\n    }\n  },\n  \"blockers\": [\n    \"authorized legacy repair_order schema dump and status dictionary not supplied\",\n    \"desensitized production-like repair-order snapshot not supplied\",\n    \"park/party/user/unit key maps not supplied\",\n    \"legacy attachment object inventory and checksums not supplied\",\n    \"production freeze, backup, cutover and rollback are not authorized\"\n  ]\n}"
+    },
+    {
+      "step": "facility_device_etl_acceptance",
+      "exit_code": 0,
+      "ms": 542,
+      "started": "2026-08-15T04:08:55.8015534+08:00",
+      "output_tail": "        \"UNKNOWN_DEVICE_TYPE\": 1\n      },\n      \"fabricated_inspection_schedules\": 0,\n      \"fabricated_iot_bindings\": 0,\n      \"fabricated_iot_alarms\": 0\n    },\n    \"rollback\": {\n      \"passed\": true,\n      \"schema_exists_after\": false,\n      \"authorization_rows_unchanged\": true\n    }\n  },\n  \"blockers\": [\n    \"authorized legacy firefighting/elevator/transformer/factory_maint schema dump not supplied\",\n    \"desensitized production-like facility snapshot and dictionaries not supplied\",\n    \"park/unit/device key maps and duplicate-resolution decisions not supplied\",\n    \"real IoT provider credentials, protocol and event samples not supplied\",\n    \"production freeze, backup, cutover and rollback are not authorized\"\n  ]\n}"
+    },
+    {
+      "step": "http_performance_seed",
+      "exit_code": 0,
+      "ms": 3031,
+      "started": "2026-08-15T04:08:58.8340279+08:00",
+      "output_tail": "E2E_SEED=OK tenant=default park_id=44 admin=admin e2e_limited=e2e_limited e2e_workbench_viewer=e2e_workbench_viewer e2e_asset_viewer=e2e_asset_viewer e2e_crm_viewer=e2e_crm_viewer e2e_lease_viewer=e2e_lease_viewer e2e_lease_submitter=e2e_lease_submitter tenant_b=admin_b"
+    },
+    {
+      "step": "http_performance_gate",
+      "exit_code": 0,
+      "ms": 23464,
+      "started": "2026-08-15T04:09:22.2986965+08:00",
+      "output_tail": "    },\n    {\n      \"name\": \"verify_complete_profile\",\n      \"passed\": true,\n      \"ms\": 11.0\n    },\n    {\n      \"name\": \"reconcile_filtered_directory\",\n      \"passed\": true,\n      \"ms\": 26.03\n    },\n    {\n      \"name\": \"reject_parameter_pollution\",\n      \"passed\": true,\n      \"ms\": 6.68\n    }\n  ],\n  \"duration_ms\": 698.51,\n  \"passed\": true\n}"
+    },
+    {
+      "step": "backup_restore",
+      "exit_code": 0,
+      "ms": 4728,
+      "started": "2026-08-15T04:09:27.0286941+08:00",
+      "output_tail": "DROP DATABASE\nNOTICE:  database \"kwzy_restore_check\" does not exist, skipping\nCREATE DATABASE\nDROP DATABASE\nBACKUP_RESTORE=PASS dump_bytes=1495479 restored_tables=130"
+    },
+    {
+      "step": "frontend_lint",
+      "exit_code": 0,
+      "ms": 2328,
+      "started": "2026-08-15T04:09:29.3576021+08:00",
+      "output_tail": "> kwzy-web@0.2.0 lint\n> eslint \"src/**/*.{ts,vue}\" --max-warnings 0"
+    },
+    {
+      "step": "frontend_typecheck",
+      "exit_code": 0,
+      "ms": 3953,
+      "started": "2026-08-15T04:09:33.3117414+08:00",
+      "output_tail": "> kwzy-web@0.2.0 typecheck\n> vue-tsc --noEmit"
+    },
+    {
+      "step": "frontend_unit",
+      "exit_code": 0,
+      "ms": 1953,
+      "started": "2026-08-15T04:09:35.2653934+08:00",
+      "output_tail": "> kwzy-web@0.2.0 test:unit\n> vitest run\n\n\n RUN  v4.1.10 D:/重构python/kwzy-python-accept-5d21d1c/apps/web\n\n\n Test Files  3 passed (3)\n      Tests  6 passed (6)\n   Start at  04:09:34\n   Duration  966ms (transform 91ms, setup 0ms, import 407ms, tests 25ms, environment 1.64s)"
+    },
+    {
+      "step": "frontend_build",
+      "exit_code": 0,
+      "ms": 7000,
+      "started": "2026-08-15T04:09:42.2660340+08:00",
+      "output_tail": "> kwzy-web@0.2.0 build\n> vue-tsc --noEmit && vite build\n\nvite v6.4.3 building for production...\ntransforming...\n✓ 144 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.42 kB │ gzip:   0.30 kB\ndist/assets/index-Zzyy4MjA.css  103.67 kB │ gzip:  18.42 kB\ndist/assets/index-DVIRlW5k.js   556.96 kB │ gzip: 161.71 kB\n\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n✓ built in 2.53s"
+    },
+    {
+      "step": "playwright_browser_e2e",
+      "exit_code": 0,
+      "ms": 125181,
+      "started": "2026-08-15T04:11:47.4477290+08:00",
+      "output_tail": "[stack:api.log] INFO:     127.0.0.1:13254 - \"GET /api/v1/automation-executions HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:13257 - \"GET /api/v1/workbench/layout/roles HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:13255 - \"GET /api/v1/business-events?page_size=30 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:13256 - \"GET /api/v1/automation-rules HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:13251 - \"OPTIONS /api/v1/workbench/layout/roles/1 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:13256 - \"GET /api/v1/workbench/layout/roles/1 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:13251 - \"OPTIONS /api/v1/workbench/layout/roles/1 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:13256 - \"PUT /api/v1/workbench/layout/roles/1 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:13257 - \"GET /api/v1/scheduler/definitions HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:3868 - \"GET /api/v1/workbench/layout/roles HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:13254 - \"GET /api/v1/scheduler/runs?limit=30 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:13255 - \"GET /api/v1/automation-executions HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:13253 - \"GET /api/v1/business-events?page_size=30 HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:13256 - \"GET /api/v1/automation-rules HTTP/1.1\" 200 OK\n[stack:api.log] INFO:     127.0.0.1:13257 - \"GET /api/v1/workbench/layout HTTP/1.1\" 200 OK\n  ok 60 e2e\\workbench.spec.ts:242:3 › workbench & todos › admin controls edit drafts, toggle schedules, and save role defaults (1.5s)\n[e2e-teardown] cleaning stack…\n[e2e-teardown] done\n\n  60 passed (2.1m)"
+    },
+    {
+      "step": "openapi_strict",
+      "exit_code": 0,
+      "ms": 31568,
+      "started": "2026-08-15T04:12:19.0208371+08:00",
+      "output_tail": "..............                                                           [100%]\n============================== warnings summary ===============================\n.venv\\Lib\\site-packages\\fastapi\\testclient.py:1\n  D:\\重构python\\kwzy-python-accept-5d21d1c\\apps\\api\\.venv\\Lib\\site-packages\\fastapi\\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n14 passed, 1 warning in 25.47s\nOPENAPI_YAML_STRICT=PASS"
+    },
+    {
+      "step": "openspec_strict",
+      "exit_code": 0,
+      "ms": 1212,
+      "started": "2026-08-15T04:12:20.2340333+08:00",
+      "output_tail": "✓ spec/rent-control-query\n✓ spec/rentable-unit-versioning\n✓ change/repair-postgres-baseline-boolean-portability\n✓ spec/scheduler-operations\n✓ spec/secretless-bootstrap\n✓ spec/spatial-hierarchy-management\n✓ spec/step1-db-migration-ops\n✓ spec/tenant-service-api\n✓ spec/tenant-service-data-migration\n✓ spec/tenant-service-intake\n✓ spec/tenant-service-pc\n✓ spec/unit-opportunity-locking\n✓ spec/work-order-acceptance-rating\n✓ spec/work-order-dispatch-sla\n✓ spec/work-order-fulfillment\n✓ spec/work-order-quotation\n✓ spec/workbench-automation-migration\n✓ spec/workbench-layout-pc\n✓ spec/workbench-ops\nTotals: 94 passed, 0 failed (94 items)"
+    },
+    {
+      "step": "secrets_scan",
+      "exit_code": 0,
+      "ms": 616,
+      "started": "2026-08-15T04:12:20.8511719+08:00",
+      "output_tail": "SECRETS_SCAN=PASS files_scanned=982"
+    },
+    {
+      "step": "git_diff_check",
+      "exit_code": 0,
+      "ms": 201,
+      "started": "2026-08-15T04:12:21.0532595+08:00",
+      "output_tail": ""
+    },
+    {
+      "step": "cleanup_test_resources",
+      "exit_code": 0,
+      "ms": 2681,
+      "started": "2026-08-15T04:12:23.7347662+08:00",
+      "output_tail": "Container kwzy_party_test_pg Stopping \n Container kwzy_party_test_pg Stopped \n Container kwzy_party_test_pg Removing \n Container kwzy_party_test_pg Removed \n Volume kwzy_party_test_pgdata Removing \n Network kwzy_party_test_net Removing \n Volume kwzy_party_test_pgdata Removed \n Network kwzy_party_test_net Removed \nCLEANUP=PASS"
+    }
+  ],
+  "playwright_report": "D:\\重构python\\kwzy-python-accept-5d21d1c\\apps\\web\\playwright-report",
+  "test_results": "D:\\重构python\\kwzy-python-accept-5d21d1c\\apps\\web\\test-results",
+  "etl_fast": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\etl_fast",
+  "etl_acceptance": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\etl_acceptance",
+  "identity_etl": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\identity_etl\\identity_etl.json",
+  "asset_etl": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\asset_etl\\asset_etl.json",
+  "asset_portfolio_etl": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\asset_portfolio_etl\\asset-portfolio-etl.json",
+  "crm_etl": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\crm_etl\\crm_etl.json",
+  "contract_etl": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\contract_etl\\contract_etl.json",
+  "organization_governance_etl": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\organization_governance_etl\\organization_governance_etl.json",
+  "approval_audit_etl": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\approval_audit_etl\\approval_audit_etl.json",
+  "workbench_automation_etl": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\workbench_automation_etl\\workbench-automation-etl.json",
+  "party_enterprise_etl": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\party_enterprise_etl\\party-enterprise-etl.json",
+  "receivables_etl": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\receivables_etl\\receivables-etl.json",
+  "work_order_etl": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\work_order_etl\\work-order-etl.json",
+  "facility_device_etl": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\facility_device_etl\\facility-device-etl.json",
+  "http_performance": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\performance\\http-performance.json",
+  "approval_audit_http": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\performance\\approval-audit-http-journey.json",
+  "workbench_automation_http": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\performance\\workbench-automation-http-journey.json",
+  "asset_portfolio_http": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\performance\\asset-portfolio-http-journey.json",
+  "party_enterprise_http": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\performance\\party-enterprise-http-journey.json",
+  "backup": "D:\\重构python\\kwzy-python-accept-5d21d1c\\infra\\local-staging\\out\\backup"
+}
