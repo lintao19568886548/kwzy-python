@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import io
 import re
 import uuid
+import zipfile
+from pathlib import Path
 from typing import Any, Optional
 
 from sqlalchemy.orm import Session
@@ -16,13 +19,23 @@ from app.modules.attachments.infrastructure.attachment_repository import Attachm
 from app.shared.tenant_context import TenantContext
 
 _SAFE_NAME = re.compile(r"[^A-Za-z0-9._\-\u4e00-\u9fff]+")
+_ALLOWED_CONTENT_TYPES: dict[str, set[str]] = {
+    ".txt": {"text/plain"},
+    ".pdf": {"application/pdf"},
+    ".png": {"image/png"},
+    ".jpg": {"image/jpeg"},
+    ".jpeg": {"image/jpeg"},
+    ".webp": {"image/webp"},
+    ".docx": {"application/vnd.openxmlformats-officedocument.wordprocessingml.document"},
+    ".xlsx": {"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
+}
 
 
 class AttachmentService:
     def __init__(self, session: Session, ctx: TenantContext) -> None:
         self.session = session
         self.ctx = ctx
-        self.repo = AttachmentRepository(session, ctx.tenant_id)
+        self.repo = AttachmentRepository(session, ctx)
         self.audit = AuditRecorder(session, ctx)
         settings = get_settings()
         self.storage = get_file_storage(
@@ -59,19 +72,32 @@ class AttachmentService:
             raise AppError("文件过大", code="ATTACHMENT_TOO_LARGE", status_code=400)
         if len(content) == 0:
             raise AppError("空文件", code="VALIDATION_ERROR", status_code=400)
+        if park_id is None:
+            if not self.ctx.has_all_park_access:
+                raise AppError("无租户级附件访问范围", code="PARK_SCOPE_DENIED", status_code=403)
+        else:
+            if not self.ctx.allows_park(park_id):
+                raise AppError("无该园区数据权限", code="PARK_SCOPE_DENIED", status_code=403)
+            if not self.repo.park_exists(park_id):
+                raise AppError("园区不存在", code="PARK_NOT_FOUND", status_code=404)
         safe = self._safe_filename(filename)
+        normalized_content_type = self._validate_content(
+            filename=safe,
+            content=content,
+            content_type=content_type,
+        )
         object_key = f"t{self.ctx.tenant_id}/{biz_type}/{biz_id}/{uuid.uuid4().hex}_{safe}"
         obj = self.storage.put_bytes(
             object_key=object_key,
             data=content,
-            content_type=content_type or "application/octet-stream",
+            content_type=normalized_content_type,
         )
         row = self.repo.add(
             park_id=park_id,
             biz_type=biz_type,
             biz_id=str(biz_id),
             filename=safe,
-            content_type=content_type or "application/octet-stream",
+            content_type=normalized_content_type,
             size_bytes=obj.size,
             object_key=obj.object_key,
             etag=obj.etag,
@@ -86,6 +112,59 @@ class AttachmentService:
         )
         self.session.commit()
         return self._to_dict(row)
+
+    def _validate_content(self, *, filename: str, content: bytes, content_type: str) -> str:
+        extension = Path(filename).suffix.lower()
+        allowed = _ALLOWED_CONTENT_TYPES.get(extension)
+        if not allowed:
+            raise AppError(
+                "不支持的附件类型",
+                code="ATTACHMENT_TYPE_NOT_ALLOWED",
+                status_code=400,
+            )
+        declared = (content_type or "application/octet-stream").split(";", 1)[0].strip().lower()
+        normalized = next(iter(allowed)) if declared == "application/octet-stream" else declared
+        if normalized not in allowed:
+            raise AppError(
+                "附件扩展名与内容类型不匹配",
+                code="ATTACHMENT_CONTENT_TYPE_MISMATCH",
+                status_code=400,
+            )
+        valid_magic = True
+        if extension == ".pdf":
+            valid_magic = content.startswith(b"%PDF-")
+        elif extension == ".png":
+            valid_magic = content.startswith(b"\x89PNG\r\n\x1a\n")
+        elif extension in {".jpg", ".jpeg"}:
+            valid_magic = content.startswith(b"\xff\xd8\xff")
+        elif extension == ".webp":
+            valid_magic = len(content) >= 12 and content[:4] == b"RIFF" and content[8:12] == b"WEBP"
+        elif extension == ".txt":
+            valid_magic = b"\x00" not in content
+            if valid_magic:
+                try:
+                    content.decode("utf-8")
+                except UnicodeDecodeError:
+                    valid_magic = False
+        elif extension in {".docx", ".xlsx"}:
+            required = "word/document.xml" if extension == ".docx" else "xl/workbook.xml"
+            try:
+                with zipfile.ZipFile(io.BytesIO(content)) as archive:
+                    names = archive.namelist()
+                    valid_magic = (
+                        required in names
+                        and len(names) <= 10_000
+                        and all(".." not in name.replace("\\", "/").split("/") for name in names)
+                    )
+            except (zipfile.BadZipFile, OSError):
+                valid_magic = False
+        if not valid_magic:
+            raise AppError(
+                "附件内容与声明类型不匹配",
+                code="ATTACHMENT_MAGIC_MISMATCH",
+                status_code=400,
+            )
+        return normalized
 
     def list_for_biz(self, *, biz_type: str, biz_id: str) -> list[dict]:
         if not self.ctx.has_permission("attachment:read"):
@@ -123,6 +202,7 @@ class AttachmentService:
             "id": row.id,
             "biz_type": row.biz_type,
             "biz_id": row.biz_id,
+            "park_id": row.park_id,
             "filename": row.filename,
             "content_type": row.content_type,
             "size_bytes": row.size_bytes,

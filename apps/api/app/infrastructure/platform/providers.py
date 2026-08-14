@@ -110,7 +110,7 @@ def get_sms_provider(
 ) -> SmsProvider:
     mode = (provider or "auto").lower()
     env = (app_env or "local").lower()
-    if mode == "fake" or (mode == "auto" and env in {"local", "test", "dev"}):
+    if env in {"local", "test", "dev"} and mode in {"fake", "auto"}:
         return FakeSmsProvider()
     return ProductionSmsProvider(
         api_key=api_key,
@@ -310,6 +310,13 @@ def get_file_storage(
             access_key=access_key,
             secret_key=secret_key,
         )
-    if mode == "local" or (mode == "auto" and env in {"local", "test", "dev", "staging"}):
+    if mode == "local" and env == "production":
+        raise RuntimeError("LOCAL_STORAGE_FORBIDDEN_IN_PRODUCTION")
+    if mode == "local" or (mode == "auto" and env in {"local", "test", "dev"}):
         return LocalDiskFileStorage(local_root)
-    return LocalDiskFileStorage(local_root)
+    return S3FileStorage(
+        endpoint=endpoint,
+        bucket=bucket,
+        access_key=access_key,
+        secret_key=secret_key,
+    )

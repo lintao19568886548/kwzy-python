@@ -260,10 +260,22 @@ async function saveParam() {
   }
 }
 
+function passwordPolicyError(password: string, username: string): string | null {
+  if (password.length < 10) return "密码至少 10 位";
+  const categories = [/[a-z]/.test(password), /[A-Z]/.test(password), /\d/.test(password), /[^A-Za-z0-9]/.test(password)].filter(Boolean).length;
+  if (categories < 3) return "密码须包含大写、小写、数字、特殊字符中的至少三类";
+  if (username.length >= 3 && password.toLowerCase().includes(username.toLowerCase())) return "密码不得包含完整账号名";
+  if (["password", "qwerty", "123456", "admin123"].some((part) => password.toLowerCase().includes(part))) return "密码包含常见弱口令片段";
+  return null;
+}
+
 async function saveUser() {
   if (saving.value) return;
-  if (!userForm.value.id && userForm.value.password.length < 6) {
-    error.value = "新用户密码至少 6 位";
+  const passwordError = userForm.value.password
+    ? passwordPolicyError(userForm.value.password, userForm.value.username)
+    : null;
+  if ((!userForm.value.id && !userForm.value.password) || passwordError) {
+    error.value = passwordError || "新用户必须设置密码";
     return;
   }
   const mutationId = beginMutation();

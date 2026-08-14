@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
-from app.core.security import hash_password
+from app.core.security import hash_password, password_policy_violation, verify_password
 from app.infrastructure.database.audit import AuditRecorder
 from app.modules.identity.infrastructure.identity_admin_repository import (
     IdentityAdminRepository,
@@ -41,6 +41,9 @@ class UserAdminService:
         username = username.strip()
         if not username or not password:
             raise AppError("账号和密码不能为空", code="USER_INVALID", status_code=400)
+        violation = password_policy_violation(password, username=username)
+        if violation:
+            raise AppError(violation, code="AUTH_WEAK_PASSWORD", status_code=400)
         if self.repo.find_user_id(tenant_id, username):
             raise AppError("账号已存在", code="USER_EXISTS", status_code=409)
         for rid in role_ids or []:
@@ -128,6 +131,15 @@ class UserAdminService:
                 invalidate_session = True
                 changed_fields.append("all_parks")
         if password:
+            violation = password_policy_violation(password, username=user.username)
+            if violation:
+                raise AppError(violation, code="AUTH_WEAK_PASSWORD", status_code=400)
+            if verify_password(password, user.password_hash):
+                raise AppError(
+                    "新密码不能与原密码相同",
+                    code="AUTH_PASSWORD_REUSE",
+                    status_code=400,
+                )
             user.password_hash = hash_password(password)
             invalidate_session = True
             changed_fields.append("password")

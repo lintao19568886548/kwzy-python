@@ -43,8 +43,11 @@ cd apps/api
 python -m venv .venv
 .venv\Scripts\activate
 pip install -e ".[dev]"
+alembic upgrade head
 uvicorn app.main:app --reload --port 8000
 ```
+
+应用启动不会调用 `create_all`。首次本地初始化如需默认租户/管理员，请先完成 Alembic，再在 `.env` 显式设置 `BOOTSTRAP_LOCAL_IDENTITY=true` 和一次性 `LOCAL_ADMIN_PASSWORD`；预发与生产禁止该开关。
 
 - 文档：http://127.0.0.1:8000/docs  
 - 健康检查：http://127.0.0.1:8000/health  

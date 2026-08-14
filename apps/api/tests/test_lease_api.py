@@ -64,7 +64,9 @@ def _seed_park_unit_party(client, h: dict) -> tuple[int, int, int]:
     return int(park["id"]), int(unit_id), int(party["id"])
 
 
-def test_lease_lifecycle_and_used_area(client, db_session: Session) -> None:
+def test_lease_lifecycle_and_used_area(
+    client, db_session: Session, governed_activate, governed_close_exit
+) -> None:
     h = _admin_headers()
     park_id, unit_id, party_id = _seed_park_unit_party(client, h)
 
@@ -86,13 +88,9 @@ def test_lease_lifecycle_and_used_area(client, db_session: Session) -> None:
     assert created.json()["data"]["status"] == "DRAFT"
     assert len(created.json()["data"]["units"]) == 1
 
-    sub = client.post(f"/api/v1/leases/{cid}/submit", headers=h)
-    assert sub.status_code == 200
-    assert sub.json()["data"]["status"] == "PENDING_ACTIVE"
-
-    act = client.post(f"/api/v1/leases/{cid}/activate", headers=h)
+    act = governed_activate(client, h, cid)
     assert act.status_code == 200, act.text
-    assert act.json()["data"]["status"] == "ACTIVE"
+    assert act.json()["data"]["contract"]["status"] == "ACTIVE"
 
     unit = db_session.scalars(select(Unit).where(Unit.id == unit_id)).first()
     db_session.refresh(unit)
@@ -116,14 +114,16 @@ def test_lease_lifecycle_and_used_area(client, db_session: Session) -> None:
             "units": [{"unit_id": unit_id, "occupied_area": "30", "unit_rent_price": "1"}],
         },
     ).json()["data"]["id"]
-    client.post(f"/api/v1/leases/{c2}/submit", headers=h)
-    conflict = client.post(f"/api/v1/leases/{c2}/activate", headers=h)
+    conflict = governed_activate(client, h, c2)
     assert conflict.status_code == 409
     assert conflict.json()["code"] == "OCCUPANCY_CONFLICT"
 
-    term = client.post(f"/api/v1/leases/{cid}/terminate", headers=h)
+    direct = client.post(f"/api/v1/leases/{cid}/terminate", headers=h)
+    assert direct.status_code == 409
+    assert direct.json()["code"] == "LEASE_EXIT_SETTLEMENT_REQUIRED"
+    term = governed_close_exit(client, h, cid)
     assert term.status_code == 200
-    assert term.json()["data"]["status"] == "TERMINATED"
+    assert term.json()["data"]["contract"]["status"] == "TERMINATED"
     db_session.refresh(unit)
     assert Decimal(str(unit.used_area)) == Decimal("0")
     assert unit.status == "VACANT"

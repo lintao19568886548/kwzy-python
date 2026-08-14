@@ -3,24 +3,41 @@
 from __future__ import annotations
 
 from collections.abc import Generator
+from typing import Any
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.core.config import get_settings
+from app.core.config import Settings, get_settings
 from app.infrastructure.database.base import Base
 
+
+def engine_options(settings: Settings) -> dict[str, Any]:
+    """Return explicit, bounded pool options without applying them to SQLite."""
+
+    options: dict[str, Any] = {
+        "pool_pre_ping": True,
+        "echo": settings.debug,
+    }
+    if settings.database_url.startswith("sqlite"):
+        options["connect_args"] = {"check_same_thread": False}
+        return options
+    options.update(
+        pool_size=settings.database_pool_size,
+        max_overflow=settings.database_max_overflow,
+        pool_timeout=settings.database_pool_timeout_seconds,
+        pool_recycle=settings.database_pool_recycle_seconds,
+        pool_use_lifo=True,
+    )
+    return options
+
+
 _settings = get_settings()
-_connect_args: dict = {}
-if _settings.database_url.startswith("sqlite"):
-    _connect_args = {"check_same_thread": False}
 
 engine: Engine = create_engine(
     _settings.database_url,
-    pool_pre_ping=True,
-    echo=_settings.debug,
-    connect_args=_connect_args,
+    **engine_options(_settings),
 )
 
 # SQLite FK support — bind to this engine only (not all Engine instances),

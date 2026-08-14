@@ -1,0 +1,73 @@
+name: kwzy-production
+
+x-api-environment: &api-environment
+  APP_ENV: production
+  DEBUG: "false"
+  DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+  DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE:-10}
+  DATABASE_MAX_OVERFLOW: ${DATABASE_MAX_OVERFLOW:-20}
+  DATABASE_POOL_TIMEOUT_SECONDS: ${DATABASE_POOL_TIMEOUT_SECONDS:-30}
+  DATABASE_POOL_RECYCLE_SECONDS: ${DATABASE_POOL_RECYCLE_SECONDS:-1800}
+  JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+  CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS is required}
+  TRUSTED_HOSTS: ${TRUSTED_HOSTS:?TRUSTED_HOSTS is required}
+  ALLOW_ANON_DEV: "false"
+  BOOTSTRAP_LOCAL_IDENTITY: "false"
+  SMS_PROVIDER: ${SMS_PROVIDER:-production}
+  SMS_API_KEY: ${SMS_API_KEY:?SMS_API_KEY is required}
+  SMS_ENDPOINT: ${SMS_ENDPOINT:-}
+  WECHAT_PROVIDER: ${WECHAT_PROVIDER:-production}
+  WECHAT_APP_ID: ${WECHAT_APP_ID:?WECHAT_APP_ID is required}
+  WECHAT_APP_SECRET: ${WECHAT_APP_SECRET:?WECHAT_APP_SECRET is required}
+  OSS_PROVIDER: s3
+  OSS_ENDPOINT: ${OSS_ENDPOINT:?OSS_ENDPOINT is required}
+  OSS_BUCKET: ${OSS_BUCKET:?OSS_BUCKET is required}
+  OSS_ACCESS_KEY: ${OSS_ACCESS_KEY:?OSS_ACCESS_KEY is required}
+  OSS_SECRET_KEY: ${OSS_SECRET_KEY:?OSS_SECRET_KEY is required}
+
+services:
+  migrate:
+    image: ${KWZY_API_IMAGE:?KWZY_API_IMAGE is required}
+    profiles: [operations]
+    command: ["alembic", "upgrade", "head"]
+    environment: *api-environment
+    networks: [backend]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+  api:
+    image: ${KWZY_API_IMAGE:?KWZY_API_IMAGE is required}
+    environment: *api-environment
+    networks: [backend]
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+
+  web:
+    image: ${KWZY_WEB_IMAGE:?KWZY_WEB_IMAGE is required}
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [frontend, backend]
+    ports:
+      - "${KWZY_BIND_HOST:-127.0.0.1}:${KWZY_WEB_PORT:-8080}:8080"
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp, /var/cache/nginx, /var/run]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+networks:
+  frontend:
+  backend:
+    internal: true

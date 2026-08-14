@@ -25,7 +25,7 @@ def _bearer(*, permissions: list[str] | None = None) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_main_chain_happy_path(client) -> None:
+def test_main_chain_happy_path(client, governed_activate) -> None:
     h = _bearer()
 
     # 健康
@@ -83,11 +83,10 @@ def test_main_chain_happy_path(client) -> None:
     lease_id = conv.json()["data"]["lease"]["id"]
     assert conv.json()["data"]["lead"]["status"] == "WON"
 
-    # 合同提交 + 激活
-    assert client.post(f"/api/v1/leases/{lease_id}/submit", headers=h).status_code == 200
-    act = client.post(f"/api/v1/leases/{lease_id}/activate", headers=h)
+    # 合同费用、审批、主文档和激活均走 V2 治理链
+    act = governed_activate(client, h, lease_id)
     assert act.status_code == 200, act.text
-    assert act.json()["data"]["status"] == "ACTIVE"
+    assert act.json()["data"]["contract"]["status"] == "ACTIVE"
     lead_after_activation = client.get(
         f"/api/v1/leads/{lead['id']}", headers=h
     ).json()["data"]

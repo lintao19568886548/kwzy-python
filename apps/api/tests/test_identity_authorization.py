@@ -395,9 +395,13 @@ def test_login_requires_tenant_code_when_username_is_ambiguous(
 
 def test_production_requires_token(monkeypatch) -> None:
     monkeypatch.setenv("APP_ENV", "production")
-    monkeypatch.setenv("JWT_SECRET", "production-test-secret")
+    monkeypatch.setenv("JWT_SECRET", "production-test-secret-with-32-bytes")
     monkeypatch.setenv("CORS_ORIGINS", "https://app.example.test")
+    monkeypatch.setenv("TRUSTED_HOSTS", "testserver,app.example.test")
     monkeypatch.setenv("ALLOW_ANON_DEV", "false")
+    monkeypatch.setenv(
+        "DATABASE_URL", "postgresql+psycopg://test:test@127.0.0.1:5432/test"
+    )
     get_settings.cache_clear()
     try:
         with TestClient(create_app()) as production_client:
@@ -421,7 +425,7 @@ def test_production_settings_reject_insecure_defaults() -> None:
         Settings(
             _env_file=None,
             app_env="production",
-            jwt_secret="production-test-secret",
+            jwt_secret="production-test-secret-with-32-bytes",
             cors_origins="*",
             allow_anon_dev=False,
         )
@@ -429,18 +433,24 @@ def test_production_settings_reject_insecure_defaults() -> None:
     settings = Settings(
         _env_file=None,
         app_env="production",
-        jwt_secret="production-test-secret",
+        jwt_secret="production-test-secret-with-32-bytes",
         cors_origins="https://app.example.test",
+        trusted_hosts="app.example.test",
         allow_anon_dev=False,
+        database_url="postgresql+psycopg://test:test@127.0.0.1:5432/test",
     )
     assert settings.app_env == "production"
 
 
 def test_production_bootstrap_forbidden(db_session: Session, monkeypatch) -> None:
     monkeypatch.setenv("APP_ENV", "production")
-    monkeypatch.setenv("JWT_SECRET", "production-test-secret")
+    monkeypatch.setenv("JWT_SECRET", "production-test-secret-with-32-bytes")
     monkeypatch.setenv("CORS_ORIGINS", "https://app.example.test")
+    monkeypatch.setenv("TRUSTED_HOSTS", "testserver,app.example.test")
     monkeypatch.setenv("ALLOW_ANON_DEV", "false")
+    monkeypatch.setenv(
+        "DATABASE_URL", "postgresql+psycopg://test:test@127.0.0.1:5432/test"
+    )
     get_settings.cache_clear()
     try:
         with pytest.raises(RuntimeError, match="production"):

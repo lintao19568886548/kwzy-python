@@ -41,11 +41,13 @@ from app.modules.lease.infrastructure.mappers import (
     LeaseContractUnitMapper,
     LeaseTermMapper,
 )
-from app.modules.investment.infrastructure.crm_repository import LeadUnitLockRepository
-from app.modules.park_property.infrastructure.park_repository import ParkRepository
-from app.modules.park_property.infrastructure.unit_repository import UnitRepository
-from app.modules.party.infrastructure.party_repository import PartyRepository
-from app.modules.workbench.application.work_item_service import WorkItemService
+from app.modules.lease.infrastructure.collaboration_adapters import (
+    CrmUnitLockReadAdapter,
+    CurrentUnitReferenceAdapter,
+    LeaseWorkItemAdapter,
+    ScopedParkReferenceAdapter,
+    ScopedPartyEligibilityAdapter,
+)
 from app.shared.tenant_context import TenantContext
 
 logger = logging.getLogger(__name__)
@@ -67,13 +69,13 @@ class LeaseService:
         self.contracts = LeaseContractRepository(session, ctx)
         self.units_lines = LeaseContractUnitRepository(session, ctx)
         self.terms = LeaseTermRepository(session, ctx)
-        self.parks = ParkRepository(session, ctx)
-        self.units = UnitRepository(session, ctx)
-        self.parties = PartyRepository(session, ctx)
+        self.parks = ScopedParkReferenceAdapter(session, ctx)
+        self.units = CurrentUnitReferenceAdapter(session, ctx)
+        self.parties = ScopedPartyEligibilityAdapter(session, ctx)
         self.occupancy = OccupancyService(session, ctx)
-        self.lead_unit_locks = LeadUnitLockRepository(session, ctx)
+        self.lead_unit_locks = CrmUnitLockReadAdapter(session, ctx)
         self.audit = AuditRecorder(session, ctx)
-        self.work_items = WorkItemService(session, ctx)
+        self.work_items = LeaseWorkItemAdapter(session, ctx)
 
     def _open_expiring_todo(self, model) -> None:
         """激活后幂等打开合同到期待办（不侵入合同状态机）。"""
@@ -143,10 +145,15 @@ class LeaseService:
             "park_id": e.park_id,
             "party_id": e.party_id,
             "contract_no": e.contract_no,
+            "contract_type": e.contract_type,
+            "currency": e.currency,
             "status": e.status,
+            "approval_status": e.approval_status,
             "start_date": e.start_date.isoformat() if e.start_date else None,
             "end_date": e.end_date.isoformat() if e.end_date else None,
             "deposit_amount": str(e.deposit_amount),
+            "current_version_no": e.current_version_no,
+            "lock_version": e.lock_version,
             "increase_date": e.increase_date.isoformat() if e.increase_date else None,
             "increase_rate": str(e.increase_rate) if e.increase_rate is not None else None,
             "remark": e.remark,
@@ -245,6 +252,13 @@ class LeaseService:
         status: Optional[str] = None,
         park_id: Optional[int] = None,
         party_id: Optional[int] = None,
+        contract_type: Optional[str] = None,
+        approval_status: Optional[str] = None,
+        change_status: Optional[str] = None,
+        exit_status: Optional[str] = None,
+        keyword: Optional[str] = None,
+        end_from: Optional[date] = None,
+        end_to: Optional[date] = None,
     ) -> dict[str, Any]:
         """功能说明：
             分页列出可见合同。
@@ -265,8 +279,26 @@ class LeaseService:
             status=status,
             park_id=park_id,
             party_id=party_id,
+            contract_type=contract_type,
+            approval_status=approval_status,
+            change_status=change_status,
+            exit_status=exit_status,
+            keyword=keyword,
+            end_from=end_from,
+            end_to=end_to,
         )
-        total = self.contracts.count(status=status, park_id=park_id, party_id=party_id)
+        total = self.contracts.count(
+            status=status,
+            park_id=park_id,
+            party_id=party_id,
+            contract_type=contract_type,
+            approval_status=approval_status,
+            change_status=change_status,
+            exit_status=exit_status,
+            keyword=keyword,
+            end_from=end_from,
+            end_to=end_to,
+        )
         return {
             "total": total,
             "page": page,
@@ -373,7 +405,9 @@ class LeaseService:
             self.session.flush()
         return self.get_contract(int(model.id))
 
-    def update_contract(self, contract_id: int, data: dict[str, Any]) -> dict[str, Any]:
+    def update_contract(
+        self, contract_id: int, data: dict[str, Any], *, commit: bool = True
+    ) -> dict[str, Any]:
         """功能说明：更新可编辑状态合同。"""
 
         self._assert_write()
@@ -400,6 +434,8 @@ class LeaseService:
             self._replace_units(int(model.id), int(model.park_id), data.get("units") or [])
         if "terms" in data:
             self._replace_terms(int(model.id), data.get("terms") or [])
+        model.lock_version = int(model.lock_version or 0) + 1
+        self.contracts.save(model)
         self.audit.record(
             action="update",
             resource_type="LEASE_CONTRACT",
@@ -407,7 +443,11 @@ class LeaseService:
             park_id=model.park_id,
             detail={"fields": sorted(data.keys())},
         )
-        self.session.commit()
+        if commit:
+            self.session.commit()
+            self.session.refresh(model)
+        else:
+            self.session.flush()
         return self.get_contract(int(model.id))
 
     def submit(self, contract_id: int) -> dict[str, Any]:

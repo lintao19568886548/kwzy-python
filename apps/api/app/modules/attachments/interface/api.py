@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import binascii
 from typing import Optional
 
 from fastapi import APIRouter, Depends
@@ -11,6 +12,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database.session import get_db
+from app.core.errors import AppError
 from app.modules.attachments.application.attachment_service import AttachmentService
 from app.shared.deps import get_tenant_context, require_permissions
 from app.shared.response import ok
@@ -20,11 +22,11 @@ router = APIRouter(tags=["Attachments"])
 
 
 class AttachmentUpload(BaseModel):
-    biz_type: str = Field(min_length=1, max_length=64)
-    biz_id: str = Field(min_length=1, max_length=64)
+    biz_type: str = Field(pattern=r"^[A-Z][A-Z0-9_]{0,63}$")
+    biz_id: str = Field(pattern=r"^[A-Za-z0-9._:-]{1,64}$")
     filename: str = Field(min_length=1, max_length=255)
-    content_base64: str
-    content_type: str = "application/octet-stream"
+    content_base64: str = Field(max_length=14_000_000)
+    content_type: str = Field(default="application/octet-stream", max_length=128)
     park_id: Optional[int] = None
 
 
@@ -36,7 +38,17 @@ def _svc(
 
 @router.post("/attachments")
 def upload_attachment(body: AttachmentUpload, svc: AttachmentService = Depends(_svc)) -> dict:
-    raw = base64.b64decode(body.content_base64.encode("ascii"))
+    max_encoded_bytes = ((svc.max_bytes + 2) // 3) * 4
+    if len(body.content_base64) > max_encoded_bytes:
+        raise AppError("文件过大", code="ATTACHMENT_TOO_LARGE", status_code=400)
+    try:
+        raw = base64.b64decode(body.content_base64.encode("ascii"), validate=True)
+    except (UnicodeEncodeError, binascii.Error, ValueError) as exc:
+        raise AppError(
+            "附件内容不是有效 Base64",
+            code="ATTACHMENT_INVALID_BASE64",
+            status_code=400,
+        ) from exc
     return ok(
         svc.upload(
             biz_type=body.biz_type,
@@ -68,7 +80,9 @@ def download_attachment(attachment_id: int, svc: AttachmentService = Depends(_sv
     return Response(
         content=data,
         media_type=meta["content_type"],
-        headers={"Content-Disposition": f'attachment; filename="{meta["filename"]}"'},
+        headers={
+            "Content-Disposition": f'attachment; filename="{meta["filename"]}"',
+        },
     )
 
 

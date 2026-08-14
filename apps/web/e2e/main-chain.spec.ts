@@ -14,7 +14,7 @@ import {
 
 test.describe("browser main chain", () => {
   test("party lease bill payment workbench", async ({ page, request }) => {
-    page.on("dialog", (d) => d.accept());
+    page.on("dialog", (d) => d.accept("E2E 管理员合成审批"));
     await requireApiHealthy(request);
 
     const token = await apiLogin(request, ADMIN_USER, ADMIN_PASS);
@@ -54,15 +54,33 @@ test.describe("browser main chain", () => {
 
     // lease
     await page.goto("/leases");
-    await page.getByTestId("lease-park-id").fill(String(parkId));
-    await page.getByTestId("lease-party-id").fill(String(partyId));
-    await page.getByTestId("lease-unit-id").fill(String(unitId));
+    await page.getByRole("button", { name: "新建合同草稿" }).click();
+    await page.getByTestId("lease-park-id").selectOption(String(parkId));
+    await page.getByTestId("lease-party-id").selectOption(String(partyId));
+    await page.getByTestId("lease-unit-id").selectOption(String(unitId));
+    await page.getByTestId("lease-start").fill("2099-01-01");
+    await page.getByTestId("lease-end").fill("2099-12-31");
+    await page.getByTestId("lease-area").fill("80");
+    await page.getByTestId("lease-deposit").fill("1000");
+    await page.getByLabel("固定金额").fill("150");
     await page.getByTestId("lease-create-btn").click();
-    await expect(page.getByTestId("lease-success")).toContainText(/创建/, { timeout: 15000 });
-    const row = page.locator("[data-testid^=lease-row-]").first();
-    await row.getByRole("button", { name: "提交" }).click();
-    await row.getByTestId("lease-activate-btn").click();
-    await expect(page.getByTestId("lease-success")).toContainText(/激活/, { timeout: 15000 });
+    await expect(page.getByTestId("lease-success")).toContainText("履约计划预览", {
+      timeout: 15000,
+    });
+    await page.getByRole("button", { name: "审批文档" }).click();
+    await page.getByRole("button", { name: "提交审批" }).click();
+    await page.getByRole("button", { name: "批准", exact: true }).click();
+    await page.locator('input[type="file"]').first().setInputFiles({
+      name: "main-chain-contract.txt",
+      mimeType: "text/plain",
+      buffer: Buffer.from("synthetic main chain contract"),
+    });
+    await page.getByRole("button", { name: "上传并追加" }).click();
+    await page.getByRole("button", { name: "批准版本" }).click();
+    await page.getByRole("button", { name: "激活合同" }).click();
+    await expect(page.getByTestId("lease-success")).toContainText("未生成账单", {
+      timeout: 15000,
+    });
 
     // bill + pay
     await page.goto("/bills");

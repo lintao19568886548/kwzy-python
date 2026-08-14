@@ -457,7 +457,9 @@ def test_explainable_matching_lock_renew_release_and_expiry(client, db_session) 
     assert db_session.get(Unit, best["id"]).status == "VACANT"
 
 
-def test_foreign_lock_blocks_independent_lease_activation(client, db_session) -> None:
+def test_foreign_lock_blocks_independent_lease_activation(
+    client, db_session, governed_activate
+) -> None:
     headers = _h()
     park_id = _park(client, headers, "激活锁园")
     unit = _unit(client, headers, park_id, code="LOCKED")
@@ -487,8 +489,7 @@ def test_foreign_lock_blocks_independent_lease_activation(client, db_session) ->
             ],
         },
     ).json()["data"]
-    assert client.post(f"/api/v1/leases/{lease['id']}/submit", headers=headers).status_code == 200
-    activation = client.post(f"/api/v1/leases/{lease['id']}/activate", headers=headers)
+    activation = governed_activate(client, headers, lease["id"])
     assert activation.status_code == 409
     assert activation.json()["code"] == "UNIT_ALREADY_LOCKED"
     lease_after = client.get(f"/api/v1/leases/{lease['id']}", headers=headers).json()["data"]

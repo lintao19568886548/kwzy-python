@@ -41,7 +41,7 @@ test.describe("system admin", () => {
     await page.getByTestId("tab-users").click();
     const uname = uniqueName("u").replace(/-/g, "").slice(0, 16).toLowerCase();
     await page.getByTestId("user-username").fill(uname);
-    await page.getByTestId("user-password").fill("pass1234");
+    await page.getByTestId("user-password").fill("Safe-E2E!2026");
     await page.getByTestId("user-realname").fill("E2E用户");
     await page.getByTestId("user-create-btn").click();
     await expect(page.getByTestId("system-success")).toContainText(/用户/, { timeout: 15000 });

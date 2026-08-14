@@ -4,16 +4,40 @@ from __future__ import annotations
 
 from typing import Optional, Sequence
 
-from sqlalchemy import select
+from sqlalchemy import false, select
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database.models.attachment import Attachment
+from app.infrastructure.database.models.park_property import Park
+from app.shared.tenant_context import ParkScopeMode, TenantContext
 
 
 class AttachmentRepository:
-    def __init__(self, session: Session, tenant_id: int) -> None:
+    def __init__(self, session: Session, ctx: TenantContext) -> None:
         self.session = session
-        self.tenant_id = tenant_id
+        self.ctx = ctx
+        self.tenant_id = ctx.tenant_id
+
+    def _scope_condition(self):
+        """Return a fail-closed attachment park-scope predicate."""
+
+        if self.ctx.park_scope_mode == ParkScopeMode.ALL:
+            return None
+        if self.ctx.park_scope_mode == ParkScopeMode.LIST and self.ctx.park_ids:
+            return Attachment.park_id.in_(self.ctx.park_ids)
+        return false()
+
+    def park_exists(self, park_id: int) -> bool:
+        return (
+            self.session.scalar(
+                select(Park.id).where(
+                    Park.id == park_id,
+                    Park.tenant_id == self.tenant_id,
+                    Park.is_deleted.is_(False),
+                )
+            )
+            is not None
+        )
 
     def add(
         self,
@@ -46,19 +70,27 @@ class AttachmentRepository:
         return row
 
     def list_active(self, *, biz_type: str, biz_id: str) -> Sequence[Attachment]:
+        conditions = [
+            Attachment.tenant_id == self.tenant_id,
+            Attachment.biz_type == biz_type,
+            Attachment.biz_id == biz_id,
+            Attachment.status == "ACTIVE",
+        ]
+        scope_condition = self._scope_condition()
+        if scope_condition is not None:
+            conditions.append(scope_condition)
         return list(
             self.session.scalars(
-                select(Attachment).where(
-                    Attachment.tenant_id == self.tenant_id,
-                    Attachment.biz_type == biz_type,
-                    Attachment.biz_id == biz_id,
-                    Attachment.status == "ACTIVE",
-                )
+                select(Attachment).where(*conditions)
             ).all()
         )
 
     def get(self, attachment_id: int) -> Optional[Attachment]:
-        row = self.session.get(Attachment, attachment_id)
-        if row is None or int(row.tenant_id) != self.tenant_id:
-            return None
-        return row
+        conditions = [
+            Attachment.id == attachment_id,
+            Attachment.tenant_id == self.tenant_id,
+        ]
+        scope_condition = self._scope_condition()
+        if scope_condition is not None:
+            conditions.append(scope_condition)
+        return self.session.scalar(select(Attachment).where(*conditions))

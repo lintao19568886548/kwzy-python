@@ -66,4 +66,5 @@ blob-report/
 
 apps/api/local_staging.db
 apps/api/data/attachments/
+apps/api/data/e2e-attachments/
 

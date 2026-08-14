@@ -189,3 +189,129 @@ def test_investment_crm_v2_openapi_matches_runtime_and_legacy_stage_mapping() ->
         "LeadConvert",
     ):
         assert "expected_version" in schemas[command]["required"], command
+
+
+def test_contract_lifecycle_v2_openapi_matches_every_runtime_method() -> None:
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    paths = document["paths"]
+    runtime_paths = create_app().openapi()["paths"]
+    expected_methods = {
+        "/leases/summary": {"get"},
+        "/leases/selectors": {"get"},
+        "/parties/{party_id}/lease-profile": {"get"},
+        "/leases/{contract_id}/lifecycle": {"get"},
+        "/leases/{contract_id}/schedule-preview": {"post"},
+        "/leases/{contract_id}/charges": {"put"},
+        "/leases/{contract_id}/lifecycle/submit": {"post"},
+        "/leases/{contract_id}/lifecycle/approve": {"post"},
+        "/leases/{contract_id}/lifecycle/reject": {"post"},
+        "/leases/{contract_id}/lifecycle/withdraw": {"post"},
+        "/leases/{contract_id}/lifecycle/activate": {"post"},
+        "/leases/{contract_id}/documents": {"post"},
+        "/leases/{contract_id}/documents/{document_id}/approve": {"post"},
+        "/leases/{contract_id}/documents/{document_id}/sign": {"post"},
+        "/leases/{contract_id}/changes": {"post"},
+        "/lease-changes/{change_id}": {"put"},
+        "/lease-changes/apply-due": {"post"},
+        "/lease-changes/{change_id}/submit": {"post"},
+        "/lease-changes/{change_id}/approve": {"post"},
+        "/lease-changes/{change_id}/reject": {"post"},
+        "/lease-changes/{change_id}/withdraw": {"post"},
+        "/lease-changes/{change_id}/cancel": {"post"},
+        "/lease-changes/{change_id}/apply": {"post"},
+        "/leases/{contract_id}/exit-settlements": {"post"},
+        "/lease-exit-settlements/{settlement_id}": {"put"},
+        "/lease-exit-settlements/{settlement_id}/submit": {"post"},
+        "/lease-exit-settlements/{settlement_id}/approve": {"post"},
+        "/lease-exit-settlements/{settlement_id}/reject": {"post"},
+        "/lease-exit-settlements/{settlement_id}/withdraw": {"post"},
+        "/lease-exit-settlements/{settlement_id}/clearance": {"post"},
+        "/lease-exit-settlements/{settlement_id}/close": {"post"},
+    }
+    for path, methods in expected_methods.items():
+        assert path in paths, f"contract V2 path absent from controlled YAML: {path}"
+        assert methods <= {key.lower() for key in paths[path]}, path
+        runtime_path = "/api/v1" + path
+        assert runtime_path in runtime_paths, f"contract V2 path absent at runtime: {runtime_path}"
+        assert methods <= {key.lower() for key in runtime_paths[runtime_path]}, path
+
+    schemas = document["components"]["schemas"]
+    for command in (
+        "LeaseVersionCommandV2",
+        "LeaseApprovalCommandV2",
+        "LeaseChargeReplaceV2",
+        "LeaseSchedulePreviewV2",
+        "LeaseDocumentCreateV2",
+        "LeaseDocumentCommandV2",
+        "LeaseChangeCreateV2",
+        "LeaseChangeDecisionV2",
+        "LeaseChangeApplyV2",
+        "LeaseExitCreateV2",
+        "LeaseExitEditV2",
+        "LeaseExitSubmitV2",
+        "LeaseExitDecisionV2",
+        "LeaseExitClearanceV2",
+        "LeaseExitCloseV2",
+    ):
+        required = set(schemas[command].get("required") or [])
+        if command == "LeaseApprovalCommandV2":
+            required = set(schemas[command]["allOf"][1]["required"])
+            assert "approval_id" in required
+        else:
+            assert "expected_version" in required, command
+    assert "idempotency_key" in schemas["LeaseChangeApplyV2"]["required"]
+    assert "idempotency_key" in schemas["LeaseExitCloseV2"]["required"]
+    charge = schemas["LeaseChargeLineV2"]["properties"]
+    assert set(charge["calculation_method"]["enum"]) == {"FIXED", "PER_AREA"}
+    assert set(charge["billing_cycle"]["enum"]) == {
+        "MONTHLY",
+        "QUARTERLY",
+        "SEMI_ANNUAL",
+        "ANNUAL",
+        "ONE_TIME",
+    }
+
+
+def test_lease_compatibility_contract_cannot_bypass_v2_governance() -> None:
+    """The controlled contract must expose the same fail-closed legacy semantics as runtime."""
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    paths = document["paths"]
+    runtime_paths = create_app().openapi()["paths"]
+    versioned_aliases = {
+        "/leases/{lease_id}/submit": "LeaseVersionCommandV2",
+        "/leases/{lease_id}/reject": "LeaseApprovalCommandV2",
+        "/leases/{lease_id}/cancel": "LeaseVersionCommandV2",
+        "/leases/{lease_id}/activate": "LeaseVersionCommandV2",
+    }
+    for path, schema_name in versioned_aliases.items():
+        operation = paths[path]["post"]
+        schema = operation["requestBody"]["content"]["application/json"]["schema"]
+        assert schema["$ref"] == f"#/components/schemas/{schema_name}"
+        runtime_path = "/api/v1" + path.replace("{lease_id}", "{contract_id}")
+        runtime_operation = runtime_paths[runtime_path]["post"]
+        assert runtime_operation["requestBody"]["required"] is True
+
+    for path in ("/leases/{lease_id}/terminate", "/leases/{lease_id}/breach"):
+        responses = paths[path]["post"]["responses"]
+        assert "409" in responses
+        assert "200" not in responses
+
+    list_parameters = {
+        item["name"]
+        for item in paths["/leases"]["get"]["parameters"]
+        if "name" in item
+    }
+    assert {"approval_status", "change_status", "exit_status"} <= list_parameters
+
+    schemas = document["components"]["schemas"]
+    create_properties = schemas["LeaseCreate"]["properties"]
+    update_schema = schemas["LeaseUpdate"]
+    assert "charges" in create_properties
+    assert "increase_date" not in create_properties
+    assert "increase_rate" not in create_properties
+    assert "expected_version" in update_schema["required"]
+    assert "charges" in update_schema["properties"]

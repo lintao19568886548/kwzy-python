@@ -11,7 +11,12 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.errors import AppError
-from app.core.security import create_access_token, hash_password, verify_password
+from app.core.security import (
+    create_access_token,
+    hash_password,
+    password_policy_violation,
+    verify_password,
+)
 from app.modules.identity.infrastructure.authorization_repository import (
     AuthorizationRepository,
 )
@@ -193,13 +198,20 @@ class AuthService:
         old_password: str,
         new_password: str,
     ) -> dict:
-        if len(new_password) < 6:
-            raise AppError("新密码至少 6 位", code="AUTH_WEAK_PASSWORD", status_code=400)
         user = self.admin_repo.get_user(user_id)
         if user is None or user.tenant_id != tenant_id:
             raise AppError("用户不存在", code="AUTH_USER_NOT_FOUND", status_code=404)
         if not verify_password(old_password, user.password_hash):
             raise AppError("原密码错误", code="AUTH_BAD_PASSWORD", status_code=400)
+        violation = password_policy_violation(new_password, username=user.username)
+        if violation:
+            raise AppError(violation, code="AUTH_WEAK_PASSWORD", status_code=400)
+        if verify_password(new_password, user.password_hash):
+            raise AppError(
+                "新密码不能与原密码相同",
+                code="AUTH_PASSWORD_REUSE",
+                status_code=400,
+            )
         user.password_hash = hash_password(new_password)
         user.token_version = int(getattr(user, "token_version", 0) or 0) + 1
         self.admin_repo.revoke_user_refresh(user.id, datetime.now(UTC).replace(tzinfo=None))

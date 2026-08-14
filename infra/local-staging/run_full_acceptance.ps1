@@ -119,6 +119,53 @@ try {
     & $Py (Join-Path $Root "tools\etl\run_crm_etl_drill.py") --database-url $pgUrl --out $crmReport
   }
 
+  Step "contract_etl_acceptance" {
+    $contractReport = Join-Path $ReportDir "contract_etl\contract_etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_contract_etl_drill.py") --database-url $pgUrl --out $contractReport
+  }
+
+  Step "http_performance_seed" {
+    & $Py (Join-Path $Root "scripts\e2e_seed.py")
+  }
+
+  Step "http_performance_gate" {
+    $perfDir = Join-Path $ReportDir "performance"
+    New-Item -ItemType Directory -Force -Path $perfDir | Out-Null
+    $stdout = Join-Path $perfDir "api.stdout.log"
+    $stderr = Join-Path $perfDir "api.stderr.log"
+    $apiProc = $null
+    try {
+      Get-NetTCPConnection -LocalPort 8010 -ErrorAction SilentlyContinue | ForEach-Object {
+        Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
+      }
+      $apiProc = Start-Process -FilePath $Py `
+        -ArgumentList @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8010") `
+        -WorkingDirectory $Api -PassThru -WindowStyle Hidden `
+        -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+      $deadline = (Get-Date).AddSeconds(120)
+      do {
+        try {
+          $ready = Invoke-RestMethod -Uri "http://127.0.0.1:8010/health/ready" -TimeoutSec 2
+          if ($ready.status -eq "ready") { break }
+        } catch {}
+        Start-Sleep 1
+      } while ((Get-Date) -lt $deadline)
+      if ((Get-Date) -ge $deadline) { throw "performance API readiness timeout" }
+      $env:PERF_USERNAME = "admin"
+      $env:PERF_PASSWORD = "admin123"
+      & $Py (Join-Path $Root "scripts\http_performance_gate.py") `
+        --base-url "http://127.0.0.1:8010/api/v1" `
+        --requests 1000 --concurrency 25 --warmup 40 `
+        --max-p95-ms 500 --max-error-rate-percent 1 --min-rps 20 `
+        --output (Join-Path $perfDir "http-performance.json")
+    } finally {
+      Remove-Item Env:PERF_PASSWORD -ErrorAction SilentlyContinue
+      if ($apiProc -and -not $apiProc.HasExited) {
+        Stop-Process -Id $apiProc.Id -Force -ErrorAction SilentlyContinue
+      }
+    }
+  }
+
   Step "backup_restore" {
     $bakDir = Join-Path $ReportDir "backup"
     New-Item -ItemType Directory -Force -Path $bakDir | Out-Null
@@ -263,6 +310,8 @@ $summary = [ordered]@{
   identity_etl = (Join-Path $ReportDir "identity_etl\identity_etl.json")
   asset_etl = (Join-Path $ReportDir "asset_etl\asset_etl.json")
   crm_etl = (Join-Path $ReportDir "crm_etl\crm_etl.json")
+  contract_etl = (Join-Path $ReportDir "contract_etl\contract_etl.json")
+  http_performance = (Join-Path $ReportDir "performance\http-performance.json")
   backup = (Join-Path $ReportDir "backup")
 }
 $summary | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding utf8

@@ -40,9 +40,10 @@ def _prod_like_env(app_env: str) -> dict[str, str]:
         "APP_ENV": app_env,
         "JWT_SECRET": "test-prod-jwt-secret-not-default",
         "CORS_ORIGINS": "https://example.com",
+        "TRUSTED_HOSTS": "testserver,example.com",
         "ALLOW_ANON_DEV": "false",
         "DEBUG": "false",
-        "DATABASE_URL": "sqlite+pysqlite:///:memory:",
+        "DATABASE_URL": "postgresql+psycopg://test:test@127.0.0.1:5432/test",
     }
 
 
@@ -117,8 +118,9 @@ def test_staging_forbids_allow_anon_dev() -> None:
     with pytest.raises(ValidationError):
         Settings(
             app_env="staging",
-            jwt_secret="explicit-staging-secret",
+            jwt_secret="explicit-staging-secret-with-32-bytes",
             cors_origins="https://staging.example.com",
+            trusted_hosts="staging.example.com",
             allow_anon_dev=True,
         )
 
@@ -129,4 +131,87 @@ def test_production_forbids_default_jwt() -> None:
             app_env="Production",
             jwt_secret="change-me-in-production",
             cors_origins="https://app.example.com",
+            trusted_hosts="app.example.com",
         )
+
+
+def test_production_forbids_short_jwt_secret() -> None:
+    with pytest.raises(ValidationError, match="at least 32 bytes"):
+        Settings(
+            app_env="production",
+            jwt_secret="too-short",
+            cors_origins="https://app.example.com",
+            trusted_hosts="app.example.com",
+        )
+
+
+def test_production_forbids_unapproved_jwt_algorithm() -> None:
+    with pytest.raises(ValidationError, match="approved HMAC"):
+        Settings(
+            app_env="production",
+            jwt_secret="production-jwt-secret-with-32-bytes",
+            jwt_algorithm="none",
+            cors_origins="https://app.example.com",
+            trusted_hosts="app.example.com",
+        )
+
+
+def test_production_forbids_local_identity_bootstrap() -> None:
+    with pytest.raises(ValidationError, match="BOOTSTRAP_LOCAL_IDENTITY"):
+        Settings(
+            app_env="production",
+            jwt_secret="production-jwt-secret-with-32-bytes",
+            cors_origins="https://app.example.com",
+            trusted_hosts="app.example.com",
+            allow_anon_dev=False,
+            bootstrap_local_identity=True,
+        )
+
+
+def test_schema_bootstrap_is_disabled_by_default() -> None:
+    settings = Settings(
+        _env_file=None,
+        app_env="local",
+        jwt_secret="local-test-secret",
+        cors_origins="*",
+    )
+    assert settings.bootstrap_local_identity is False
+
+
+def test_production_requires_explicit_trusted_hosts() -> None:
+    with pytest.raises(ValidationError, match="TRUSTED_HOSTS"):
+        Settings(
+            _env_file=None,
+            app_env="production",
+            jwt_secret="production-jwt-secret-with-32-bytes",
+            cors_origins="https://app.example.com",
+            trusted_hosts="*",
+            allow_anon_dev=False,
+        )
+
+
+def test_security_headers_and_production_docs_gate() -> None:
+    with _settings_env(**_prod_like_env("production")):
+        app = create_app()
+        with TestClient(app) as client:
+            health = client.get("/health")
+            assert health.status_code == 200
+            assert health.headers["x-content-type-options"] == "nosniff"
+            assert health.headers["x-frame-options"] == "DENY"
+            assert "max-age=" in health.headers["strict-transport-security"]
+            assert client.get("/docs").status_code == 404
+
+
+def test_production_cookie_refresh_rejects_unapproved_origin() -> None:
+    with _settings_env(**_prod_like_env("production")):
+        app = create_app()
+        with TestClient(app) as client:
+            client.cookies.set("kwzy_refresh", "attacker-cannot-use-this-cookie-cross-site")
+            response = client.post(
+                "/api/v1/auth/refresh",
+                json={},
+                headers={"Origin": "https://evil.example"},
+            )
+            assert response.status_code == 403
+            assert response.json()["code"] == "CSRF_ORIGIN_DENIED"
+            assert response.headers["cache-control"] == "no-store"

@@ -42,6 +42,26 @@ from app.shared.response import ok
 router = APIRouter(tags=["Identity"])
 
 
+def _enforce_cookie_origin(request: Request) -> None:
+    """Require an approved browser Origin when a production-like cookie is used."""
+
+    settings = get_settings()
+    if settings.app_env not in {"staging", "production"}:
+        return
+    origin = (request.headers.get("origin") or "").rstrip("/")
+    allowed = {
+        item.strip().rstrip("/")
+        for item in settings.cors_origins.split(",")
+        if item.strip()
+    }
+    if not origin or origin not in allowed:
+        raise AppError(
+            "请求来源校验失败",
+            code="CSRF_ORIGIN_DENIED",
+            status_code=403,
+        )
+
+
 def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
     settings = get_settings()
     response.set_cookie(
@@ -96,6 +116,8 @@ def refresh(
     refresh_token = body.refresh_token or request.cookies.get(settings.refresh_cookie_name)
     if not refresh_token:
         raise AppError("缺少刷新令牌", code="AUTH_REFRESH_REQUIRED", status_code=401)
+    if body.refresh_token is None:
+        _enforce_cookie_origin(request)
     data = LoginResponse.model_validate(
         AuthService(db).refresh(
             refresh_token=refresh_token,
@@ -115,6 +137,8 @@ def logout(
 ) -> dict:
     settings = get_settings()
     refresh_token = body.refresh_token or request.cookies.get(settings.refresh_cookie_name)
+    if body.refresh_token is None and refresh_token:
+        _enforce_cookie_origin(request)
     AuthService(db).logout(refresh_token=refresh_token)
     _clear_refresh_cookie(response)
     return ok({"message": "ok"})

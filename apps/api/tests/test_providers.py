@@ -36,6 +36,13 @@ def test_get_sms_provider_local_is_fake() -> None:
     assert isinstance(get_sms_provider(app_env="test"), FakeSmsProvider)
 
 
+def test_production_cannot_force_fake_sms() -> None:
+    assert isinstance(
+        get_sms_provider(app_env="production", provider="fake"),
+        ProductionSmsProvider,
+    )
+
+
 def test_file_storage_roundtrip() -> None:
     s = InMemoryFileStorage()
     obj = s.put_bytes(object_key="a/b.txt", data=b"hello", content_type="text/plain")
@@ -70,3 +77,14 @@ def test_local_disk_storage(tmp_path: Path) -> None:
 def test_get_file_storage_auto_local() -> None:
     s = get_file_storage(app_env="test", provider="auto", local_root="./data/t")
     assert isinstance(s, LocalDiskFileStorage)
+
+
+def test_production_storage_never_falls_back_to_local() -> None:
+    from app.infrastructure.platform.providers import S3FileStorage
+
+    assert isinstance(get_file_storage(app_env="production", provider="auto"), S3FileStorage)
+    try:
+        get_file_storage(app_env="production", provider="local")
+        assert False, "production local storage must fail closed"
+    except RuntimeError as exc:
+        assert str(exc) == "LOCAL_STORAGE_FORBIDDEN_IN_PRODUCTION"

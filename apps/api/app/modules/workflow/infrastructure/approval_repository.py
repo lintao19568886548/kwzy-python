@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional, Sequence
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.infrastructure.database.models.workflow import ApprovalEvent, ApprovalRequest
@@ -45,10 +45,13 @@ class ApprovalRepository:
             vis = vis.where(ApprovalRequest.status == status)
         return int(self.session.scalar(select(func.count()).select_from(vis.subquery())) or 0)
 
-    def get_by_id(self, approval_id: int) -> Optional[ApprovalRequest]:
-        return self.session.scalars(
-            self._scope(select(ApprovalRequest).where(ApprovalRequest.id == approval_id))
-        ).first()
+    def get_by_id(
+        self, approval_id: int, *, for_update: bool = False
+    ) -> Optional[ApprovalRequest]:
+        stmt = self._scope(select(ApprovalRequest).where(ApprovalRequest.id == approval_id))
+        if for_update:
+            stmt = stmt.with_for_update()
+        return self.session.scalars(stmt).first()
 
     def get_by_biz(self, biz_type: str, biz_id: str) -> Optional[ApprovalRequest]:
         return self.session.scalars(
@@ -58,6 +61,20 @@ class ApprovalRepository:
                 ApprovalRequest.biz_id == biz_id,
             )
         ).first()
+
+    def list_for_lease(
+        self, contract_id: int, *, related_approval_ids: set[int]
+    ) -> Sequence[ApprovalRequest]:
+        conditions = [
+            (
+                (ApprovalRequest.biz_type == "LEASE_CONTRACT_VERSION")
+                & ApprovalRequest.biz_id.like(f"{int(contract_id)}:%")
+            )
+        ]
+        if related_approval_ids:
+            conditions.append(ApprovalRequest.id.in_(sorted(related_approval_ids)))
+        stmt = self._scope(select(ApprovalRequest)).where(or_(*conditions))
+        return list(self.session.scalars(stmt.order_by(ApprovalRequest.id)).all())
 
     def create(
         self,

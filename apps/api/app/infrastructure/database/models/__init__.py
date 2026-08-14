@@ -21,8 +21,15 @@ from app.infrastructure.database.models.billing import Bill, BillLine, FeeCatalo
 from app.infrastructure.database.models.collection import Payment, PaymentAllocation
 from app.infrastructure.database.models.platform import IdempotencyKey, NumberSequence
 from app.infrastructure.database.models.lease import (
+    LeaseChangeOrder,
+    LeaseChargeItem,
     LeaseContract,
+    LeaseContractDocument,
     LeaseContractUnit,
+    LeaseContractVersion,
+    LeaseExitItem,
+    LeaseExitSettlement,
+    LeasePerformanceSchedule,
     LeaseTerm,
 )
 from app.infrastructure.database.models.park_property import Building, Park, Unit, UnitLineage
@@ -83,6 +90,13 @@ __all__ = [
     "LeaseContract",
     "LeaseContractUnit",
     "LeaseTerm",
+    "LeaseContractVersion",
+    "LeaseChargeItem",
+    "LeasePerformanceSchedule",
+    "LeaseChangeOrder",
+    "LeaseContractDocument",
+    "LeaseExitSettlement",
+    "LeaseExitItem",
     "FeeCatalog",
     "Bill",
     "BillLine",

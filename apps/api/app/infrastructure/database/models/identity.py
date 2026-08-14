@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.database.base import (
@@ -174,6 +174,20 @@ class AuthSecurityEvent(Base, PrimaryKeyMixin, TimestampMixin):
     """Append-only authentication security evidence without raw credentials/PII."""
 
     __tablename__ = "auth_security_events"
+    __table_args__ = (
+        Index(
+            "ix_auth_security_events_subject_window",
+            "subject_digest",
+            "event_type",
+            "created_at",
+        ),
+        Index(
+            "ix_auth_security_events_client_window",
+            "client_digest",
+            "event_type",
+            "created_at",
+        ),
+    )
 
     tenant_id: Mapped[Optional[int]] = mapped_column(
         FK_TYPE, ForeignKey("tenants.id"), nullable=True, index=True
@@ -188,6 +202,15 @@ class VerificationCode(Base, PrimaryKeyMixin, TimestampMixin):
     """Hashed one-time verification code bound to user, tenant and purpose."""
 
     __tablename__ = "verification_codes"
+    __table_args__ = (
+        Index(
+            "ix_verification_codes_lookup",
+            "tenant_id",
+            "user_id",
+            "purpose",
+            "created_at",
+        ),
+    )
 
     tenant_id: Mapped[int] = mapped_column(
         FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True

@@ -6,7 +6,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, Numeric, String, UniqueConstraint
+from sqlalchemy import Date, DateTime, ForeignKey, Index, Integer, Numeric, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import FK_TYPE, Base, PrimaryKeyMixin, TimestampMixin
@@ -26,7 +26,11 @@ class FeeCatalog(Base, PrimaryKeyMixin):
 
 class Bill(Base, PrimaryKeyMixin, TimestampMixin):
     __tablename__ = "bills"
-    __table_args__ = (UniqueConstraint("tenant_id", "bill_no", name="uk_bills_no"),)
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "bill_no", name="uk_bills_no"),
+        Index("idx_bills_park_status", "tenant_id", "park_id", "status"),
+        Index("idx_bills_party_period", "tenant_id", "party_id", "period_start", "period_end"),
+    )
 
     tenant_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True)
     park_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("parks.id"), nullable=False)
@@ -54,6 +58,7 @@ class Bill(Base, PrimaryKeyMixin, TimestampMixin):
 
 class BillLine(Base, PrimaryKeyMixin):
     __tablename__ = "bill_lines"
+    __table_args__ = (Index("idx_bill_lines_bill", "bill_id"),)
 
     tenant_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True)
     bill_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("bills.id"), nullable=False)

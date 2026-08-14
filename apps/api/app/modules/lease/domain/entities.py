@@ -1,30 +1,21 @@
-"""功能说明：
-    Lease 领域实体（无 SQLAlchemy / FastAPI）。
+"""Lease contract lifecycle domain entities.
 
-业务职责：
-    Domain 层；合同、占用行、条款行数据结构。
+These dataclasses intentionally contain no FastAPI or SQLAlchemy dependencies.
+They model the aggregate root, immutable versions, pricing projections, governed
+changes, documents and exit settlement facts used by the application layer.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Any, Optional
 
 
 @dataclass
 class LeaseContractEntity:
-    """功能说明：
-        租赁合同聚合根领域实体。
-
-    业务职责：
-        Domain 模型；合同带 park_id，不依赖 Party 主档 park_id。
-
-    业务规则：
-        1. tenant 隔离；contract_no 租户内唯一。
-        2. deposit_amount 仅字段存储，无退还流水。
-    """
+    """Stable lease aggregate root and its mutable current projection."""
 
     tenant_id: int
     park_id: int
@@ -33,6 +24,16 @@ class LeaseContractEntity:
     start_date: date
     end_date: date
     status: str = "DRAFT"
+    contract_type: str = "LEASE"
+    currency: str = "CNY"
+    approval_status: Optional[str] = None
+    signed_at: Optional[datetime] = None
+    effective_at: Optional[datetime] = None
+    terminated_at: Optional[datetime] = None
+    current_version_no: int = 0
+    lock_version: int = 1
+    source_system: Optional[str] = None
+    source_ref: Optional[str] = None
     deposit_amount: Decimal = Decimal("0")
     increase_date: Optional[date] = None
     increase_rate: Optional[Decimal] = None
@@ -45,12 +46,7 @@ class LeaseContractEntity:
 
 @dataclass
 class LeaseContractUnitEntity:
-    """功能说明：
-        合同占用单元行。
-
-    业务职责：
-        Domain 模型；unit + occupied_area + unit_rent_price。
-    """
+    """Current Unit occupancy projection for a contract."""
 
     tenant_id: int
     contract_id: int
@@ -62,12 +58,7 @@ class LeaseContractUnitEntity:
 
 @dataclass
 class LeaseTermEntity:
-    """功能说明：
-        合同条款行（递增/免租/其他）。
-
-    业务职责：
-        Domain 模型；不驱动自动出账（Bill change）。
-    """
+    """Legacy compatibility term; it is not an authoritative V2 charge."""
 
     tenant_id: int
     contract_id: int
@@ -80,3 +71,170 @@ class LeaseTermEntity:
     sort_order: int = 0
     id: Optional[int] = None
     created_at: Optional[datetime] = None
+
+
+@dataclass(frozen=True)
+class LeaseContractVersionEntity:
+    """Append-only canonical contract evidence."""
+
+    tenant_id: int
+    contract_id: int
+    version_no: int
+    schema_version: int
+    snapshot: dict[str, Any]
+    checksum: str
+    effective_at: Optional[datetime]
+    reason: str
+    created_by: Optional[int] = None
+    change_order_id: Optional[int] = None
+    exit_settlement_id: Optional[int] = None
+    id: Optional[int] = None
+    created_at: Optional[datetime] = None
+
+
+@dataclass
+class LeaseChargeItemEntity:
+    """Structured current pricing input."""
+
+    tenant_id: int
+    contract_id: int
+    charge_code: str
+    charge_type: str
+    calculation_method: str
+    billing_cycle: str
+    currency: str
+    start_date: date
+    end_date: date
+    due_day: int = 1
+    amount: Optional[Decimal] = None
+    unit_price: Optional[Decimal] = None
+    tax_rate: Decimal = Decimal("0")
+    sort_order: int = 0
+    rule_config: dict[str, Any] = field(default_factory=dict)
+    id: Optional[int] = None
+
+
+@dataclass(frozen=True)
+class LeasePerformanceScheduleEntity:
+    """Version-bound, read-only upstream obligation for Billing."""
+
+    tenant_id: int
+    contract_id: int
+    contract_version_no: int
+    charge_item_id: Optional[int]
+    charge_code: str
+    schedule_key: str
+    period_start: date
+    period_end: date
+    due_date: date
+    currency: str
+    area: Decimal
+    unit_price: Optional[Decimal]
+    net_amount: Decimal
+    tax_amount: Decimal
+    gross_amount: Decimal
+    status: str = "PLANNED"
+    rule_refs: tuple[str, ...] = ()
+    id: Optional[int] = None
+
+
+@dataclass
+class LeaseChangeOrderEntity:
+    """Governed proposal against one immutable base version."""
+
+    tenant_id: int
+    contract_id: int
+    change_no: str
+    change_type: str
+    reason: str
+    effective_date: date
+    base_version_no: int
+    proposed_snapshot: dict[str, Any]
+    status: str = "DRAFT"
+    schema_version: int = 1
+    lock_version: int = 1
+    approval_request_id: Optional[int] = None
+    applied_version_no: Optional[int] = None
+    idempotency_key: Optional[str] = None
+    created_by: Optional[int] = None
+    id: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+@dataclass(frozen=True)
+class LeaseContractDocumentEntity:
+    """Append-only attachment metadata and signature-readiness fact."""
+
+    tenant_id: int
+    contract_id: int
+    attachment_id: int
+    document_type: str
+    document_version: int
+    status: str
+    checksum: str
+    is_main: bool = False
+    contract_version_no: Optional[int] = None
+    change_order_id: Optional[int] = None
+    exit_settlement_id: Optional[int] = None
+    signature_provider: Optional[str] = None
+    signature_ref: Optional[str] = None
+    signed_at: Optional[datetime] = None
+    live_verified: bool = False
+    created_by: Optional[int] = None
+    id: Optional[int] = None
+    created_at: Optional[datetime] = None
+
+
+@dataclass
+class LeaseExitItemEntity:
+    """A non-negative settlement calculation input."""
+
+    item_type: str
+    amount: Decimal
+    description: str
+    evidence_ref: Optional[str] = None
+    approved: bool = True
+    sort_order: int = 0
+    tenant_id: Optional[int] = None
+    settlement_id: Optional[int] = None
+    evidence_attachment_id: Optional[int] = None
+    source_type: Optional[str] = None
+    source_ref: Optional[str] = None
+    id: Optional[int] = None
+
+
+@dataclass
+class LeaseExitSettlementEntity:
+    """Exit handover, external financial facts and deterministic totals."""
+
+    tenant_id: int
+    contract_id: int
+    settlement_no: str
+    contract_version_no: int
+    planned_handover_date: Optional[date]
+    held_deposit_amount: Decimal
+    outstanding_amount: Decimal
+    change_order_id: Optional[int] = None
+    outstanding_source: str = "BILLING_SCOPED_READ"
+    outstanding_as_of: Optional[datetime] = None
+    status: str = "DRAFT"
+    lock_version: int = 1
+    inspection_summary: Optional[str] = None
+    meter_readings: list[dict[str, Any]] = field(default_factory=list)
+    items: list[LeaseExitItemEntity] = field(default_factory=list)
+    receivable_total: Decimal = Decimal("0")
+    deduction_total: Decimal = Decimal("0")
+    refund_adjustment_total: Decimal = Decimal("0")
+    net_due_from_party: Decimal = Decimal("0")
+    net_due_to_party: Decimal = Decimal("0")
+    calculation_checksum: Optional[str] = None
+    financial_clearance_status: str = "NOT_REQUIRED"
+    financial_clearance_ref: Optional[str] = None
+    financial_clearance_reason: Optional[str] = None
+    approval_request_id: Optional[int] = None
+    idempotency_key: Optional[str] = None
+    created_by: Optional[int] = None
+    id: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None

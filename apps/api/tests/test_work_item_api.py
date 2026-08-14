@@ -170,7 +170,9 @@ def test_work_item_not_found(client) -> None:
     assert r.json()["code"] == "WORK_ITEM_NOT_FOUND"
 
 
-def test_lease_activate_opens_and_terminate_closes_expiring_todo(client) -> None:
+def test_lease_activate_opens_and_exit_closes_expiring_todo(
+    client, governed_activate, governed_close_exit
+) -> None:
     """合同激活打开到期待办；终止取消待办。"""
 
     h = _h()
@@ -209,8 +211,7 @@ def test_lease_activate_opens_and_terminate_closes_expiring_todo(client) -> None
     )
     assert lease.status_code == 200, lease.text
     cid = lease.json()["data"]["id"]
-    assert client.post(f"/api/v1/leases/{cid}/submit", headers=h).status_code == 200
-    act = client.post(f"/api/v1/leases/{cid}/activate", headers=h)
+    act = governed_activate(client, h, cid)
     assert act.status_code == 200, act.text
 
     todos = client.get(
@@ -228,7 +229,10 @@ def test_lease_activate_opens_and_terminate_closes_expiring_todo(client) -> None
     assert metrics["open_todos"] >= 1
     assert "expiring_contracts" in metrics
 
-    term = client.post(f"/api/v1/leases/{cid}/terminate", headers=h)
+    direct = client.post(f"/api/v1/leases/{cid}/terminate", headers=h)
+    assert direct.status_code == 409
+    assert direct.json()["code"] == "LEASE_EXIT_SETTLEMENT_REQUIRED"
+    term = governed_close_exit(client, h, cid)
     assert term.status_code == 200, term.text
     after = client.get(
         "/api/v1/work-items",

@@ -51,7 +51,7 @@ def test_login_refresh_logout_password(client):
     r4 = client.post(
         "/api/v1/auth/password",
         headers={"Authorization": f"Bearer {access}"},
-        json={"old_password": "admin123", "new_password": "admin456"},
+        json={"old_password": "admin123", "new_password": "Secure#456789"},
     )
     assert r4.status_code == 200, r4.text
 
@@ -63,7 +63,7 @@ def test_login_refresh_logout_password(client):
     assert bad.status_code == 403
     ok = client.post(
         "/api/v1/auth/login",
-        json={"username": "admin", "password": "admin456", "tenant_code": "default"},
+        json={"username": "admin", "password": "Secure#456789", "tenant_code": "default"},
     )
     assert ok.status_code == 200
 
@@ -82,7 +82,7 @@ def test_user_role_menu_admin(client):
         headers=headers,
         json={
             "username": "ops1",
-            "password": "ops12345",
+            "password": "Ops#73915826",
             "real_name": "运维一号",
             "role_ids": [],
             "park_ids": [],
@@ -130,7 +130,7 @@ def test_duplicate_identity_admin_codes_return_conflict(client):
     headers = {"Authorization": f"Bearer {data['access_token']}"}
     user_payload = {
         "username": "unique-user",
-        "password": "unique123",
+        "password": "Unique#12345",
         "real_name": "唯一用户",
     }
     assert (
@@ -380,7 +380,7 @@ def test_user_disable_and_role_change_revoke_existing_sessions(client):
         headers=admin_headers,
         json={
             "username": "session-user",
-            "password": "session123",
+            "password": "Session#12345",
             "real_name": "会话用户",
             "role_ids": [role["id"]],
             "park_ids": [],
@@ -389,7 +389,7 @@ def test_user_disable_and_role_change_revoke_existing_sessions(client):
     )
     assert user_response.status_code == 200, user_response.text
     user = user_response.json().get("data") or user_response.json()
-    session = _login(client, "session-user", "session123")
+    session = _login(client, "session-user", "Session#12345")
     user_headers = {"Authorization": f"Bearer {session['access_token']}"}
     assert client.get("/api/v1/auth/me", headers=user_headers).status_code == 200
 
@@ -408,7 +408,7 @@ def test_user_disable_and_role_change_revoke_existing_sessions(client):
         == 401
     )
 
-    relogin = _login(client, "session-user", "session123")
+    relogin = _login(client, "session-user", "Session#12345")
     disable = client.delete(
         f"/api/v1/system/users/{user['id']}",
         headers=admin_headers,
@@ -421,6 +421,41 @@ def test_user_disable_and_role_change_revoke_existing_sessions(client):
         ).status_code
         == 401
     )
+
+
+def test_user_admin_and_password_change_reject_weak_or_reused_password(client):
+    admin = _login(client)
+    headers = {"Authorization": f"Bearer {admin['access_token']}"}
+
+    weak_create = client.post(
+        "/api/v1/system/users",
+        headers=headers,
+        json={"username": "weak-user", "password": "weakpass12"},
+    )
+    assert weak_create.status_code == 400
+    assert weak_create.json()["code"] == "AUTH_WEAK_PASSWORD"
+
+    weak_change = client.post(
+        "/api/v1/auth/password",
+        headers=headers,
+        json={"old_password": "admin123", "new_password": "lowercase123"},
+    )
+    assert weak_change.status_code == 400
+    assert weak_change.json()["code"] == "AUTH_WEAK_PASSWORD"
+
+    created = client.post(
+        "/api/v1/system/users",
+        headers=headers,
+        json={"username": "reuse-user", "password": "Strong#12345"},
+    )
+    assert created.status_code == 200, created.text
+    reused = client.put(
+        f"/api/v1/system/users/{created.json()['data']['id']}",
+        headers=headers,
+        json={"password": "Strong#12345"},
+    )
+    assert reused.status_code == 400
+    assert reused.json()["code"] == "AUTH_PASSWORD_REUSE"
 
 
 def test_menu_lifecycle_scope_validation_and_identity_audit(client, db_session):

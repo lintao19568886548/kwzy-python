@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 import os
 
 # Force isolated sqlite DB for tests — never touch production/old MySQL
@@ -76,3 +78,198 @@ def client(engine, db_session: Session):
     with TestClient(application) as c:
         yield c
     application.dependency_overrides.clear()
+
+
+@pytest.fixture()
+def governed_activate():
+    """Prepare and attempt the full V2 approval/document activation chain."""
+
+    def run(client, headers: dict[str, str], contract_id: int):
+        contract = client.get(f"/api/v1/leases/{contract_id}", headers=headers).json()["data"]
+        charges = client.put(
+            f"/api/v1/leases/{contract_id}/charges",
+            headers=headers,
+            json={
+                "expected_version": contract["lock_version"],
+                "charges": [
+                    {
+                        "charge_code": "RENT",
+                        "charge_type": "RENT",
+                        "calculation_method": "FIXED",
+                        "billing_cycle": "MONTHLY",
+                        "start_date": contract["start_date"],
+                        "end_date": contract["end_date"],
+                        "amount": "1000",
+                    }
+                ],
+            },
+        )
+        assert charges.status_code == 200, charges.text
+        lock_version = charges.json()["data"]["lock_version"]
+        submitted = client.post(
+            f"/api/v1/leases/{contract_id}/lifecycle/submit",
+            headers=headers,
+            json={"expected_version": lock_version},
+        )
+        assert submitted.status_code == 200, submitted.text
+        submitted_data = submitted.json()["data"]
+        approved = client.post(
+            f"/api/v1/leases/{contract_id}/lifecycle/approve",
+            headers=headers,
+            json={
+                "approval_id": submitted_data["pending_approval"]["id"],
+                "expected_version": submitted_data["contract"]["lock_version"],
+                "override_reason": "测试夹具单管理员审批",
+            },
+        )
+        assert approved.status_code == 200, approved.text
+        approved_data = approved.json()["data"]
+        content = f"synthetic governed contract {contract_id}".encode()
+        uploaded = client.post(
+            "/api/v1/attachments",
+            headers=headers,
+            json={
+                "biz_type": "LEASE_CONTRACT",
+                "biz_id": str(contract_id),
+                "filename": f"contract-{contract_id}.txt",
+                "content_type": "text/plain",
+                "content_base64": base64.b64encode(content).decode("ascii"),
+                "park_id": contract["park_id"],
+            },
+        )
+        assert uploaded.status_code == 200, uploaded.text
+        documented = client.post(
+            f"/api/v1/leases/{contract_id}/documents",
+            headers=headers,
+            json={
+                "expected_version": approved_data["contract"]["lock_version"],
+                "attachment_id": uploaded.json()["data"]["id"],
+                "document_type": "MAIN_CONTRACT",
+                "checksum": hashlib.sha256(content).hexdigest(),
+                "is_main": True,
+            },
+        )
+        assert documented.status_code == 200, documented.text
+        documented_data = documented.json()["data"]
+        document_id = next(
+            row["id"]
+            for row in documented_data["documents"]
+            if row["document_type"] == "MAIN_CONTRACT" and row["status"] == "DRAFT"
+        )
+        approved_document = client.post(
+            f"/api/v1/leases/{contract_id}/documents/{document_id}/approve",
+            headers=headers,
+            json={"expected_version": documented_data["contract"]["lock_version"]},
+        )
+        assert approved_document.status_code == 200, approved_document.text
+        ready = approved_document.json()["data"]
+        return client.post(
+            f"/api/v1/leases/{contract_id}/lifecycle/activate",
+            headers=headers,
+            json={"expected_version": ready["contract"]["lock_version"]},
+        )
+
+    return run
+
+
+@pytest.fixture()
+def governed_close_exit():
+    """Close a zero-balance exit through approval and an approved handover document."""
+
+    def run(client, headers: dict[str, str], contract_id: int):
+        detail = client.get(f"/api/v1/leases/{contract_id}/lifecycle", headers=headers).json()["data"]
+        created = client.post(
+            f"/api/v1/leases/{contract_id}/exit-settlements",
+            headers=headers,
+            json={
+                "expected_version": detail["contract"]["lock_version"],
+                "handover_date": detail["contract"]["end_date"],
+            },
+        )
+        assert created.status_code == 200, created.text
+        created_data = created.json()["data"]
+        settlement = created_data["exit_settlement"]
+        submitted = client.post(
+            f"/api/v1/lease-exit-settlements/{settlement['id']}/submit",
+            headers=headers,
+            json={
+                "expected_version": settlement["lock_version"],
+                "contract_expected_version": created_data["contract"]["lock_version"],
+            },
+        )
+        assert submitted.status_code == 200, submitted.text
+        submitted_data = submitted.json()["data"]
+        approved = client.post(
+            f"/api/v1/lease-exit-settlements/{settlement['id']}/approve",
+            headers=headers,
+            json={
+                "expected_version": submitted_data["exit_settlement"]["lock_version"],
+                "override_reason": "测试夹具单管理员审批",
+            },
+        )
+        assert approved.status_code == 200, approved.text
+        approved_data = approved.json()["data"]
+        content = f"synthetic exit handover {settlement['id']}".encode()
+        uploaded = client.post(
+            "/api/v1/attachments",
+            headers=headers,
+            json={
+                "biz_type": "LEASE_EXIT_SETTLEMENT",
+                "biz_id": str(settlement["id"]),
+                "filename": f"exit-{settlement['id']}.txt",
+                "content_type": "text/plain",
+                "content_base64": base64.b64encode(content).decode("ascii"),
+                "park_id": approved_data["contract"]["park_id"],
+            },
+        )
+        assert uploaded.status_code == 200, uploaded.text
+        cleared = client.post(
+            f"/api/v1/lease-exit-settlements/{settlement['id']}/clearance",
+            headers=headers,
+            json={
+                "expected_version": approved_data["exit_settlement"]["lock_version"],
+                "evidence_attachment_id": uploaded.json()["data"]["id"],
+                "reference": f"SYNTHETIC-CLEARANCE-{settlement['id']}",
+                "reason": "测试夹具记录外部清账事实；未执行资金操作",
+            },
+        )
+        assert cleared.status_code == 200, cleared.text
+        cleared_data = cleared.json()["data"]
+        documented = client.post(
+            f"/api/v1/leases/{contract_id}/documents",
+            headers=headers,
+            json={
+                "expected_version": cleared_data["contract"]["lock_version"],
+                "attachment_id": uploaded.json()["data"]["id"],
+                "document_type": "EXIT_HANDOVER",
+                "checksum": hashlib.sha256(content).hexdigest(),
+                "exit_settlement_id": settlement["id"],
+            },
+        )
+        assert documented.status_code == 200, documented.text
+        documented_data = documented.json()["data"]
+        document_id = next(
+            row["id"]
+            for row in documented_data["documents"]
+            if row["document_type"] == "EXIT_HANDOVER"
+            and int(row.get("exit_settlement_id") or 0) == int(settlement["id"])
+            and row["status"] == "DRAFT"
+        )
+        approved_document = client.post(
+            f"/api/v1/leases/{contract_id}/documents/{document_id}/approve",
+            headers=headers,
+            json={"expected_version": documented_data["contract"]["lock_version"]},
+        )
+        assert approved_document.status_code == 200, approved_document.text
+        ready = approved_document.json()["data"]
+        return client.post(
+            f"/api/v1/lease-exit-settlements/{settlement['id']}/close",
+            headers=headers,
+            json={
+                "expected_version": cleared_data["exit_settlement"]["lock_version"],
+                "contract_expected_version": ready["contract"]["lock_version"],
+                "idempotency_key": f"test-exit-close-{settlement['id']}",
+            },
+        )
+
+    return run

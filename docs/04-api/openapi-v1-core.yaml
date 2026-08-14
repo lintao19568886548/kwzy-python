@@ -198,7 +198,7 @@ paths:
               required: [old_password, new_password]
               properties:
                 old_password: { type: string }
-                new_password: { type: string, minLength: 6 }
+                new_password: { type: string, minLength: 10, maxLength: 72 }
       responses:
         '200':
           description: OK
@@ -1380,6 +1380,27 @@ paths:
         - name: status
           in: query
           schema: { type: string }
+        - name: contract_type
+          in: query
+          schema: { type: string }
+        - name: approval_status
+          in: query
+          schema: { type: string }
+        - name: change_status
+          in: query
+          schema: { type: string }
+        - name: exit_status
+          in: query
+          schema: { type: string }
+        - name: keyword
+          in: query
+          schema: { type: string, maxLength: 100 }
+        - name: end_from
+          in: query
+          schema: { type: string, format: date }
+        - name: end_to
+          in: query
+          schema: { type: string, format: date }
       responses:
         '200':
           description: OK envelope
@@ -1452,6 +1473,11 @@ paths:
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/LeaseIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseVersionCommandV2' }
       responses:
         '200':
           description: OK
@@ -1468,6 +1494,11 @@ paths:
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/LeaseIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseApprovalCommandV2' }
       responses:
         '200':
           description: OK
@@ -1484,6 +1515,11 @@ paths:
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/LeaseIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseVersionCommandV2' }
       responses:
         '200':
           description: OK
@@ -1495,12 +1531,17 @@ paths:
   /leases/{lease_id}/activate:
     post:
       tags: [Leases]
-      summary: 激活合同（占用单元，投影 used_area）
-      description: 需 lease:activate。冲突时 409 OCCUPANCY_CONFLICT。不生成账单。
+      summary: 兼容入口：按 V2 审批与主文档门禁激活合同
+      description: 需 lease:activate；必须已审批且主文档已通过。冲突时返回 409，不生成账单。
       operationId: activateLease
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/LeaseIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseVersionCommandV2' }
       responses:
         '200':
           description: OK
@@ -1512,14 +1553,15 @@ paths:
   /leases/{lease_id}/terminate:
     post:
       tags: [Leases]
-      summary: 正常退租终止（释放占用；无押金退还流水）
+      summary: 已禁用的旧终止入口
+      description: 始终返回 409 LEASE_EXIT_SETTLEMENT_REQUIRED；必须改用 V2 退租结算链。
       operationId: terminateLease
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/LeaseIdPath'
       responses:
-        '200':
-          description: OK
+        '409':
+          description: LEASE_EXIT_SETTLEMENT_REQUIRED
           content:
             application/json:
               schema:
@@ -1528,18 +1570,489 @@ paths:
   /leases/{lease_id}/breach:
     post:
       tags: [Leases]
-      summary: 违约终止
+      summary: 已禁用的旧违约终止入口
+      description: 始终返回 409 LEASE_EXIT_SETTLEMENT_REQUIRED；必须改用 V2 退租结算链。
       operationId: breachLease
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/LeaseIdPath'
       responses:
-        '200':
-          description: OK
+        '409':
+          description: LEASE_EXIT_SETTLEMENT_REQUIRED
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiOk'
+
+  /leases/{contract_id}/lifecycle:
+    get:
+      tags: [Leases]
+      summary: 获取合同 V2 聚合详情、当前快照与治理时间线
+      operationId: getLeaseLifecycleV2
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ContractIdPath'
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/summary:
+    get:
+      tags: [Leases]
+      summary: 合同工作台零安全汇总
+      operationId: getLeaseWorkspaceSummaryV2
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: park_id
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: as_of
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/selectors:
+    get:
+      tags: [Leases]
+      summary: 合同域授权园区、主体和当前单元选择器
+      operationId: getLeaseSelectorsV2
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: park_id
+          in: query
+          schema: { type: integer, format: int64 }
+        - name: keyword
+          in: query
+          schema: { type: string, maxLength: 100 }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /parties/{party_id}/lease-profile:
+    get:
+      tags: [Leases]
+      summary: 主体中心合同画像与只读账务余额汇总
+      operationId: getPartyLeaseProfileV2
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: party_id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/{contract_id}/schedule-preview:
+    post:
+      tags: [Leases]
+      summary: 预览履约计划，不产生账单
+      operationId: previewLeaseScheduleV2
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ContractIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseSchedulePreviewV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/{contract_id}/charges:
+    put:
+      tags: [Leases]
+      summary: 替换草稿合同的结构化收费项
+      operationId: replaceLeaseChargesV2
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ContractIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseChargeReplaceV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/{contract_id}/lifecycle/submit:
+    post:
+      tags: [Leases]
+      summary: 提交合同初始版本审批
+      operationId: submitLeaseLifecycleV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ContractIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseVersionCommandV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/{contract_id}/lifecycle/approve:
+    post:
+      tags: [Leases]
+      summary: 批准合同初始版本
+      operationId: approveLeaseLifecycleV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ContractIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseApprovalCommandV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/{contract_id}/lifecycle/reject:
+    post:
+      tags: [Leases]
+      summary: 驳回合同初始版本
+      operationId: rejectLeaseLifecycleV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ContractIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseApprovalCommandV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/{contract_id}/lifecycle/withdraw:
+    post:
+      tags: [Leases]
+      summary: 撤回合同初始版本审批
+      operationId: withdrawLeaseLifecycleV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ContractIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseApprovalCommandV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/{contract_id}/lifecycle/activate:
+    post:
+      tags: [Leases]
+      summary: 电子签署后激活合同并生成版本一和履约计划
+      description: 仅投影单元占用；不生成 Bill。
+      operationId: activateLeaseLifecycleV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ContractIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseDocumentCommandV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/{contract_id}/documents:
+    post:
+      tags: [Leases]
+      summary: 追加不可变合同文档版本
+      operationId: addLeaseDocumentV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ContractIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseDocumentCreateV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/{contract_id}/documents/{document_id}/approve:
+    post:
+      tags: [Leases]
+      summary: 批准合同文档版本
+      operationId: approveLeaseDocumentV2
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ContractIdPath'
+        - $ref: '#/components/parameters/DocumentIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseDocumentCommandV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/{contract_id}/documents/{document_id}/sign:
+    post:
+      tags: [Leases]
+      summary: 经签署适配器签署合同文档版本
+      operationId: signLeaseDocumentV2
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ContractIdPath'
+        - $ref: '#/components/parameters/DocumentIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseDocumentCommandV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/{contract_id}/changes:
+    post:
+      tags: [Leases]
+      summary: 基于当前合同版本创建变更单
+      operationId: createLeaseChangeV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ContractIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseChangeCreateV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-changes/{change_id}/submit:
+    post:
+      tags: [Leases]
+      summary: 提交合同变更审批
+      operationId: submitLeaseChangeV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ChangeIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseVersionCommandV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-changes/{change_id}:
+    put:
+      tags: [Leases]
+      summary: 替换草稿变更提案
+      operationId: editLeaseChangeV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ChangeIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseChangeCreateV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-changes/apply-due:
+    post:
+      tags: [Leases]
+      summary: 本地人工触发到期变更批处理
+      description: 本端点不代表已配置生产调度。
+      operationId: applyDueLeaseChangesV2
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseApplyDueV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-changes/{change_id}/approve:
+    post:
+      tags: [Leases]
+      summary: 批准合同变更
+      operationId: approveLeaseChangeV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ChangeIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseChangeDecisionV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-changes/{change_id}/reject:
+    post:
+      tags: [Leases]
+      summary: 驳回合同变更
+      operationId: rejectLeaseChangeV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ChangeIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseChangeDecisionV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-changes/{change_id}/apply:
+    post:
+      tags: [Leases]
+      summary: 幂等应用已批准且到期的合同变更
+      operationId: applyLeaseChangeV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ChangeIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseChangeApplyV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-changes/{change_id}/withdraw:
+    post:
+      tags: [Leases]
+      summary: 由申请人撤回待审变更
+      operationId: withdrawLeaseChangeV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ChangeIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseVersionCommandV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-changes/{change_id}/cancel:
+    post:
+      tags: [Leases]
+      summary: 取消草稿或已批准但尚未应用的变更
+      operationId: cancelLeaseChangeV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ChangeIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseVersionCommandV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /leases/{contract_id}/exit-settlements:
+    post:
+      tags: [Leases]
+      summary: 创建退租结算单并冻结账务余额快照
+      operationId: createLeaseExitSettlementV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/ContractIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseExitCreateV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-exit-settlements/{settlement_id}:
+    put:
+      tags: [Leases]
+      summary: 编辑退租结算草稿
+      operationId: editLeaseExitSettlementV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/SettlementIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseExitEditV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-exit-settlements/{settlement_id}/submit:
+    post:
+      tags: [Leases]
+      summary: 提交退租结算审批并进入 EXIT_PENDING
+      operationId: submitLeaseExitSettlementV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/SettlementIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseExitSubmitV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-exit-settlements/{settlement_id}/approve:
+    post:
+      tags: [Leases]
+      summary: 批准退租结算
+      operationId: approveLeaseExitSettlementV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/SettlementIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseExitDecisionV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-exit-settlements/{settlement_id}/reject:
+    post:
+      tags: [Leases]
+      summary: 驳回退租结算并恢复合同在租状态
+      operationId: rejectLeaseExitSettlementV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/SettlementIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseExitDecisionV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-exit-settlements/{settlement_id}/withdraw:
+    post:
+      tags: [Leases]
+      summary: 由申请人撤回待审退租结算并恢复在租状态
+      operationId: withdrawLeaseExitSettlementV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/SettlementIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseExitSubmitV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-exit-settlements/{settlement_id}/clearance:
+    post:
+      tags: [Leases]
+      summary: 登记外部财务清账凭证
+      description: 仅记录外部凭证与引用；不在合同域写付款或退款流水。
+      operationId: confirmLeaseExitClearanceV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/SettlementIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseExitClearanceV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
+
+  /lease-exit-settlements/{settlement_id}/close:
+    post:
+      tags: [Leases]
+      summary: 幂等关闭退租，生成终态版本并释放占用
+      operationId: closeLeaseExitSettlementV2
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/SettlementIdPath' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LeaseExitCloseV2' }
+      responses:
+        '200': { $ref: '#/components/responses/ApiOkResponse' }
 
   /bills:
     get:
@@ -2830,6 +3343,26 @@ components:
       in: path
       required: true
       schema: { type: integer, format: int64 }
+    ContractIdPath:
+      name: contract_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    DocumentIdPath:
+      name: document_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    ChangeIdPath:
+      name: change_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    SettlementIdPath:
+      name: settlement_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
     BillIdPath:
       name: bill_id
       in: path
@@ -2844,6 +3377,13 @@ components:
         minLength: 1
         maxLength: 128
       description: 写操作幂等键（payments 创建、bills issue 等必须支持；1–128 字符，不作为授权边界）
+
+  responses:
+    ApiOkResponse:
+      description: 统一成功响应
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiOk' }
 
   schemas:
     # ----- 统一响应 envelope（P0-3）-----
@@ -2862,6 +3402,181 @@ components:
         code: { type: string, example: VALIDATION_ERROR }
         message: { type: string }
         data: { type: object, nullable: true }
+
+    LeaseVersionCommandV2:
+      type: object
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        remark: { type: string, maxLength: 1000, nullable: true }
+
+    LeaseApprovalCommandV2:
+      allOf:
+        - $ref: '#/components/schemas/LeaseVersionCommandV2'
+        - type: object
+          required: [approval_id]
+          properties:
+            approval_id: { type: integer, minimum: 1 }
+            override_reason: { type: string, maxLength: 1000, nullable: true }
+
+    LeaseChargeLineV2:
+      type: object
+      required: [charge_code, charge_type, calculation_method, billing_cycle, start_date, end_date]
+      properties:
+        charge_code: { type: string, minLength: 1, maxLength: 64 }
+        charge_type: { type: string, minLength: 1, maxLength: 32 }
+        calculation_method: { type: string, enum: [FIXED, PER_AREA] }
+        billing_cycle: { type: string, enum: [MONTHLY, QUARTERLY, SEMI_ANNUAL, ANNUAL, ONE_TIME] }
+        currency: { type: string, default: CNY }
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date }
+        due_day: { type: integer, minimum: 1, maximum: 31, default: 1 }
+        amount: { type: number, nullable: true }
+        unit_price: { type: number, nullable: true }
+        tax_rate: { type: number, default: 0 }
+        sort_order: { type: integer, default: 0 }
+        rules:
+          type: array
+          items: { type: object, additionalProperties: true }
+
+    LeaseChargeReplaceV2:
+      type: object
+      required: [expected_version, charges]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        charges:
+          type: array
+          items: { $ref: '#/components/schemas/LeaseChargeLineV2' }
+
+    LeaseSchedulePreviewV2:
+      type: object
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        charges:
+          type: array
+          nullable: true
+          items: { $ref: '#/components/schemas/LeaseChargeLineV2' }
+
+    LeaseDocumentCreateV2:
+      type: object
+      required: [expected_version, attachment_id, document_type, checksum]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        attachment_id: { type: integer, minimum: 1 }
+        document_type: { type: string, minLength: 1, maxLength: 32 }
+        checksum: { type: string, minLength: 64, maxLength: 64 }
+        is_main: { type: boolean, default: false }
+        exit_settlement_id: { type: integer, minimum: 1, nullable: true }
+
+    LeaseDocumentCommandV2:
+      type: object
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+
+    LeaseChangeCreateV2:
+      type: object
+      required: [expected_version, change_type, effective_date, reason, proposed_snapshot]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        change_type:
+          type: string
+          enum: [RENEWAL, EXPANSION, REDUCTION, UNIT_TRANSFER, PRICE_ADJUSTMENT, PARTY_TRANSFER, EARLY_TERMINATION]
+        effective_date: { type: string, format: date }
+        reason: { type: string, minLength: 1, maxLength: 2000 }
+        proposed_snapshot: { type: object, additionalProperties: true }
+        target_party_eligible: { type: boolean, nullable: true }
+
+    LeaseChangeDecisionV2:
+      type: object
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        remark: { type: string, maxLength: 1000, nullable: true }
+        override_reason: { type: string, maxLength: 1000, nullable: true }
+
+    LeaseChangeApplyV2:
+      type: object
+      required: [expected_version, idempotency_key]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        idempotency_key: { type: string, minLength: 1, maxLength: 160 }
+        as_of: { type: string, format: date, nullable: true }
+
+    LeaseApplyDueV2:
+      type: object
+      properties:
+        as_of: { type: string, format: date, nullable: true }
+        limit: { type: integer, minimum: 1, maximum: 200, default: 100 }
+
+    LeaseExitCreateV2:
+      type: object
+      required: [expected_version, handover_date]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        handover_date: { type: string, format: date }
+        inspection_summary: { type: string, maxLength: 4000, nullable: true }
+
+    LeaseExitItemV2:
+      type: object
+      required: [item_type, amount, description]
+      properties:
+        item_type: { type: string, minLength: 1, maxLength: 32 }
+        amount: { type: number }
+        description: { type: string, minLength: 1, maxLength: 255 }
+        approved: { type: boolean, default: true }
+        evidence_attachment_id: { type: integer, minimum: 1, nullable: true }
+        source_type: { type: string, maxLength: 32, nullable: true }
+        source_ref: { type: string, maxLength: 128, nullable: true }
+        sort_order: { type: integer, default: 0 }
+
+    LeaseExitEditV2:
+      type: object
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        inspection_summary: { type: string, maxLength: 4000, nullable: true }
+        meter_readings:
+          type: array
+          items: { type: object, additionalProperties: true }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/LeaseExitItemV2' }
+
+    LeaseExitSubmitV2:
+      type: object
+      required: [expected_version, contract_expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        contract_expected_version: { type: integer, minimum: 1 }
+        remark: { type: string, maxLength: 1000, nullable: true }
+
+    LeaseExitDecisionV2:
+      type: object
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        remark: { type: string, maxLength: 1000, nullable: true }
+        override_reason: { type: string, maxLength: 1000, nullable: true }
+
+    LeaseExitClearanceV2:
+      type: object
+      required: [expected_version, evidence_attachment_id, reference, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        evidence_attachment_id: { type: integer, minimum: 1 }
+        reference: { type: string, minLength: 1, maxLength: 128 }
+        reason: { type: string, minLength: 1, maxLength: 2000 }
+
+    LeaseExitCloseV2:
+      type: object
+      required: [expected_version, contract_expected_version, idempotency_key]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        contract_expected_version: { type: integer, minimum: 1 }
+        idempotency_key: { type: string, minLength: 1, maxLength: 160 }
+        breached: { type: boolean, default: false }
 
     PageAccessProofResponse:
       type: object
@@ -3459,8 +4174,6 @@ components:
         contract_no: { type: string }
         start_date: { type: string, format: date }
         end_date: { type: string, format: date }
-        increase_date: { type: string, format: date }
-        increase_rate: { type: number }
         deposit_amount: { type: number }
         remark: { type: string }
         units:
@@ -3479,9 +4192,16 @@ components:
               amount: { type: number }
               description: { type: string }
               sort_order: { type: integer }
+        charges:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/LeaseChargeLineV2'
     LeaseUpdate:
       type: object
+      required: [expected_version]
       properties:
+        expected_version: { type: integer, minimum: 1 }
         start_date: { type: string, format: date }
         end_date: { type: string, format: date }
         deposit_amount: { type: number }
@@ -3496,6 +4216,11 @@ components:
             type: object
             properties:
               term_type: { type: string }
+        charges:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/LeaseChargeLineV2'
     LeasePage:
       type: object
       properties:

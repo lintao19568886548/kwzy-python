@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from sqlalchemy import Integer, String, Text
+from sqlalchemy import Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import FK_TYPE, Base, PrimaryKeyMixin, TimestampMixin
@@ -14,6 +14,14 @@ class IntegrationOutbox(Base, PrimaryKeyMixin, TimestampMixin):
     """外部调用出站记录（成功/失败均可追踪）。"""
 
     __tablename__ = "integration_outbox"
+    __table_args__ = (
+        UniqueConstraint(
+            "tenant_id",
+            "channel",
+            "idempotency_key",
+            name="uk_integration_outbox_tenant_channel_key",
+        ),
+    )
 
     tenant_id: Mapped[int] = mapped_column(FK_TYPE, nullable=False, index=True)
     channel: Mapped[str] = mapped_column(String(32), nullable=False, index=True)

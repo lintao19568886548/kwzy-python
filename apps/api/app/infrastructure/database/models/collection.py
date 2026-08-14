@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import DateTime, ForeignKey, Numeric, String, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Index, Numeric, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import FK_TYPE, Base, PrimaryKeyMixin, TimestampMixin
@@ -30,6 +30,10 @@ class Payment(Base, PrimaryKeyMixin, TimestampMixin):
 
 class PaymentAllocation(Base, PrimaryKeyMixin):
     __tablename__ = "payment_allocations"
+    __table_args__ = (
+        Index("idx_pa_payment", "payment_id"),
+        Index("idx_pa_bill", "bill_id"),
+    )
 
     tenant_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True)
     payment_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("payments.id"), nullable=False)

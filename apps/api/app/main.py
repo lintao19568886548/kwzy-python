@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from sqlalchemy import text
 
 from app import __version__
 from app.core.config import get_settings
@@ -15,6 +17,7 @@ from app.core.errors import (
 )
 from app.core.logging_config import configure_logging
 from app.core.request_context import RequestIdMiddleware
+from app.core.security_headers import SecurityHeadersMiddleware
 from app.infrastructure.database.session import SessionLocal
 from app.modules.identity.application.bootstrap import ensure_default_tenant
 from app.modules.identity.interface.api import router as identity_router
@@ -33,12 +36,10 @@ from app.modules.attachments.interface.api import router as attachments_router
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    # Ensure step1 tables exist when using create_all fallback
+    # Schema creation is intentionally never performed here. All environments,
+    # including local/E2E, must execute Alembic before the application starts.
     settings = get_settings()
-    if settings.app_env in {"local", "test"}:  # normalized lowercase by Settings
-        from app.infrastructure.database.session import create_all_tables
-
-        create_all_tables()
+    if settings.bootstrap_local_identity:
         db = SessionLocal()
         try:
             ensure_default_tenant(db)
@@ -54,8 +55,8 @@ def create_app() -> FastAPI:
         title=settings.app_name,
         version=__version__,
         description="KWZY AI Smart Park API — Identity+Park+Unit+Party+Lease+Billing+Collection+Workbench+Investment",
-        docs_url="/docs",
-        redoc_url="/redoc",
+        docs_url=None if settings.app_env == "production" else "/docs",
+        redoc_url=None if settings.app_env == "production" else "/redoc",
         lifespan=lifespan,
     )
     app.add_exception_handler(AppError, app_error_handler)
@@ -71,6 +72,15 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.add_middleware(RequestIdMiddleware)
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=[host.strip() for host in settings.trusted_hosts.split(",") if host.strip()]
+        or ["*"],
+    )
+    app.add_middleware(
+        SecurityHeadersMiddleware,
+        production_like=settings.app_env in {"staging", "production"},
+    )
 
     prefix = settings.api_v1_prefix
     app.include_router(identity_router, prefix=prefix)
@@ -89,6 +99,20 @@ def create_app() -> FastAPI:
     @app.get("/health")
     def health() -> dict:
         return {"status": "up", "version": __version__, "env": settings.app_env}
+
+    @app.get("/health/ready")
+    def readiness(response: Response) -> dict:
+        """Readiness is false unless the configured database accepts a query."""
+
+        db = SessionLocal()
+        try:
+            db.execute(text("SELECT 1"))
+        except Exception:  # readiness must fail closed without leaking driver details
+            response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+            return {"status": "not_ready", "database": "down"}
+        finally:
+            db.close()
+        return {"status": "ready", "database": "up"}
 
     return app
 

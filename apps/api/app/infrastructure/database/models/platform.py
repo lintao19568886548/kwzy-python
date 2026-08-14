@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import BigInteger, DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import FK_TYPE, Base, PrimaryKeyMixin
@@ -20,7 +20,7 @@ class NumberSequence(Base, PrimaryKeyMixin):
     tenant_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True)
     biz_type: Mapped[str] = mapped_column(String(32), nullable=False)
     period_key: Mapped[str] = mapped_column(String(16), nullable=False, default="")
-    next_val: Mapped[int] = mapped_column(nullable=False, default=1)
+    next_val: Mapped[int] = mapped_column(BigInteger, nullable=False, default=1)
     updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=False), nullable=True)
 
 

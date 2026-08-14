@@ -25,7 +25,7 @@ class LogoutRequest(BaseModel):
 
 class PasswordChangeRequest(BaseModel):
     old_password: str = Field(min_length=1)
-    new_password: str = Field(min_length=6)
+    new_password: str = Field(min_length=10, max_length=72)
 
 
 class PageAccessSendRequest(BaseModel):
@@ -54,7 +54,7 @@ class UserInfo(BaseModel):
 
 class UserCreateRequest(BaseModel):
     username: str = Field(min_length=1, max_length=64)
-    password: str = Field(min_length=6)
+    password: str = Field(min_length=10, max_length=72)
     real_name: str = ""
     phone: str | None = None
     role_ids: list[int] = Field(default_factory=list)
@@ -69,7 +69,7 @@ class UserUpdateRequest(BaseModel):
     role_ids: list[int] | None = None
     park_ids: list[int] | None = None
     all_parks: bool | None = None
-    password: str | None = Field(default=None, min_length=6)
+    password: str | None = Field(default=None, min_length=10, max_length=72)
 
 
 class RoleCreateRequest(BaseModel):

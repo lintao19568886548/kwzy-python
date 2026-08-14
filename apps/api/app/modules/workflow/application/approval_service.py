@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import AppError
 from app.infrastructure.database.audit import AuditRecorder
 from app.modules.workflow.infrastructure.approval_repository import ApprovalRepository
+from app.modules.lease.infrastructure.approval_adapter import LEASE_MANAGED_APPROVAL_TYPES
 from app.shared.tenant_context import TenantContext
 
 
@@ -40,6 +41,12 @@ class ApprovalService:
         if not self.ctx.has_permission("approval:write"):
             raise AppError("无审批申请权限", code="PERMISSION_DENIED", status_code=403)
         biz_type = str(data.get("biz_type") or "").strip()
+        if biz_type.upper() in LEASE_MANAGED_APPROVAL_TYPES:
+            raise AppError(
+                "租赁域审批须使用对应业务命令",
+                code="APPROVAL_DOMAIN_COMMAND_REQUIRED",
+                status_code=409,
+            )
         biz_id = str(data.get("biz_id") or "").strip()
         title = str(data.get("title") or "").strip()
         if not biz_type or not biz_id or not title:
@@ -82,6 +89,12 @@ class ApprovalService:
         model = self.repo.get_by_id(approval_id)
         if model is None:
             raise AppError("审批单不存在", code="APPROVAL_NOT_FOUND", status_code=404)
+        if model.biz_type in LEASE_MANAGED_APPROVAL_TYPES:
+            raise AppError(
+                "租赁域审批须使用对应业务命令",
+                code="APPROVAL_DOMAIN_COMMAND_REQUIRED",
+                status_code=409,
+            )
         if model.status != "PENDING":
             raise AppError("非待审状态", code="APPROVAL_STATUS_INVALID", status_code=400)
         model.status = "APPROVED" if approve else "REJECTED"
@@ -110,6 +123,12 @@ class ApprovalService:
         model = self.repo.get_by_id(approval_id)
         if model is None:
             raise AppError("审批单不存在", code="APPROVAL_NOT_FOUND", status_code=404)
+        if model.biz_type in LEASE_MANAGED_APPROVAL_TYPES:
+            raise AppError(
+                "租赁域审批须使用对应业务命令",
+                code="APPROVAL_DOMAIN_COMMAND_REQUIRED",
+                status_code=409,
+            )
         if model.status != "PENDING":
             raise AppError("仅待审可撤回", code="APPROVAL_STATUS_INVALID", status_code=400)
         if model.applicant_user_id and int(model.applicant_user_id) != int(self.ctx.user_id or 0):

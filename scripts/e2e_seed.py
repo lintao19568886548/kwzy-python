@@ -18,7 +18,6 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import get_settings
 from app.core.security import hash_password
 from app.infrastructure.database import models  # noqa: F401
-from app.infrastructure.database.base import Base
 from app.infrastructure.database.models.identity import (
     Permission,
     Role,
@@ -120,7 +119,6 @@ def main() -> int:
         return 2
 
     engine = create_engine(url, pool_pre_ping=True)
-    Base.metadata.create_all(bind=engine)
     Session = sessionmaker(bind=engine, autoflush=False, autocommit=False)
     db = Session()
     try:
@@ -198,6 +196,49 @@ def main() -> int:
             password="viewer123",
             real_name="招商只读用户",
             role=crm_viewer_role,
+            reset_password=True,
+        )
+        lease_viewer_role = _ensure_role(
+            db,
+            tenant_id=tenant.id,
+            code="E2E_LEASE_VIEWER",
+            name="E2E合同只读",
+            perm_codes=["lease:read", "park:read", "unit:read", "party:read"],
+            all_parks=True,
+        )
+        _ensure_user(
+            db,
+            tenant_id=tenant.id,
+            username="e2e_lease_viewer",
+            password="LeaseView!2026",
+            real_name="合同只读用户",
+            role=lease_viewer_role,
+            reset_password=True,
+        )
+        lease_submitter_role = _ensure_role(
+            db,
+            tenant_id=tenant.id,
+            code="E2E_LEASE_SUBMITTER",
+            name="E2E合同提交审批",
+            perm_codes=[
+                "lease:read",
+                "lease:write",
+                "lease:approve",
+                "approval:write",
+                "approval:decide",
+                "park:read",
+                "unit:read",
+                "party:read",
+            ],
+            all_parks=True,
+        )
+        _ensure_user(
+            db,
+            tenant_id=tenant.id,
+            username="e2e_lease_submitter",
+            password="LeaseFlow!2026",
+            real_name="合同提交审批用户",
+            role=lease_submitter_role,
             reset_password=True,
         )
 
@@ -294,7 +335,9 @@ def main() -> int:
             "E2E_SEED=OK "
             f"tenant=default park_id={park.id} "
             "admin=admin e2e_limited=e2e_limited "
-            "e2e_asset_viewer=e2e_asset_viewer e2e_crm_viewer=e2e_crm_viewer tenant_b=admin_b"
+            "e2e_asset_viewer=e2e_asset_viewer e2e_crm_viewer=e2e_crm_viewer "
+            "e2e_lease_viewer=e2e_lease_viewer "
+            "e2e_lease_submitter=e2e_lease_submitter tenant_b=admin_b"
         )
         return 0
     except Exception as exc:

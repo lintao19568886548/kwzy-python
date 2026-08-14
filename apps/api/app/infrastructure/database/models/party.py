@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.database.base import (
@@ -45,6 +45,9 @@ class Party(Base, PrimaryKeyMixin, TimestampMixin):
     __tablename__ = "parties"
     __table_args__ = (
         UniqueConstraint("tenant_id", "credit_code", name="uk_parties_tenant_credit"),
+        Index("idx_parties_tenant_status", "tenant_id", "status"),
+        Index("idx_parties_tenant_risk", "tenant_id", "risk_status"),
+        Index("idx_parties_tenant_name", "tenant_id", "name"),
     )
 
     tenant_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True)
@@ -117,6 +120,18 @@ class PartyParkRelation(Base, PrimaryKeyMixin, TimestampMixin):
     """
 
     __tablename__ = "party_park_relations"
+    __table_args__ = (
+        Index(
+            "uk_ppr_active",
+            "tenant_id",
+            "party_id",
+            "park_id",
+            "party_role_id",
+            unique=True,
+            postgresql_where=text("status = 'ACTIVE' AND deleted_at IS NULL"),
+            sqlite_where=text("status = 'ACTIVE' AND deleted_at IS NULL"),
+        ),
+    )
 
     tenant_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True)
     party_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("parties.id"), nullable=False)
@@ -184,6 +199,21 @@ class PartyAddress(Base, PrimaryKeyMixin, TimestampMixin):
     """
 
     __tablename__ = "party_addresses"
+    __table_args__ = (
+        Index(
+            "uk_party_addr_primary",
+            "tenant_id",
+            "party_id",
+            "address_type",
+            unique=True,
+            postgresql_where=text(
+                "is_primary = true AND deleted_at IS NULL AND status = 'ACTIVE'"
+            ),
+            sqlite_where=text(
+                "is_primary = 1 AND deleted_at IS NULL AND status = 'ACTIVE'"
+            ),
+        ),
+    )
 
     tenant_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("tenants.id"), nullable=False, index=True)
     party_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("parties.id"), nullable=False)
