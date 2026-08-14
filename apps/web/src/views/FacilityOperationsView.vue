@@ -585,7 +585,7 @@ async function openAlarm(id: number, preserveMessages = false) {
   try {
     const response = await http.get<Envelope<Alarm>>(`/iot-alarms/${id}`);
     detailAlarm.value = response.data.data;
-    resolutionReason.value = "";
+    if (!preserveMessages) resolutionReason.value = "";
   } catch (value) {
     requestError(value, "告警不可见或加载失败");
   }
