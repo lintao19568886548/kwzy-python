@@ -1,10 +1,22 @@
 # Party 企业画像纵切证据
 
 > 生成日期：2026-08-14（Asia/Shanghai）
-> 当前证据阶段：工作树总验收已通过；clean-SHA 复验尚未绑定。
+> 当前证据阶段：精确提交 `36805823ad2e88311b9744e9e720b282b7cc74c8` 的 clean-SHA 总验收通过。
 > 产品边界：只声明本地产品范围完成；外部工商提供商、真实旧数据和生产切换均未获授权或证据。
 
-## 工作树机器证据
+## clean-SHA 机器证据
+
+| 证据 | 结果 | SHA-256 |
+| --- | --- | --- |
+| `acceptance-clean-3680582.json` | 31/31 步骤 exit 0，521,943 ms | `FB03AA7BFC9F9D6024D657D3B39C7220536EAAFCDFAD994BE54199BA97BA963E` |
+| `acceptance-clean-e7d7263-performance-failure.json` | 首轮在性能门禁以 p95 535.126 ms 真实中止，未降低 500 ms 门槛 | `905A449054C2547207DF2273DC64B81A89887FC9DE811559B1891223BA4B9908` |
+| `http-performance-clean-3680582.json` | 1,000 请求，并发 25，p95 225.85 ms，172.617 RPS，0 错误 | `481E796A7CDCC0E260942C831CF9D2E2FC964EDFD9F24DB68FB55AFC4B73CE06` |
+| `party-enterprise-etl-clean-3680582.json` | dry/interruption/apply/reapply/reconcile/rollback 全通过 | `13A8E8BDBAAF7F57445338BF8C42D9B8A971058F6B34043034EBC60CBA565C6E` |
+| `party-enterprise-http-clean-3680582.json` | 21/21 真实 loopback HTTP 阶段通过，626.54 ms | `E14B6686A92B3D6F54D1AB89AFD043DE40E4A3BF0071FC76D9D603D80AE40C4F` |
+
+首轮 clean-SHA 在企业目录 N+1 查询下触发真实性能失败。修复提交 `3680582` 将逐 Party 的园区和风险查询改为两个租户受限批量查询，并加入“查询数不随目录行数增长”的回归；随后从空库完整复跑才形成 PASS。
+
+## 历史工作树证据
 
 | 证据 | 结果 | SHA-256 |
 | --- | --- | --- |
@@ -13,7 +25,7 @@
 | `party-enterprise-etl-worktree.json` | dry/interruption/apply/reapply/reconcile/rollback 全通过 | `B822AB7DAC5A93546A53D86EE3D7541BDC4705A8C64C02A475A259F3DB325210` |
 | `party-enterprise-http-worktree.json` | 21/21 真实 loopback HTTP 阶段通过，671.22 ms | `931B3227FFBB3DE3BD72D3EDA881A28640C994497FCE2B55CB8F0E0ECB8DB5BF` |
 
-总脚本使用 PostgreSQL 16 空库执行 base→`t6c24e9f1a08`、唯一 current=head、t6→s5→t6；314 个后端测试、57 个 Playwright、11 个 OpenAPI 契约、71 项 OpenSpec、851 文件敏感信息扫描以及备份删除/恢复 100 张表均通过。
+clean-SHA 总脚本使用 PostgreSQL 16 空库执行 base→`t6c24e9f1a08`、唯一 current=head、t6→s5→t6；315 个后端测试、57 个 Playwright、11 个 OpenAPI 契约、71 项当时 OpenSpec、856 文件敏感信息扫描以及备份删除/恢复 100 张表均通过。
 
 ## 浏览器与视觉证据
 

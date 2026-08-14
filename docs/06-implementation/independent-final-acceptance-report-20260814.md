@@ -2,16 +2,18 @@
 
 > 日期：2026-08-14（Asia/Shanghai）
 > 结论：**BLOCKED（已实现范围条件通过，全产品未完成）**
-> 最新 clean-SHA 验收基线：招商 CRM `4f870af20c7c3b574b0f9cc8498e3c2dfb14e5fe`（已正常推送至 `origin/feat/full-rebuild-completion`）
-> 当前 Party 企业画像工作树报告：`evidence/party-enterprise-profile/acceptance-worktree-20260814.json`
-> 工作树报告 SHA-256：`03266C7B0029F0576BFF7F40DF86472A81080DD4AD21EAFBEA95EAB7C2CE137D`；clean-SHA 复验仍待执行
+> 最新 clean-SHA 验收基线：Party 企业画像 `36805823ad2e88311b9744e9e720b282b7cc74c8`（已正常推送至 `origin/feat/full-rebuild-completion`）
+> 最新机器报告：`evidence/party-enterprise-profile/acceptance-clean-3680582.json`
+> 报告 SHA-256：`FB03AA7BFC9F9D6024D657D3B39C7220536EAAFCDFAD994BE54199BA97BA963E`
 > 本报告滚动记录自治重建；下文早期 repair 数字如与“最新闭环增量”冲突，以最新机器报告与能力矩阵为准。
 
 ## 0. 最新闭环增量
 
-Party 企业画像工作树完整脚本 31/31 步 exit 0：PG16 fresh base→唯一 head `t6c24e9f1a08`、严格 current=heads、t6 down 到 s5 后再 up、全仓 Ruff 错误级规则、314 后端测试、8 租户 worker、全套合成 ETL、四条真实 HTTP 旅程、1,000 请求性能、备份删除/恢复、前端门禁、57 条 Playwright、11 条 OpenAPI strict、71 项 OpenSpec strict、851 文件 secrets scan 和资源清理均通过。当前证据仍绑定工作树旧 HEAD `e7b08c9`，因此先明确标为 worktree，必须在实现提交后用独立 clean worktree 复跑才升级为 clean-SHA 证据；未 force、未触达 main、未连接生产。
+Party 企业画像精确提交 `3680582` 的完整脚本 31/31 步 exit 0、521,943 ms：PG16 fresh base→唯一 head `t6c24e9f1a08`、严格 current=heads、t6 down 到 s5 后再 up、全仓 Ruff 错误级规则、315 后端测试、8 租户 worker、全套合成 ETL、四条真实 HTTP 旅程、1,000 请求性能、备份删除/恢复、前端门禁、57 条 Playwright、11 条 OpenAPI strict、71 项当时 OpenSpec strict、856 文件 secrets scan 和资源清理均通过。实现提交 `e7d7263` 与 N+1 修复 `3680582` 已正常推送；未 force、未触达 main、未连接生产。
 
-本纵切新增组织主体企业画像、精确完整度、关联企业图、证件指纹与同范围附件、标签来源、追加式风险及处置，并以数据库派生权限隔离受控证件/风险。三张截图人工复核无假数据、遮挡、乱码、敏感原文或移动端横向溢出；21 阶段真实 HTTP 覆盖 422、403/404 路径归属、409 乐观锁、环拒绝、幂等、完整度和目录对账。工作树性能为 p95 409.791 ms、109.199 RPS、0 错误；外部工商状态明确 `NOT_CONNECTED`。
+本纵切新增组织主体企业画像、精确完整度、关联企业图、证件指纹与同范围附件、标签来源、追加式风险及处置，并以数据库派生权限隔离受控证件/风险。三张截图人工复核无假数据、遮挡、乱码、敏感原文或移动端横向溢出；21 阶段真实 HTTP 覆盖 422、403/404 路径归属、409 乐观锁、环拒绝、幂等、完整度和目录对账。clean-SHA 性能为 p95 225.85 ms、172.617 RPS、0 错误；外部工商状态明确 `NOT_CONNECTED`。
+
+首轮 clean-SHA 在性能步骤以 p95 535.126 ms 真实中止。根因是企业目录对每行 Party 分别查询园区和风险形成 N+1；整改为两个租户受限批量查询并增加查询数防回归后，相同门槛从空库完整复跑通过。失败报告 `acceptance-clean-e7d7263-performance-failure.json` 保留，500 ms 门槛未降低。
 
 Party synthetic ETL 对 2 个画像、1 条关系、1 个证件、1 个标签、1 个风险和 2 条隔离记录完成 dry/interruption/apply/reapply/reconcile/rollback；没有写入原始组织标识列，个人身份材料与孤儿关系均进入隔离。真实旧 schema/脱敏快照、外部工商合同/凭据和生产切换授权继续阻塞。
 
@@ -81,7 +83,7 @@ pwsh -NoProfile -File infra/local-staging/run_full_acceptance.ps1
 
 ## 4. 测试和耗时
 
-最新 Party 工作树报告为 31/31 步、314 pytest、57 Playwright、11 OpenAPI、71 OpenSpec、851 文件扫描，总耗时 482,880 ms；下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。该数字尚不冒充 clean-SHA，下一步在精确实现提交上复跑。
+最新 Party clean-SHA 报告为 31/31 步、315 pytest、57 Playwright、11 OpenAPI、71 当时 OpenSpec、856 文件扫描，总耗时 521,943 ms；下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
 
 精确实现 SHA `a9267d4` 的完整脚本从 11:33:05 到 11:38:53，总耗时 348,122 ms，24/24 步 exit 0。
 
@@ -127,10 +129,10 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 
 最新真实 loopback HTTP 使用登录后的 8 个公共读写查询接口（含企业目录），1000 请求、并发 25、预热 40：
 
-- 0 failures，错误率 0.0%，109.199 req/s。
-- p50 197.904 ms，p95 409.791 ms，p99 483.999 ms，max 611.783 ms。
+- 0 failures，错误率 0.0%，172.617 req/s。
+- p50 135.455 ms，p95 225.85 ms，p99 254.633 ms，max 272.53 ms。
 - 门槛 p95 ≤ 500 ms、错误率 ≤ 1%、吞吐 ≥ 20 req/s，结果 PASS。
-- 性能报告保存在 `evidence/party-enterprise-profile/http-performance-worktree.json`。
+- 性能报告保存在 `evidence/party-enterprise-profile/http-performance-clean-3680582.json`。
 
 生产契约提供显式 PG QueuePool 上限/超时/回收、`/health/ready`、非 root 镜像、只读文件系统、tmpfs、drop all capabilities 和 no-new-privileges。API 镜像用户为 `kwzy`，Web 为 UID `101`。
 
@@ -154,7 +156,7 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 | API/OpenAPI 漂移 | 已修复，11/11 契约与 YAML strict 通过 |
 | Application→ORM / Router 查 DB | 架构回归测试和人工检索未发现新增违规 |
 | 默认管理员/开发免鉴权/弱 JWT | 生产/预发 fail-closed；本地测试账号只用于隔离验收 |
-| 密钥/Token/DB/PII | 851 文件扫描通过；企业证件原文只做 SHA-256 指纹与掩码，响应/审计/持久列无原文；环境样例为非生产占位 |
+| 密钥/Token/DB/PII | clean-SHA 856 文件扫描通过；企业证件原文只做 SHA-256 指纹与掩码，响应/审计/持久列无原文；环境样例为非生产占位 |
 | 历史迁移/多 head | 未修改历史迁移；新增修复迁移；唯一 head |
 | 外部集成虚假完成 | 文档和运行时均区分 fake/local、fail-closed 与 live verified |
 

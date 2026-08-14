@@ -1,14 +1,14 @@
 # 瞰维智管 V2 独立验收能力矩阵
 
 > 审计日期：2026-08-14（Asia/Shanghai）
-> 最近 clean-SHA 证据：招商 CRM 精确提交 `4f870af20c7c3b574b0f9cc8498e3c2dfb14e5fe`，报告 `evidence/investment-crm-completion/acceptance-clean-4f870af.json`，30/30 总门禁通过；Party 企业画像工作树报告 `evidence/party-enterprise-profile/acceptance-worktree-20260814.json` 为 31/31，通过后仍须绑定 clean SHA。
+> 最近 clean-SHA 证据：Party 企业画像精确提交 `36805823ad2e88311b9744e9e720b282b7cc74c8`，报告 `evidence/party-enterprise-profile/acceptance-clean-3680582.json`，31/31 总门禁通过。
 > 判定规则：只使用 `IMPLEMENTED_AND_VERIFIED`、`APPROVED_RETIRED`、`APPROVED_DEFERRED`、`BLOCKED`、`MISSING`。子能力通过但组合需求未闭环时，组合项必须判为 `MISSING`；没有人工批准，不使用 retired/deferred。
 
 ## 当前整改纵切
 
 - 分支：`feat/full-rebuild-completion`，起点 `37d7cf7da768eef8d7bcc743635117b8f34c7bbb`。
-- OpenSpec：`complete-party-enterprise-profile` 的实现及工作树总验收已完成，等待绑定 clean SHA 后同步归档；`complete-investment-crm-journey` 已完成实现及 clean-SHA 验收，但任务 5.5 的 `revoked` 与审批 delta 状态定义冲突，保持 active、未同步归档。
-- 已关闭证据：组织主体企业画像、完整度、关联企业、受控证件、标签来源和本地风险处置；PG16、21 阶段真实 HTTP、57 条全量浏览器、性能、备份恢复和合成 ETL 的工作树证据均通过。
+- OpenSpec：`complete-party-enterprise-profile` 已完成 clean-SHA 验收并同步 9 份 delta，等待本次归档；`complete-investment-crm-journey` 已完成实现及 clean-SHA 验收，但任务 5.5 的 `revoked` 与审批 delta 状态定义冲突，保持 active、未同步归档。
+- 已关闭证据：组织主体企业画像、完整度、关联企业、受控证件、标签来源和本地风险处置；PG16、21 阶段真实 HTTP、57 条全量浏览器、性能、备份恢复和合成 ETL 的 clean-SHA 证据均通过。
 - 不变阻塞：授权旧 schema/脱敏快照、旧密码样本、真实集成凭据、远程预发与生产授权均未获得，不得因本纵切降低为完成。
 
 ## 产品能力

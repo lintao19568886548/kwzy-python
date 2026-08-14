@@ -1,7 +1,7 @@
 # 瞰维智管 V2 独立终验整改登记表
 
 > 更新：2026-08-14（Asia/Shanghai）
-> 最新 clean-SHA 验收：招商 CRM 精确提交 `4f870af20c7c3b574b0f9cc8498e3c2dfb14e5fe` 30/30 门禁通过，已正常推送；Party 企业画像工作树 31/31 已通过，clean-SHA 复验待执行。
+> 最新 clean-SHA 验收：Party 企业画像精确提交 `36805823ad2e88311b9744e9e720b282b7cc74c8` 31/31 门禁通过，已正常推送。
 > 原则：关键词命中必须人工分类；`CLOSED` 仅表示对应缺陷已修复并回归，不外推为全产品完成。
 
 ## 已关闭问题
@@ -27,7 +27,8 @@
 | ASSET-001 | P1 | 业态仍为自由字符串，缺模板版本、地图/空置/到期/分析与完整响应式状态 | 七类版本化模板、精确单元版本绑定、真实空间几何、多视图 PC、PG/HTTP/52 E2E/ETL 全通过；外部 GIS/CAD/BIM 明确 NOT_CONNECTED | CLOSED_LOCAL_PRODUCT_SCOPE |
 | ACC-001 | P1 | 全量脚本未真正拒绝多 Alembic head/current 漂移，且失败时丢失子命令输出、中文日志乱码 | 唯一 head/current 硬断言覆盖 fresh 与 down/up；保留失败输出并强制 UTF-8；三轮真实执行验证 | CLOSED |
 | ASSET-002 | P1 | 提交前审查发现数据库可写入跨租户模板引用、显式模板可跨业态、几何可退化/自交且不可用单元误计挂牌潜力 | 不修改已应用 q3，新增 r4 复合租户外键；增加领域/API/PG 回归并修正空置口径；286 pytest、fresh/down-up 和 30/30 总门禁通过 | CLOSED |
-| PARTY-001 | P1 | Party 仅有基础主档，缺企业画像、关联企业、受控证件、来源标签、风险闭环及真实 PC 操作 | 新增 t6 前向迁移、纯领域规则、租户/园区/字段权限、指纹化证件、并发约束、真实 HTTP/PG/PC/ETL；工作树 314 pytest、57 E2E 和 31/31 总门禁通过 | CLOSED_LOCAL_PRODUCT_SCOPE |
+| PARTY-001 | P1 | Party 仅有基础主档，缺企业画像、关联企业、受控证件、来源标签、风险闭环及真实 PC 操作 | 新增 t6 前向迁移、纯领域规则、租户/园区/字段权限、指纹化证件、并发约束、真实 HTTP/PG/PC/ETL；clean-SHA 315 pytest、57 E2E 和 31/31 总门禁通过 | CLOSED_LOCAL_PRODUCT_SCOPE |
+| PERF-003 | P1 | Party 首轮 clean-SHA 企业目录逐行查询园区/风险形成 N+1，聚合 p95 535.126 ms 超过 500 ms 门槛 | 改为两个租户受限批量查询并增加查询数防回归；相同 1000/25 clean-SHA 门禁 p95 225.85 ms、172.617 RPS、0 错误 | CLOSED_LOCAL_GATE |
 
 ## 未关闭 P1
 
