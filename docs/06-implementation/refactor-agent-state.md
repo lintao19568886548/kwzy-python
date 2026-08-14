@@ -12,7 +12,7 @@
 | 工作树 | 实现提交复验前为 clean；当前仅有复验截图与证据文档变更 |
 | Alembic | 唯一 head `n0c68d3e5f42`；fresh upgrade 和 head→-1→head 通过 |
 | 当前阶段 | 独立验收仍为 2 implemented / 1 blocked / 17 missing；关键旅程 1 已关闭，组合能力 1 因完整审批/审计仍缺失而保持 `MISSING` |
-| 当前 OpenSpec | `complete-platform-organization-governance` strict PASS、27/27，待同步主规格与归档；`complete-identity-system-admin` 51/53，两个真实旧数据任务保持外部门禁 |
+| 当前 OpenSpec | 组织治理 27/27 已同步六份主规格并归档为 `2026-08-14-complete-platform-organization-governance`；`complete-identity-system-admin` 51/53，两个真实旧数据任务保持外部门禁 |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -26,6 +26,7 @@
 - [x] 完成 PC 组织治理工作区及桌面/平板/移动端加载、只读、403、409、503/重试和无横向溢出验收，三张截图已留存。
 - [x] 完成 PostgreSQL 16 约束/并发与组织治理合成 ETL 的 dry/apply/幂等/对账/回滚，真实旧 schema/脱敏样本仍保持外部门禁。
 - [x] 正常提交并推送 `8bb8770 feat: complete platform organization governance`，未 force；在该 clean SHA 上再次运行 25 项总验收，25/25 exit 0。
+- [x] 将组织治理六份 delta 智能合并到主规格并归档；归档后 OpenSpec strict 53/53 PASS。
 
 - [x] 读取用户全量 V2 目标和四份既有总控文档。
 - [x] 核对 Git：发现旧验收绑定 `23fa781`，当前代码已推进到 `d9c0b0b`。
@@ -91,10 +92,9 @@
 
 ## 下一恢复点
 
-1. 同步并归档 27/27 的 `complete-platform-organization-governance`，严格校验主规格。
-2. 创建并实施完整审批中心/审计中心的下一垂直切片，继续关闭组合能力 1。
-3. 建设事件驱动待办、规则/定时任务和多角色可配置工作台，继续关闭组合能力 2。
-4. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
+1. 创建并实施完整审批中心/审计中心的下一垂直切片，继续关闭组合能力 1。
+2. 建设事件驱动待办、规则/定时任务和多角色可配置工作台，继续关闭组合能力 2。
+3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 
 ## 不可变安全约束
 
