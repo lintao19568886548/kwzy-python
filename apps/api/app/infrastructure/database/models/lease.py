@@ -14,6 +14,7 @@ from typing import Any
 from sqlalchemy import (
     JSON,
     Boolean,
+    CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
@@ -398,6 +399,10 @@ class LeaseContractDocument(Base, PrimaryKeyMixin, TimestampMixin):
         ),
         Index("ix_lease_document_contract", "tenant_id", "contract_id", "status", "id"),
         Index("ix_lease_document_contract_id", "contract_id"),
+        CheckConstraint(
+            "status <> 'SIGNED' OR live_verified",
+            name="ck_lease_document_signed_truth",
+        ),
     )
 
     tenant_id: Mapped[int] = mapped_column(FK_TYPE, ForeignKey("tenants.id"), nullable=False)

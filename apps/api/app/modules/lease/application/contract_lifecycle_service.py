@@ -76,7 +76,7 @@ from app.modules.lease.infrastructure.mappers import (
 )
 from app.modules.lease.infrastructure.signature_adapter import (
     FailClosedSignatureAdapter,
-    LocalFakeSignatureAdapter,
+    LocalSandboxSignatureAdapter,
 )
 from app.modules.lease.infrastructure.billing_outstanding_adapter import (
     SqlAlchemyBillingOutstandingAdapter,
@@ -199,9 +199,7 @@ class ContractLifecycleService:
                     {"PENDING_APPROVAL"}, park_id=park_id
                 ),
                 "due_changes": self.changes.count_due_approved(day, park_id=park_id),
-                "exit_pending": self.contracts.count_statuses(
-                    {"EXIT_PENDING"}, park_id=park_id
-                ),
+                "exit_pending": self.contracts.count_statuses({"EXIT_PENDING"}, park_id=park_id),
                 "unresolved_clearance": unresolved["count"],
                 "unresolved_clearance_amount": str(unresolved["amount"]),
             },
@@ -227,9 +225,7 @@ class ContractLifecycleService:
         party = self.parties.get_by_id(int(party_id))
         if party is None:
             raise AppError("主体不存在", code="PARTY_NOT_FOUND", status_code=404)
-        contracts = list(
-            self.contracts.list(offset=0, limit=200, party_id=int(party_id))
-        )
+        contracts = list(self.contracts.list(offset=0, limit=200, party_id=int(party_id)))
         current_statuses = {"ACTIVE", "EXPIRING", "EXIT_PENDING"}
         current: list[dict[str, Any]] = []
         history: list[dict[str, Any]] = []
@@ -272,6 +268,7 @@ class ContractLifecycleService:
                 "financial_effect": "NONE",
             },
         }
+
     @staticmethod
     def _date(value: Any, field: str) -> date:
         if isinstance(value, datetime):
@@ -320,7 +317,10 @@ class ContractLifecycleService:
         ]
 
     def _charge_dicts(self, contract_id: int) -> list[dict[str, Any]]:
-        return [asdict(LeaseChargeItemMapper.to_entity(row)) for row in self.charges.list_for_contract(contract_id)]
+        return [
+            asdict(LeaseChargeItemMapper.to_entity(row))
+            for row in self.charges.list_for_contract(contract_id)
+        ]
 
     def _generate_schedule(self, model, *, version_no: int):
         charge_rows = self.charges.list_for_contract(int(model.id))
@@ -471,7 +471,9 @@ class ContractLifecycleService:
                         start_date=self._date(raw.get("start_date"), "start_date"),
                         end_date=self._date(raw.get("end_date"), "end_date"),
                         due_day=int(raw.get("due_day") or 1),
-                        amount=(Decimal(str(raw["amount"])) if raw.get("amount") is not None else None),
+                        amount=(
+                            Decimal(str(raw["amount"])) if raw.get("amount") is not None else None
+                        ),
                         unit_price=(
                             Decimal(str(raw["unit_price"]))
                             if raw.get("unit_price") is not None
@@ -501,9 +503,7 @@ class ContractLifecycleService:
                 contract_currency=model.currency,
             )
         else:
-            schedule = self._generate_schedule(
-                model, version_no=int(model.current_version_no or 0)
-            )
+            schedule = self._generate_schedule(model, version_no=int(model.current_version_no or 0))
         return {
             "contract_id": model.id,
             "lock_version": model.lock_version,
@@ -547,7 +547,9 @@ class ContractLifecycleService:
                     due_day=int(raw.get("due_day") or 1),
                     amount=Decimal(str(raw["amount"])) if raw.get("amount") is not None else None,
                     unit_price=(
-                        Decimal(str(raw["unit_price"])) if raw.get("unit_price") is not None else None
+                        Decimal(str(raw["unit_price"]))
+                        if raw.get("unit_price") is not None
+                        else None
                     ),
                     tax_rate=Decimal(str(raw.get("tax_rate") or 0)),
                     sort_order=int(raw.get("sort_order", index)),
@@ -780,10 +782,13 @@ class ContractLifecycleService:
         if len(checksum) != 64 or any(ch not in "0123456789abcdef" for ch in checksum):
             raise AppError("文档校验和无效", code="LEASE_DOCUMENT_INVALID", status_code=400)
         existing = self.documents.list_for_contract(contract_id)
-        version = max(
-            (row.document_version for row in existing if row.document_type == document_type),
-            default=0,
-        ) + 1
+        version = (
+            max(
+                (row.document_version for row in existing if row.document_type == document_type),
+                default=0,
+            )
+            + 1
+        )
         entity = LeaseContractDocumentEntity(
             tenant_id=self.ctx.tenant_id,
             contract_id=contract_id,
@@ -846,9 +851,10 @@ class ContractLifecycleService:
         signature_ref = source.signature_ref
         live_verified = source.live_verified
         signed_at = source.signed_at
+        persisted_status = normalized
         if normalized == "SIGNED":
             adapter = (
-                LocalFakeSignatureAdapter()
+                LocalSandboxSignatureAdapter()
                 if get_settings().app_env.lower() in {"local", "test", "development"}
                 else FailClosedSignatureAdapter()
             )
@@ -857,18 +863,23 @@ class ContractLifecycleService:
             signature_ref = result.signature_ref
             live_verified = result.live_verified
             signed_at = utc_now()
-        version = max(
-            row.document_version
-            for row in self.documents.list_for_contract(contract_id)
-            if row.document_type == source.document_type
-        ) + 1
+            if not live_verified:
+                persisted_status = "SANDBOX_COMPLETED"
+        version = (
+            max(
+                row.document_version
+                for row in self.documents.list_for_contract(contract_id)
+                if row.document_type == source.document_type
+            )
+            + 1
+        )
         entity = LeaseContractDocumentEntity(
             tenant_id=self.ctx.tenant_id,
             contract_id=contract_id,
             attachment_id=source.attachment_id,
             document_type=source.document_type,
             document_version=version,
-            status=normalized,
+            status=persisted_status,
             checksum=source.checksum,
             is_main=source.is_main,
             contract_version_no=source.contract_version_no,
@@ -902,7 +913,7 @@ class ContractLifecycleService:
                 priority="MEDIUM",
                 commit=False,
             )
-        elif normalized == "SIGNED":
+        elif persisted_status == "SIGNED":
             self.work_items.complete_by_source(
                 source_type="LEASE_DOCUMENT",
                 source_id=str(source.id),
@@ -918,7 +929,7 @@ class ContractLifecycleService:
                     commit=False,
                 )
         self.audit.record(
-            action=f"document_{normalized.lower()}",
+            action=f"document_{persisted_status.lower()}",
             resource_type="LEASE_CONTRACT_DOCUMENT",
             resource_id=document.id,
             park_id=model.park_id,
@@ -927,6 +938,8 @@ class ContractLifecycleService:
                 "checksum_prefix": source.checksum[:12],
                 "provider": provider,
                 "live_verified": live_verified,
+                "requested_status": normalized,
+                "persisted_status": persisted_status,
             },
         )
         self.session.commit()
@@ -944,7 +957,9 @@ class ContractLifecycleService:
             )
         self._domain_call(assert_v2_status_transition, model.status, "ACTIVE")
         documents = self.documents.list_for_contract(contract_id)
-        current_main = [row for row in documents if row.is_main and row.status in {"APPROVED", "SIGNED"}]
+        current_main = [
+            row for row in documents if row.is_main and row.status in {"APPROVED", "SIGNED"}
+        ]
         if not current_main:
             raise AppError("缺少已批准主合同文档", code="LEASE_DOCUMENT_REQUIRED", status_code=409)
         party = self.parties.get_by_id(int(model.party_id))
@@ -1374,7 +1389,10 @@ class ContractLifecycleService:
     ):
         existing = self.exits.get_open_for_contract(int(model.id))
         if existing is not None:
-            if change_order_id is not None and int(existing.change_order_id or 0) == change_order_id:
+            if (
+                change_order_id is not None
+                and int(existing.change_order_id or 0) == change_order_id
+            ):
                 return existing
             raise AppError("已有进行中的退租", code="LEASE_EXIT_IN_FLIGHT", status_code=409)
         billing = self.billing_outstanding.for_contract(int(model.id))
@@ -1615,7 +1633,9 @@ class ContractLifecycleService:
                 if current_version is not None
                 else ""
             )
-            restored_status = snapshot_status if snapshot_status in {"ACTIVE", "EXPIRING"} else "ACTIVE"
+            restored_status = (
+                snapshot_status if snapshot_status in {"ACTIVE", "EXPIRING"} else "ACTIVE"
+            )
             self._domain_call(assert_v2_status_transition, model.status, restored_status)
             model.status = restored_status
             model.lock_version += 1
@@ -1712,7 +1732,9 @@ class ContractLifecycleService:
         ):
             raise AppError("清算证据不存在", code="ATTACHMENT_NOT_FOUND", status_code=404)
         if not (reference or "").strip() or not (reason or "").strip():
-            raise AppError("清算引用和原因必填", code="LEASE_FINANCIAL_CLEARANCE_REQUIRED", status_code=400)
+            raise AppError(
+                "清算引用和原因必填", code="LEASE_FINANCIAL_CLEARANCE_REQUIRED", status_code=400
+            )
         settlement.financial_clearance_status = "CONFIRMED"
         settlement.clearance_evidence_attachment_id = int(evidence_attachment_id)
         settlement.clearance_reference = reference.strip()

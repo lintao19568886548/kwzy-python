@@ -80,9 +80,7 @@ def _seed_contract(
             "start_date": start_date,
             "end_date": end_date,
             "deposit_amount": "1000",
-            "units": [
-                {"unit_id": unit["id"], "occupied_area": "80", "unit_rent_price": "5"}
-            ],
+            "units": [{"unit_id": unit["id"], "occupied_area": "80", "unit_rent_price": "5"}],
         },
     ).json()["data"]
     return int(contract["id"]), int(unit["id"]), int(park["id"])
@@ -209,11 +207,14 @@ def test_atomic_draft_create_includes_charges_and_rolls_back_invalid_schedule(
     db_session.expire_all()
     after = db_session.scalar(select(func.count()).select_from(LeaseContract))
     assert after == before + 1
-    assert db_session.scalar(
-        select(func.count()).select_from(LeaseContract).where(
-            LeaseContract.contract_no == "ATOMIC-ROLLBACK-INVALID"
+    assert (
+        db_session.scalar(
+            select(func.count())
+            .select_from(LeaseContract)
+            .where(LeaseContract.contract_no == "ATOMIC-ROLLBACK-INVALID")
         )
-    ) == 0
+        == 0
+    )
 
 
 def test_document_review_and_signature_work_items_follow_document_versions(client) -> None:
@@ -293,12 +294,20 @@ def test_document_review_and_signature_work_items_follow_document_versions(clien
         json={"expected_version": 3},
     )
     assert signed.status_code == 200, signed.text
+    sandbox_document = max(
+        signed.json()["data"]["documents"], key=lambda row: row["document_version"]
+    )
+    assert sandbox_document["status"] == "SANDBOX_COMPLETED"
+    assert sandbox_document["signature_provider"] == "local_sandbox"
+    assert sandbox_document["live_verified"] is False
     signature_items = client.get(
         "/api/v1/work-items",
         headers=admin,
         params={"item_type": "LEASE_SIGNATURE_WAIT", "page_size": 100},
     ).json()["data"]["items"]
-    assert next(item for item in signature_items if item["id"] == signature["id"])["status"] == "DONE"
+    assert (
+        next(item for item in signature_items if item["id"] == signature["id"])["status"] == "OPEN"
+    )
 
 
 def test_legacy_mutation_paths_cannot_bypass_v2_governance(client) -> None:
@@ -344,9 +353,7 @@ def test_legacy_mutation_paths_cannot_bypass_v2_governance(client) -> None:
         assert denied.json()["code"] == "LEASE_EXIT_SETTLEMENT_REQUIRED"
 
 
-def test_governed_contract_activation_creates_version_not_bill(
-    client, db_session: Session
-) -> None:
+def test_governed_contract_activation_creates_version_not_bill(client, db_session: Session) -> None:
     admin = _headers(permissions=["*"])
     applicant = _headers(
         permissions=[
@@ -509,9 +516,9 @@ def test_governed_contract_activation_creates_version_not_bill(
     assert db_session.scalar(select(func.count()).select_from(Bill)) == 0
     assert (
         db_session.scalar(
-            select(func.count()).select_from(LeaseContractVersion).where(
-                LeaseContractVersion.contract_id == contract_id
-            )
+            select(func.count())
+            .select_from(LeaseContractVersion)
+            .where(LeaseContractVersion.contract_id == contract_id)
         )
         == 1
     )
@@ -694,9 +701,9 @@ def test_approved_renewal_applies_one_version_and_replays_idempotently(
     assert replay.json()["data"]["contract"]["current_version_no"] == 2
     assert (
         db_session.scalar(
-            select(func.count()).select_from(LeaseContractVersion).where(
-                LeaseContractVersion.contract_id == contract_id
-            )
+            select(func.count())
+            .select_from(LeaseContractVersion)
+            .where(LeaseContractVersion.contract_id == contract_id)
         )
         == 2
     )
@@ -731,9 +738,7 @@ def test_exit_retains_occupancy_until_cleared_close_and_replays(
             "meter_readings": [
                 {"meter_code": "POWER", "previous_reading": "10", "current_reading": "12"}
             ],
-            "items": [
-                {"item_type": "DEDUCTION", "amount": "200", "description": "维修扣减"}
-            ],
+            "items": [{"item_type": "DEDUCTION", "amount": "200", "description": "维修扣减"}],
         },
     )
     assert edited.status_code == 200, edited.text
@@ -959,9 +964,10 @@ def test_change_edit_cancel_and_withdraw_commands(client) -> None:
         json={"expected_version": 9, "remark": "改用新方案"},
     )
     assert cancelled.status_code == 200, cancelled.text
-    assert next(
-        row for row in cancelled.json()["data"]["changes"] if row["id"] == change_id
-    )["status"] == "CANCELLED"
+    assert (
+        next(row for row in cancelled.json()["data"]["changes"] if row["id"] == change_id)["status"]
+        == "CANCELLED"
+    )
 
     proposed["contract"]["end_date"] = "2029-03-31"
     proposed["charges"][0]["end_date"] = "2029-03-31"
@@ -990,9 +996,10 @@ def test_change_edit_cancel_and_withdraw_commands(client) -> None:
         json={"expected_version": 12, "remark": "双方暂停续租"},
     )
     assert withdrawn.status_code == 200, withdrawn.text
-    assert next(
-        row for row in withdrawn.json()["data"]["changes"] if row["id"] == second_id
-    )["status"] == "WITHDRAWN"
+    assert (
+        next(row for row in withdrawn.json()["data"]["changes"] if row["id"] == second_id)["status"]
+        == "WITHDRAWN"
+    )
 
 
 def test_apply_due_early_termination_links_exit_without_releasing_occupancy(
@@ -1091,9 +1098,7 @@ def test_contract_workspace_summary_selectors_and_party_profile(client) -> None:
     assert metrics["current_deposit_amount"] == "1000.00"
     assert metrics["unresolved_clearance"] == 0
 
-    selectors = client.get(
-        "/api/v1/leases/selectors", headers=reader, params={"park_id": park_id}
-    )
+    selectors = client.get("/api/v1/leases/selectors", headers=reader, params={"park_id": park_id})
     assert selectors.status_code == 200, selectors.text
     selector_data = selectors.json()["data"]
     assert any(row["id"] == park_id for row in selector_data["parks"])
@@ -1132,9 +1137,7 @@ def test_contract_list_pagination_privacy_and_scope_are_fail_closed(client) -> N
                 "contract_no": f"SCOPE-PAGE-{uuid4().hex[:12]}-{index}",
                 "start_date": "2026-01-01",
                 "end_date": "2026-12-31",
-                "units": [
-                    {"unit_id": unit_id, "occupied_area": "10", "unit_rent_price": "5"}
-                ],
+                "units": [{"unit_id": unit_id, "occupied_area": "10", "unit_rent_price": "5"}],
             },
         )
         assert created.status_code == 200, created.text
@@ -1142,25 +1145,18 @@ def test_contract_list_pagination_privacy_and_scope_are_fail_closed(client) -> N
     foreign_id, _, foreign_park_id = _seed_contract(client, admin)
     assert foreign_park_id != park_id
 
-    scoped = _headers(
-        permissions=["lease:read"], park_scope_mode="LIST", park_ids=[park_id]
-    )
-    first_page = client.get(
-        "/api/v1/leases", headers=scoped, params={"page": 1, "page_size": 1}
-    )
-    second_page = client.get(
-        "/api/v1/leases", headers=scoped, params={"page": 2, "page_size": 1}
-    )
+    scoped = _headers(permissions=["lease:read"], park_scope_mode="LIST", park_ids=[park_id])
+    first_page = client.get("/api/v1/leases", headers=scoped, params={"page": 1, "page_size": 1})
+    second_page = client.get("/api/v1/leases", headers=scoped, params={"page": 2, "page_size": 1})
     assert first_page.status_code == 200 and second_page.status_code == 200
     assert first_page.json()["data"]["total"] == 3
     assert first_page.json()["data"]["page"] == 1
     assert first_page.json()["data"]["page_size"] == 1
-    assert [first_page.json()["data"]["items"][0]["id"], second_page.json()["data"]["items"][0]["id"]] == sorted(
-        visible_ids, reverse=True
-    )[:2]
-    assert all(
-        row["park_id"] == park_id for row in first_page.json()["data"]["items"]
-    )
+    assert [
+        first_page.json()["data"]["items"][0]["id"],
+        second_page.json()["data"]["items"][0]["id"],
+    ] == sorted(visible_ids, reverse=True)[:2]
+    assert all(row["park_id"] == park_id for row in first_page.json()["data"]["items"])
 
     cross_park = client.get(f"/api/v1/leases/{foreign_id}", headers=scoped)
     assert cross_park.status_code == 404
@@ -1181,9 +1177,7 @@ def test_contract_list_pagination_privacy_and_scope_are_fail_closed(client) -> N
     assert empty.status_code == 200
     assert empty.json()["data"]["total"] == 0
     assert empty.json()["data"]["items"] == []
-    invalid_page = client.get(
-        "/api/v1/leases", headers=scoped, params={"page_size": 201}
-    )
+    invalid_page = client.get("/api/v1/leases", headers=scoped, params={"page_size": 201})
     assert invalid_page.status_code == 422
     assert invalid_page.json()["code"] == "VALIDATION_ERROR"
 

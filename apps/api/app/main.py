@@ -38,6 +38,7 @@ from app.modules.park_property.interface.api import router as park_router
 from app.modules.party.interface.api import router as party_router
 from app.modules.party.interface.enterprise_api import router as party_enterprise_router
 from app.modules.platform_integrations.interface.api import router as integrations_router
+from app.modules.records_seal.interface.api import router as records_seal_router
 from app.modules.workbench.interface.api import router as workbench_router
 from app.modules.workflow.interface.api import router as workflow_router
 
@@ -62,7 +63,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
         version=__version__,
-        description="KWZY AI Smart Park API — Identity+Park+Unit+Party+Lease+Billing+Collection+Workbench+Investment",
+        description="KWZY AI Smart Park API — governed park operations, records, signatures and seals",
         docs_url=None if settings.app_env == "production" else "/docs",
         redoc_url=None if settings.app_env == "production" else "/redoc",
         lifespan=lifespan,
@@ -105,6 +106,7 @@ def create_app() -> FastAPI:
     app.include_router(investment_router, prefix=prefix)
     app.include_router(facility_ops_router, prefix=prefix)
     app.include_router(facility_management_router, prefix=prefix)
+    app.include_router(records_seal_router, prefix=prefix)
     app.include_router(integrations_router, prefix=prefix)
     app.include_router(workflow_router, prefix=prefix)
     app.include_router(attachments_router, prefix=prefix)

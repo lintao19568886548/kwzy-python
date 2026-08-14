@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-14T21:13:59.579038+00:00",
+  "target": "http://127.0.0.1:8011/api/v1",
+  "runtime": {
+    "requests": 500,
+    "concurrency": 20,
+    "warmup": 40,
+    "endpoints": [
+      "GET /records?page=1&page_size=50",
+      "GET /record-categories",
+      "GET /seals",
+      "GET /signature-providers"
+    ]
+  },
+  "thresholds": {
+    "max_p95_ms": 500.0,
+    "max_error_rate_percent": 1.0,
+    "min_requests_per_second": 20.0
+  },
+  "aggregate": {
+    "requests": 500,
+    "failures": 0,
+    "error_rate_percent": 0.0,
+    "elapsed_seconds": 2.67,
+    "requests_per_second": 187.24,
+    "mean_ms": 104.643,
+    "p50_ms": 96.727,
+    "p95_ms": 163.485,
+    "p99_ms": 196.686,
+    "max_ms": 214.64,
+    "by_endpoint": {
+      "GET /record-categories": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 95.281,
+        "p95_ms": 158.302,
+        "p99_ms": 195.816,
+        "max_ms": 214.64
+      },
+      "GET /records?page=1&page_size=50": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 97.481,
+        "p95_ms": 163.353,
+        "p99_ms": 193.662,
+        "max_ms": 201.899
+      },
+      "GET /seals": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 96.154,
+        "p95_ms": 157.203,
+        "p99_ms": 185.212,
+        "max_ms": 204.966
+      },
+      "GET /signature-providers": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 97.4,
+        "p95_ms": 163.704,
+        "p99_ms": 176.289,
+        "max_ms": 204.58
+      }
+    },
+    "failure_examples": []
+  },
+  "gate": {
+    "passed": true,
+    "failures": []
+  }
+}

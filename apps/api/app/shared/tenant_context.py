@@ -95,6 +95,9 @@ class TenantContext:
                 "facility_device:",
                 "inspection:",
                 "iot:",
+                "record:",
+                "seal:",
+                "signature:",
             )
         ) or permission_code in {
             "party:risk_read",

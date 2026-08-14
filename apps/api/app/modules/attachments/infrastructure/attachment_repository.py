@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.infrastructure.database.models.attachment import Attachment
 from app.infrastructure.database.models.park_property import Park
+from app.infrastructure.database.models.records_seal import RecordRevision
 from app.shared.tenant_context import ParkScopeMode, TenantContext
 
 
@@ -94,3 +95,16 @@ class AttachmentRepository:
         if scope_condition is not None:
             conditions.append(scope_condition)
         return self.session.scalar(select(Attachment).where(*conditions))
+
+    def is_governed_record_evidence(self, attachment_id: int) -> bool:
+        """Return true when an active governed record revision pins this object."""
+
+        return bool(
+            self.session.scalar(
+                select(RecordRevision.id).where(
+                    RecordRevision.tenant_id == self.tenant_id,
+                    RecordRevision.attachment_id == int(attachment_id),
+                    RecordRevision.status == "ACTIVE",
+                )
+            )
+        )

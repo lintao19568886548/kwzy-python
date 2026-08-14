@@ -1,0 +1,72 @@
+{
+  "source": "synthetic-legacy-records-metadata-binary-v1",
+  "contains_real_customer_data": false,
+  "legacy_seal_aggregate_present": false,
+  "legacy_signature_event_aggregate_present": false,
+  "categories": [
+    {
+      "source_id": "cat-contract",
+      "code": "CONTRACT",
+      "name": "合成合同档案",
+      "retention_mode": "YEARS",
+      "retention_years": 10,
+      "confidentiality_max": "CONFIDENTIAL"
+    },
+    {
+      "source_id": "cat-policy",
+      "code": "POLICY",
+      "name": "合成政策档案",
+      "retention_mode": "PERMANENT",
+      "retention_years": null,
+      "confidentiality_max": "INTERNAL"
+    }
+  ],
+  "documents": [
+    {
+      "legacy_table": "sys_attachment",
+      "source_id": "doc-1001",
+      "category_ref": "cat-contract",
+      "park_ref": "park-a",
+      "title": "合成租赁合同归档件",
+      "source_type": "LEASE_CONTRACT",
+      "source_biz_id": "lease-synthetic-1001",
+      "confidentiality": "CONFIDENTIAL",
+      "filename": "synthetic-contract.txt",
+      "content_type": "text/plain",
+      "content_base64": "c3ludGhldGljLWdvdmVybmVkLWNvbnRyYWN0LXYx",
+      "legacy_signed_flag": false,
+      "provider_certificate_ref": null
+    },
+    {
+      "legacy_table": "sys_attachment",
+      "source_id": "doc-1002",
+      "category_ref": "cat-policy",
+      "park_ref": "park-a",
+      "title": "合成园区政策归档件",
+      "source_type": "POLICY",
+      "source_biz_id": "policy-synthetic-1002",
+      "confidentiality": "INTERNAL",
+      "filename": "synthetic-policy.txt",
+      "content_type": "text/plain",
+      "content_base64": "c3ludGhldGljLWdvdmVybmVkLXBvbGljeS12MQ==",
+      "legacy_signed_flag": true,
+      "provider_certificate_ref": null
+    },
+    {
+      "legacy_table": "sys_attachment",
+      "source_id": "doc-unknown-category",
+      "category_ref": "cat-missing",
+      "park_ref": "park-b",
+      "title": "合成未知分类文档",
+      "source_type": "OTHER",
+      "source_biz_id": "other-synthetic-1",
+      "confidentiality": "INTERNAL",
+      "filename": "unknown.txt",
+      "content_type": "text/plain",
+      "content_base64": "c3ludGhldGljLXVua25vd24tY2F0ZWdvcnk=",
+      "legacy_signed_flag": false,
+      "provider_certificate_ref": null
+    }
+  ],
+  "seal_records": []
+}

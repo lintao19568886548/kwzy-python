@@ -32,6 +32,10 @@ DEFAULT_ENDPOINTS = (
     "GET /parties?page=1&page_size=50",
     "GET /enterprise-parties?page=1&page_size=50&sort_by=updated_at&sort_order=desc",
     "GET /units?page=1&page_size=50",
+    "GET /records?page=1&page_size=50",
+    "GET /record-categories",
+    "GET /seals",
+    "GET /signature-providers",
 )
 
 

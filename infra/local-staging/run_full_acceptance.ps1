@@ -236,6 +236,11 @@ try {
     & $Py (Join-Path $Root "tools\etl\run_facility_device_etl_drill.py") --database-url $pgUrl --out $facilityDeviceReport
   }
 
+  Step "records_seal_etl_acceptance" {
+    $recordsSealReport = Join-Path $ReportDir "records_seal_etl\records-seal-etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_records_seal_etl_drill.py") --database-url $pgUrl --out $recordsSealReport
+  }
+
   Step "http_performance_seed" {
     & $Py (Join-Path $Root "scripts\e2e_seed.py")
   }
@@ -291,6 +296,11 @@ try {
         --username "admin" --password $env:LOCAL_ADMIN_PASSWORD `
         --output (Join-Path $perfDir "party-enterprise-http-journey.json")
       Assert-NativeSuccess "party enterprise HTTP journey"
+      & $Py (Join-Path $Root "scripts\records_seal_http_journey.py") `
+        --base-url "http://127.0.0.1:8010/api/v1" `
+        --username "admin" --password $env:LOCAL_ADMIN_PASSWORD `
+        --output (Join-Path $perfDir "records-seal-http-journey.json")
+      Assert-NativeSuccess "records seal HTTP journey"
     } finally {
       Remove-Item Env:PERF_PASSWORD -ErrorAction SilentlyContinue
       if ($apiProc -and -not $apiProc.HasExited) {
@@ -460,11 +470,13 @@ $summary = [ordered]@{
   receivables_etl = (Join-Path $ReportDir "receivables_etl\receivables-etl.json")
   work_order_etl = (Join-Path $ReportDir "work_order_etl\work-order-etl.json")
   facility_device_etl = (Join-Path $ReportDir "facility_device_etl\facility-device-etl.json")
+  records_seal_etl = (Join-Path $ReportDir "records_seal_etl\records-seal-etl.json")
   http_performance = (Join-Path $ReportDir "performance\http-performance.json")
   approval_audit_http = (Join-Path $ReportDir "performance\approval-audit-http-journey.json")
   workbench_automation_http = (Join-Path $ReportDir "performance\workbench-automation-http-journey.json")
   asset_portfolio_http = (Join-Path $ReportDir "performance\asset-portfolio-http-journey.json")
   party_enterprise_http = (Join-Path $ReportDir "performance\party-enterprise-http-journey.json")
+  records_seal_http = (Join-Path $ReportDir "performance\records-seal-http-journey.json")
   backup = (Join-Path $ReportDir "backup")
 }
 $summary | ConvertTo-Json -Depth 8 | Set-Content $path -Encoding utf8

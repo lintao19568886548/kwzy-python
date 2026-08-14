@@ -1,4 +1,4 @@
-"""Explicit local fake and production fail-closed signature adapters."""
+"""Explicit local sandbox and production fail-closed signature adapters."""
 
 from __future__ import annotations
 
@@ -8,12 +8,12 @@ from app.core.errors import AppError
 from app.modules.lease.application.signature_port import SignatureResult
 
 
-class LocalFakeSignatureAdapter:
+class LocalSandboxSignatureAdapter:
     def sign(self, *, document_id: int, checksum: str) -> SignatureResult:
-        digest = hashlib.sha256(f"fake:{document_id}:{checksum}".encode()).hexdigest()[:24]
+        digest = hashlib.sha256(f"sandbox:{document_id}:{checksum}".encode()).hexdigest()[:24]
         return SignatureResult(
-            provider="fake",
-            signature_ref=f"SIMULATED-{digest}",
+            provider="local_sandbox",
+            signature_ref=f"SANDBOX-{digest}",
             live_verified=False,
         )
 

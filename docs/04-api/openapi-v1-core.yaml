@@ -22,6 +22,7 @@ tags:
   - name: Collection
   - name: TenantService
   - name: FacilityManagement
+  - name: RecordsSignatureSeal
   - name: WorkItems
   - name: OrganizationGovernance
   - name: Approvals
@@ -6574,6 +6575,438 @@ paths:
             schema: { $ref: '#/components/schemas/IoTAlarmTransition' }
       responses: { '200': { description: OK } }
 
+  /record-categories:
+    get:
+      tags: [RecordsSignatureSeal]
+      summary: 查询档案分类
+      operationId: listRecordCategories
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 创建档案分类
+      operationId: createRecordCategory
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordCategoryCreate' } } }
+      responses: { '200': { description: OK } }
+
+  /record-categories/{category_id}:
+    patch:
+      tags: [RecordsSignatureSeal]
+      summary: 修改档案分类
+      operationId: updateRecordCategory
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: category_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordCategoryUpdate' } } }
+      responses: { '200': { description: OK } }
+
+  /record-categories/{category_id}/retire:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 停用档案分类
+      operationId: retireRecordCategory
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: category_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordsExpectedReason' } } }
+      responses: { '200': { description: OK } }
+
+  /records:
+    get:
+      tags: [RecordsSignatureSeal]
+      summary: 查询档案
+      operationId: listGovernedRecords
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 创建档案
+      operationId: createGovernedRecord
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordCreate' } } }
+      responses: { '200': { description: OK } }
+
+  /records/{record_id}:
+    get:
+      tags: [RecordsSignatureSeal]
+      summary: 查询档案详情、版本、保全与完整性历史
+      operationId: getGovernedRecord
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: record_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses: { '200': { description: OK } }
+
+  /records/{record_id}/revisions:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 新增不可变档案版本并计算真实 SHA-256
+      operationId: addRecordRevision
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: record_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordRevisionCreate' } } }
+      responses: { '200': { description: OK } }
+
+  /records/{record_id}/file:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 正式归档
+      operationId: fileGovernedRecord
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: record_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordsExpectedReason' } } }
+      responses: { '200': { description: OK } }
+
+  /records/{record_id}/verify:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 校验档案对象内容完整性
+      operationId: verifyRecordIntegrity
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: record_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 128 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordIntegrityVerify' } } }
+      responses: { '200': { description: OK } }
+
+  /records/{record_id}/holds:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 设置法律或审计保全
+      operationId: placeRecordHold
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: record_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordsExpectedReason' } } }
+      responses: { '200': { description: OK } }
+
+  /records/{record_id}/holds/{hold_id}/release:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 解除档案保全
+      operationId: releaseRecordHold
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: record_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+        - { name: hold_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordsExpectedReason' } } }
+      responses: { '200': { description: OK } }
+
+  /records/{record_id}/access-requests:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 提交档案查阅或借阅审批
+      operationId: requestRecordAccess
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: record_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 128 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordAccessRequestCreate' } } }
+      responses: { '200': { description: OK } }
+
+  /record-access-requests:
+    get:
+      tags: [RecordsSignatureSeal]
+      summary: 查询档案访问申请
+      operationId: listRecordAccessRequests
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+
+  /record-access-requests/{request_id}/refresh-approval:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 同步档案访问审批状态
+      operationId: refreshRecordAccessApproval
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: request_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses: { '200': { description: OK } }
+
+  /record-access-requests/{request_id}/checkout:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 借出档案
+      operationId: checkoutRecord
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: request_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordsExpectedReason' } } }
+      responses: { '200': { description: OK } }
+
+  /record-access-requests/{request_id}/return:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 归还档案
+      operationId: returnRecord
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: request_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordsExpectedReason' } } }
+      responses: { '200': { description: OK } }
+
+  /records/{record_id}/dispositions:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 提交档案处置审批
+      operationId: requestRecordDisposition
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: record_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 128 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordDispositionCreate' } } }
+      responses: { '200': { description: OK } }
+
+  /record-dispositions:
+    get:
+      tags: [RecordsSignatureSeal]
+      summary: 查询档案处置申请
+      operationId: listRecordDispositions
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+
+  /record-dispositions/{disposition_id}/refresh-approval:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 同步档案处置审批并创建双人确认待办
+      operationId: refreshRecordDispositionApproval
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: disposition_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses: { '200': { description: OK } }
+
+  /record-dispositions/{disposition_id}/confirm:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 双人之一确认逻辑处置
+      operationId: confirmRecordDisposition
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: disposition_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordsExpectedReason' } } }
+      responses: { '200': { description: OK } }
+
+  /seals:
+    get:
+      tags: [RecordsSignatureSeal]
+      summary: 查询印章台账
+      operationId: listSealAssets
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 创建印章台账
+      operationId: createSealAsset
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/SealCreate' } } }
+      responses: { '200': { description: OK } }
+
+  /seals/{seal_id}:
+    get:
+      tags: [RecordsSignatureSeal]
+      summary: 查询印章与保管链
+      operationId: getSealAsset
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: seal_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses: { '200': { description: OK } }
+
+  /seals/{seal_id}/transfer:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 发起印章移交
+      operationId: transferSealAsset
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: seal_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/SealTransfer' } } }
+      responses: { '200': { description: OK } }
+
+  /seals/{seal_id}/accept-transfer:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 目标保管人接收印章
+      operationId: acceptSealTransfer
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: seal_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordsExpectedReason' } } }
+      responses: { '200': { description: OK } }
+
+  /seals/{seal_id}/mark-lost:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 登记印章遗失并阻断用印
+      operationId: markSealLost
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: seal_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordsExpectedReason' } } }
+      responses: { '200': { description: OK } }
+
+  /seals/{seal_id}/recover:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 找回印章并转入暂停核验
+      operationId: recoverSealAsset
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: seal_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordsExpectedReason' } } }
+      responses: { '200': { description: OK } }
+
+  /seals/{seal_id}/retire:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 退役印章
+      operationId: retireSealAsset
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: seal_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordsExpectedReason' } } }
+      responses: { '200': { description: OK } }
+
+  /seal-use-applications:
+    get:
+      tags: [RecordsSignatureSeal]
+      summary: 查询用印申请
+      operationId: listSealUseApplications
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 提交绑定档案版本的用印审批
+      operationId: createSealUseApplication
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 128 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/SealUseCreate' } } }
+      responses: { '200': { description: OK } }
+
+  /seal-use-applications/{application_id}/refresh-approval:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 同步用印审批状态
+      operationId: refreshSealUseApproval
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: application_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses: { '200': { description: OK } }
+
+  /seal-use-applications/{application_id}/execute:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 由保管人幂等登记用印执行回执
+      operationId: executeSealUseApplication
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: application_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+        - { name: Idempotency-Key, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 128 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/SealUseExecute' } } }
+      responses: { '200': { description: OK } }
+
+  /signature-providers:
+    get:
+      tags: [RecordsSignatureSeal]
+      summary: 查询签章服务及真实连接状态
+      operationId: listSignatureProviders
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 声明签章服务；外部服务默认未连接
+      operationId: createSignatureProvider
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/SignatureProviderCreate' } } }
+      responses: { '200': { description: OK } }
+
+  /signature-envelopes:
+    get:
+      tags: [RecordsSignatureSeal]
+      summary: 查询电子签署证据
+      operationId: listSignatureEnvelopes
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 创建绑定最新档案版本的签署信封
+      operationId: createSignatureEnvelope
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/SignatureEnvelopeCreate' } } }
+      responses: { '200': { description: OK } }
+
+  /signature-envelopes/{envelope_id}:
+    get:
+      tags: [RecordsSignatureSeal]
+      summary: 查询签署参与人和不可变事件
+      operationId: getSignatureEnvelope
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: envelope_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses: { '200': { description: OK } }
+
+  /signature-envelopes/{envelope_id}/dispatch:
+    post:
+      tags: [RecordsSignatureSeal]
+      summary: 发送签署；无真实适配器时失败，沙箱只记 SANDBOX_COMPLETED
+      operationId: dispatchSignatureEnvelope
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: envelope_id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RecordsExpectedReason' } } }
+      responses: { '200': { description: OK } }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -9798,3 +10231,144 @@ components:
       properties:
         expected_version: { type: integer, minimum: 1 }
         reason: { type: [string, 'null'], maxLength: 1000 }
+    RecordsExpectedReason:
+      type: object
+      additionalProperties: false
+      required: [expected_version, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    RecordCategoryCreate:
+      type: object
+      additionalProperties: false
+      required: [code, name, retention_mode, confidentiality_max]
+      properties:
+        code: { type: string, minLength: 1, maxLength: 32, pattern: '^[A-Za-z][A-Za-z0-9_-]*$' }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        retention_mode: { type: string, enum: [YEARS, PERMANENT] }
+        retention_years: { type: [integer, 'null'], minimum: 1, maximum: 100 }
+        confidentiality_max: { type: string, enum: [PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED] }
+    RecordCategoryUpdate:
+      type: object
+      additionalProperties: false
+      required: [expected_version, reason]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+        name: { type: [string, 'null'], minLength: 1, maxLength: 128 }
+        retention_mode: { type: [string, 'null'], enum: [YEARS, PERMANENT, null] }
+        retention_years: { type: [integer, 'null'], minimum: 1, maximum: 100 }
+        confidentiality_max: { type: [string, 'null'], enum: [PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED, null] }
+    RecordCreate:
+      type: object
+      additionalProperties: false
+      required: [category_id, title, confidentiality, source_type, source_id]
+      properties:
+        park_id: { type: [integer, 'null'], minimum: 1 }
+        category_id: { type: integer, minimum: 1 }
+        title: { type: string, minLength: 1, maxLength: 255 }
+        description: { type: [string, 'null'], maxLength: 5000 }
+        confidentiality: { type: string, enum: [PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED] }
+        source_type: { type: string, minLength: 1, maxLength: 64 }
+        source_id: { type: string, minLength: 1, maxLength: 64 }
+    RecordRevisionCreate:
+      type: object
+      additionalProperties: false
+      required: [expected_version, attachment_id]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        attachment_id: { type: integer, minimum: 1 }
+    RecordIntegrityVerify:
+      type: object
+      additionalProperties: false
+      properties:
+        revision_id: { type: [integer, 'null'], minimum: 1 }
+    RecordAccessRequestCreate:
+      type: object
+      additionalProperties: false
+      required: [mode, purpose, requested_until, definition_code]
+      properties:
+        mode: { type: string, enum: [VIEW, BORROW] }
+        purpose: { type: string, minLength: 1, maxLength: 1000 }
+        requested_until: { type: string, format: date-time }
+        definition_code: { type: string, minLength: 1, maxLength: 64 }
+    RecordDispositionCreate:
+      type: object
+      additionalProperties: false
+      required: [expected_version, reason, definition_code]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+        definition_code: { type: string, minLength: 1, maxLength: 64 }
+    SealCreate:
+      type: object
+      additionalProperties: false
+      required: [seal_code, name, kind, custodian_user_id]
+      properties:
+        park_id: { type: [integer, 'null'], minimum: 1 }
+        seal_code: { type: string, minLength: 1, maxLength: 32 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        kind: { type: string, enum: [OFFICIAL, CONTRACT, FINANCE, LEGAL_REPRESENTATIVE, ELECTRONIC, OTHER] }
+        custodian_user_id: { type: integer, minimum: 1 }
+        description: { type: [string, 'null'], maxLength: 1000 }
+    SealTransfer:
+      type: object
+      additionalProperties: false
+      required: [expected_version, reason, to_custodian_user_id]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+        to_custodian_user_id: { type: integer, minimum: 1 }
+    SealUseCreate:
+      type: object
+      additionalProperties: false
+      required: [seal_id, record_id, revision_id, purpose, copy_count, requested_for, definition_code]
+      properties:
+        seal_id: { type: integer, minimum: 1 }
+        record_id: { type: integer, minimum: 1 }
+        revision_id: { type: integer, minimum: 1 }
+        purpose: { type: string, minLength: 1, maxLength: 1000 }
+        copy_count: { type: integer, minimum: 1, maximum: 1000 }
+        requested_for: { type: string, format: date-time }
+        definition_code: { type: string, minLength: 1, maxLength: 64 }
+    SealUseExecute:
+      type: object
+      additionalProperties: false
+      required: [expected_version]
+      properties:
+        expected_version: { type: integer, minimum: 1 }
+        evidence_attachment_id: { type: [integer, 'null'], minimum: 1 }
+        emergency_override_reason: { type: [string, 'null'], minLength: 1, maxLength: 1000 }
+    SignatureProviderCreate:
+      type: object
+      additionalProperties: false
+      required: [code, name, adapter_kind]
+      properties:
+        code: { type: string, minLength: 1, maxLength: 32 }
+        name: { type: string, minLength: 1, maxLength: 128 }
+        adapter_kind: { type: string, enum: [LOCAL_SANDBOX, EXTERNAL] }
+        credential_ref: { type: [string, 'null'], maxLength: 128 }
+    SignatureParticipantInput:
+      type: object
+      additionalProperties: false
+      required: [role, display_name]
+      properties:
+        role: { type: string, enum: [SIGNER, CC, APPROVER] }
+        display_name: { type: string, minLength: 1, maxLength: 128 }
+        contact_masked: { type: [string, 'null'], maxLength: 128 }
+    SignatureEnvelopeCreate:
+      type: object
+      additionalProperties: false
+      required: [provider_id, record_id, revision_id, source_type, source_id, purpose, participants]
+      properties:
+        provider_id: { type: integer, minimum: 1 }
+        record_id: { type: integer, minimum: 1 }
+        revision_id: { type: integer, minimum: 1 }
+        source_type: { type: string, minLength: 1, maxLength: 64 }
+        source_id: { type: string, minLength: 1, maxLength: 64 }
+        purpose: { type: string, minLength: 1, maxLength: 500 }
+        participants:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: { $ref: '#/components/schemas/SignatureParticipantInput' }

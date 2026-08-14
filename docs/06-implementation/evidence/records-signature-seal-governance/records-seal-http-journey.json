@@ -1,0 +1,120 @@
+{
+  "generated_at": "2026-08-14T21:13:23.807471+00:00",
+  "base_url": "http://127.0.0.1:8011/api/v1",
+  "synthetic_only": true,
+  "record_id": 3,
+  "seal_id": 1,
+  "envelope_id": 2,
+  "stage_count": 21,
+  "stages": [
+    {
+      "name": "login",
+      "passed": true,
+      "ms": 493.42
+    },
+    {
+      "name": "create_park",
+      "passed": true,
+      "ms": 73.63
+    },
+    {
+      "name": "create_category",
+      "passed": true,
+      "ms": 37.04
+    },
+    {
+      "name": "switch_category_to_permanent",
+      "passed": true,
+      "ms": 44.74
+    },
+    {
+      "name": "reject_unknown_category_field",
+      "passed": true,
+      "ms": 32.76
+    },
+    {
+      "name": "upload_real_attachment_bytes",
+      "passed": true,
+      "ms": 44.96
+    },
+    {
+      "name": "create_record",
+      "passed": true,
+      "ms": 77.25
+    },
+    {
+      "name": "derive_immutable_revision_checksum",
+      "passed": true,
+      "ms": 44.76
+    },
+    {
+      "name": "block_governed_attachment_delete",
+      "passed": true,
+      "ms": 13.53
+    },
+    {
+      "name": "reject_stale_record_version",
+      "passed": true,
+      "ms": 15.16
+    },
+    {
+      "name": "file_record",
+      "passed": true,
+      "ms": 26.59
+    },
+    {
+      "name": "verify_integrity",
+      "passed": true,
+      "ms": 28.81
+    },
+    {
+      "name": "verify_idempotent_replay",
+      "passed": true,
+      "ms": 11.32
+    },
+    {
+      "name": "create_seal_with_custody_event",
+      "passed": true,
+      "ms": 32.26
+    },
+    {
+      "name": "create_truthful_sandbox_provider",
+      "passed": true,
+      "ms": 45.46
+    },
+    {
+      "name": "create_exact_revision_envelope",
+      "passed": true,
+      "ms": 35.43
+    },
+    {
+      "name": "dispatch_non_legal_sandbox",
+      "passed": true,
+      "ms": 28.46
+    },
+    {
+      "name": "declare_external_provider_not_connected",
+      "passed": true,
+      "ms": 15.33
+    },
+    {
+      "name": "fail_closed_external_envelope",
+      "passed": true,
+      "ms": 13.69
+    },
+    {
+      "name": "login_other_tenant",
+      "passed": true,
+      "ms": 189.72
+    },
+    {
+      "name": "cross_tenant_record_isolation",
+      "passed": true,
+      "ms": 11.11
+    }
+  ],
+  "duration_ms": 1460.1,
+  "passed": true,
+  "external_signature_status": "NOT_CONNECTED",
+  "production_contacted": false
+}

@@ -762,6 +762,80 @@ def test_tenant_service_openapi_matches_every_runtime_method() -> None:
     assert schemas["WorkOrderAssignmentRuleRetire"]["required"] == ["reason"]
 
 
+def test_records_signature_seal_openapi_matches_every_runtime_method() -> None:
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    paths = document["paths"]
+    runtime_paths = create_app().openapi()["paths"]
+    expected_methods = {
+        "/record-categories": {"get", "post"},
+        "/record-categories/{category_id}": {"patch"},
+        "/record-categories/{category_id}/retire": {"post"},
+        "/records": {"get", "post"},
+        "/records/{record_id}": {"get"},
+        "/records/{record_id}/revisions": {"post"},
+        "/records/{record_id}/file": {"post"},
+        "/records/{record_id}/verify": {"post"},
+        "/records/{record_id}/holds": {"post"},
+        "/records/{record_id}/holds/{hold_id}/release": {"post"},
+        "/records/{record_id}/access-requests": {"post"},
+        "/record-access-requests": {"get"},
+        "/record-access-requests/{request_id}/refresh-approval": {"post"},
+        "/record-access-requests/{request_id}/checkout": {"post"},
+        "/record-access-requests/{request_id}/return": {"post"},
+        "/records/{record_id}/dispositions": {"post"},
+        "/record-dispositions": {"get"},
+        "/record-dispositions/{disposition_id}/refresh-approval": {"post"},
+        "/record-dispositions/{disposition_id}/confirm": {"post"},
+        "/seals": {"get", "post"},
+        "/seals/{seal_id}": {"get"},
+        "/seals/{seal_id}/transfer": {"post"},
+        "/seals/{seal_id}/accept-transfer": {"post"},
+        "/seals/{seal_id}/mark-lost": {"post"},
+        "/seals/{seal_id}/recover": {"post"},
+        "/seals/{seal_id}/retire": {"post"},
+        "/seal-use-applications": {"get", "post"},
+        "/seal-use-applications/{application_id}/refresh-approval": {"post"},
+        "/seal-use-applications/{application_id}/execute": {"post"},
+        "/signature-providers": {"get", "post"},
+        "/signature-envelopes": {"get", "post"},
+        "/signature-envelopes/{envelope_id}": {"get"},
+        "/signature-envelopes/{envelope_id}/dispatch": {"post"},
+    }
+    for path, methods in expected_methods.items():
+        assert path in paths, f"records/seal path absent from controlled YAML: {path}"
+        assert methods <= {key.lower() for key in paths[path]}, path
+        runtime_path = "/api/v1" + path
+        assert runtime_path in runtime_paths, f"records/seal path absent at runtime: {runtime_path}"
+        assert methods <= {key.lower() for key in runtime_paths[runtime_path]}, path
+
+    schemas = document["components"]["schemas"]
+    for command in (
+        "RecordsExpectedReason",
+        "RecordCategoryUpdate",
+        "RecordRevisionCreate",
+        "RecordDispositionCreate",
+        "SealTransfer",
+        "SealUseExecute",
+    ):
+        assert "expected_version" in schemas[command]["required"], command
+    for path in (
+        "/records/{record_id}/verify",
+        "/records/{record_id}/access-requests",
+        "/records/{record_id}/dispositions",
+        "/seal-use-applications",
+        "/seal-use-applications/{application_id}/execute",
+    ):
+        parameters = paths[path]["post"]["parameters"]
+        assert any(
+            parameter["in"] == "header"
+            and parameter["name"] == "Idempotency-Key"
+            and parameter["required"] is True
+            for parameter in parameters
+        ), path
+
+
 def test_facility_management_openapi_matches_every_runtime_method() -> None:
     """Facility devices, inspections and IoT alarms stay method-exact and strict."""
 

@@ -264,7 +264,7 @@ def sign_lease_document(
             expected_version=body.expected_version,
             target_status="SIGNED",
         ),
-        message="signed",
+        message="signature_processed",
     )
 
 

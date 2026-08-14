@@ -186,6 +186,12 @@ class AttachmentService:
         row = self.repo.get(attachment_id)
         if row is None:
             raise AppError("附件不存在", code="ATTACHMENT_NOT_FOUND", status_code=404)
+        if self.repo.is_governed_record_evidence(attachment_id):
+            raise AppError(
+                "附件已被生效档案版本引用，不可删除",
+                code="ATTACHMENT_GOVERNED_RECORD_PINNED",
+                status_code=409,
+            )
         row.status = "DELETED"
         self.session.add(row)
         self.audit.record(

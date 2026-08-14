@@ -1,0 +1,97 @@
+{
+  "generated_at": "2026-08-14T21:10:39.914582+00:00",
+  "result": "PASS",
+  "schema": "etl_records_seal_fixture",
+  "synthetic_only": true,
+  "contains_real_customer_data": false,
+  "live_legacy_verified": false,
+  "legacy_seal_aggregate_present": false,
+  "legacy_signature_event_aggregate_present": false,
+  "readiness": "CONDITIONAL_SYNTHETIC_READY_FOR_STAGING_DATA",
+  "real_legacy_readiness": "BLOCKED_PENDING_AUTHORIZED_SCHEMA_BINARIES_AND_KEY_MAPS",
+  "fixture_sha256": "945df4805526f8cdc5e22bc53a90bc1873716fbe9bb5437ebf1375b3a46c2b6f",
+  "stages": {
+    "dry_run": {
+      "passed": true,
+      "mapped_counts": {
+        "record_categories": 2,
+        "records": 2,
+        "record_revisions": 2,
+        "seal_assets": 0,
+        "quarantine": 2
+      }
+    },
+    "interruption_recovery": {
+      "passed": true,
+      "partial_rows_after_rollback": 0
+    },
+    "first_apply": {
+      "passed": true,
+      "inserted": {
+        "record_categories": 2,
+        "records": 2,
+        "record_revisions": 2,
+        "seal_assets": 0,
+        "quarantine": 2
+      }
+    },
+    "idempotent_reapply": {
+      "passed": true,
+      "inserted": {
+        "record_categories": 0,
+        "records": 0,
+        "record_revisions": 0,
+        "seal_assets": 0,
+        "quarantine": 0
+      }
+    },
+    "reconciliation": {
+      "passed": true,
+      "expected_counts": {
+        "record_categories": 2,
+        "records": 2,
+        "record_revisions": 2,
+        "seal_assets": 0,
+        "quarantine": 2
+      },
+      "target_counts": {
+        "record_categories": 2,
+        "records": 2,
+        "record_revisions": 2,
+        "seal_assets": 0,
+        "quarantine": 2
+      },
+      "expected_signature_truth": {
+        "NO_SIGNATURE_CLAIM": 1,
+        "LEGACY_SIGNATURE_UNVERIFIED": 1
+      },
+      "target_signature_truth": {
+        "NO_SIGNATURE_CLAIM": 1,
+        "LEGACY_SIGNATURE_UNVERIFIED": 1
+      },
+      "orphan_revisions": 0,
+      "checksum_mismatches": 0,
+      "quarantine_reasons": {
+        "SIGNATURE_EVIDENCE_MISSING": 1,
+        "CATEGORY_KEY_UNMAPPED": 1
+      },
+      "fabricated_seals": 0,
+      "fabricated_custody_events": 0,
+      "fabricated_signature_providers": 0,
+      "fabricated_signature_events": 0
+    },
+    "rollback": {
+      "passed": true,
+      "schema_exists_after": false,
+      "authorization_rows_unchanged": true
+    }
+  },
+  "blockers": [
+    "authorized legacy attachment/document schema dump and retention dictionaries not supplied",
+    "desensitized metadata plus binary inventory and SHA-256 manifest not supplied",
+    "tenant/park/category/owner/source key maps and duplicate decisions not supplied",
+    "legacy seal registry and custody aggregate was not found in available evidence",
+    "real signature provider certificate, signed evidence and callback events not supplied",
+    "production freeze, backup, cutover, storage deletion and rollback are not authorized"
+  ]
+}
