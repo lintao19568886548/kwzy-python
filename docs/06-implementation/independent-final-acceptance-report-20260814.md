@@ -2,7 +2,7 @@
 
 > 日期：2026-08-15（Asia/Shanghai，滚动更新）
 > 结论：**BLOCKED（已实现范围条件通过，全产品未完成）**
-> 最新已完成纵切：应收、到账、匹配、核销、欠费与催缴；提交后 clean-SHA 和机器报告将在本轮闭环提交中补记。
+> 最新 clean-SHA：应收、到账、匹配、核销、欠费与催缴 `1a11cfe08b8d2b800c7121d7462995ebb75eb75d`（已正常推送）
 > 上一 clean-SHA 验收基线：Party 企业画像 `36805823ad2e88311b9744e9e720b282b7cc74c8`（已正常推送至 `origin/feat/full-rebuild-completion`）
 > 本报告滚动记录自治重建；下文早期 repair 数字如与“最新闭环增量”冲突，以最新机器报告与能力矩阵为准。
 
@@ -12,11 +12,13 @@
 
 本轮新增 `u7d35f0a2b19`、`v8e46a1b3c20`、`w9f57b2c4d31` 三个前向迁移且不修改已应用历史；PostgreSQL 16 空库 base→head、`current == heads`、down w9→v8→up w9、metadata 契约、21 项核心数据库约束、资金并发/重放均通过。审查中发现并关闭了三个真实 P1：ALL 园区范围绕过外租户园区、重复查询参数污染、Application 直接构造 ORM；对应加入租户园区归属校验、16 个数据库级复合租户外键、全局重复 query 参数 400 门禁和 repository factory 分层回归。
 
-当前代码全量后端为 334 passed、0 failed（150.88 s）；前端 vue-tsc、ESLint、3 文件/6 Vitest、141 modules production build 均通过；真实 PostgreSQL/FastAPI/production Vite 的应收 Playwright 为 2/2、24.1 s。真实 HTTP 8 端点、1000 请求、并发 25、0 错误，p95 151.678 ms、211.529 RPS；服务停启前后 readiness 与 receipts/payments/cases 的 5/5/5 签名一致。Python `pip-audit --local` 与 `npm audit --audit-level=high` 均为 0 已知漏洞；本地 `kwzy-api` 因非 PyPI 包由应用测试/SAST 覆盖。
+精确 SHA 全量后端为 335 passed、0 failed（151.64 s）；前端 vue-tsc、ESLint、3 文件/6 Vitest、141 modules production build 均通过；真实 PostgreSQL/FastAPI/production Vite 的应收 Playwright 为 2/2、23.0 s。真实 HTTP 8 端点、1000 请求、并发 25、0 错误，p95 352.701 ms、107.841 RPS；服务停启前后 readiness 与 receipts/payments/cases 的 5/5/5 签名一致。Python `pip-audit --local` 与 `npm audit --audit-level=high` 均为 0 已知漏洞；本地 `kwzy-api` 因非 PyPI 包由应用测试/SAST 覆盖。应收 45/45 OpenSpec 任务已完成，8 份 delta 同步主规格并归档；归档后 strict 85/85，归档暂存树 915 文件 secrets scan 0 hits。
+
+clean-SHA 前复验没有沿用早期小数据性能：开发 `DEBUG=true` 首轮 p95 6756.641 ms，切换既定生产性能配置后仍为 1896.077 ms。根因是自动出账预览逐计划查历史冲突、Payment 分页逐笔查分配余额；改为批量查询并新增 SQL 查询数回归后，同一累积库与未降低的 500 ms 门槛通过。390px 到账列表同时从横滑表格重排为完整字段卡片，浏览器断言 table/body 均无横向溢出。
 
 合成财务 ETL 已完成 dry-run、中断事务回滚、首次 apply、零新增幂等重跑、数量/金额/分配/孤儿/PII/外部送达对账和 schema rollback；来源/目标账单金额均为 1500.00，错配、超配、孤儿、未脱敏账号和虚假外送均为 0。`pg_dump -Fc` 备份 630,540 bytes，SHA-256 `acc85e479b310efd8b391251657ea85769cfcfb987ff9d4f87b4acd61bd1140a`，删除/重建临时恢复库后精确恢复 `w9/bills20/receipts5/payments5/cases5/adjustments0` 并清理恢复库；真实旧财务 schema/脱敏快照、供应商凭据和生产切换授权仍保持真实阻塞。
 
-四张关键截图覆盖桌面分配抽屉、桌面账龄催缴、平板到账单箱和 390×844 手机到账单箱；人工复核表格横向滚动被限制在组件内，无页面级溢出、假图表、固定成功按钮、乱码或敏感账号原文。证据目录为 `evidence/receivables-collection-lifecycle/`。
+四张关键截图覆盖桌面分配抽屉、桌面账龄催缴、平板到账单箱和 390×844 手机到账单箱；手机到账列表使用字段完整卡片，E2E 同时断言 table/body 无横向溢出；人工复核无假图表、固定成功按钮、乱码或敏感账号原文。综合机器证据为 `evidence/receivables-collection-lifecycle/acceptance-clean-1a11cfe.json`。
 
 以下 Party 企业画像段落为上一纵切 clean-SHA 证据，继续保留：
 
@@ -96,7 +98,7 @@ pwsh -NoProfile -File infra/local-staging/run_full_acceptance.ps1
 
 ## 4. 测试和耗时
 
-当前应收代码验收为 334 pytest、2 条应收 Playwright、3 文件/6 Vitest、141 modules production build、OpenAPI YAML strict、78 项 OpenSpec strict、904 文件 secrets scan、Python/npm 依赖已知漏洞 0；提交后 clean-SHA 将补记机器报告。上一 Party clean-SHA 为 31/31 步、315 pytest、57 Playwright；下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
+当前应收精确 SHA 验收为 335 pytest、2 条应收 Playwright、3 文件/6 Vitest、141 modules production build、OpenAPI YAML strict、归档后 OpenSpec strict 85/85、归档暂存树 915 文件 secrets scan 0 hits、Python/npm 依赖已知漏洞 0。上一 Party clean-SHA 为 31/31 步、315 pytest、57 Playwright；下表保留初始 repair 精确 SHA `a9267d4` 的历史基线，不能覆盖最新数字。
 
 精确实现 SHA `a9267d4` 的完整脚本从 11:33:05 到 11:38:53，总耗时 348,122 ms，24/24 步 exit 0。
 
@@ -142,10 +144,10 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 
 最新真实 loopback HTTP 使用登录后的 8 个应收查询/预览接口，1000 请求、并发 25、预热 40：
 
-- 0 failures，错误率 0.0%，211.529 req/s。
-- p50 111.022 ms，p95 151.678 ms，p99 238.515 ms，max 275.346 ms。
+- 0 failures，错误率 0.0%，107.841 req/s。
+- p50 210.743 ms，p95 352.701 ms，p99 381.21 ms，max 424.518 ms。
 - 门槛 p95 ≤ 500 ms、错误率 ≤ 1%、吞吐 ≥ 20 req/s，结果 PASS。
-- 性能报告保存在 `evidence/receivables-collection-lifecycle/http-performance-20260814.json`。
+- clean-SHA 性能报告保存在 `evidence/receivables-collection-lifecycle/http-performance-clean-1a11cfe.json`；早期小数据报告只作历史基线。
 
 生产契约提供显式 PG QueuePool 上限/超时/回收、`/health/ready`、非 root 镜像、只读文件系统、tmpfs、drop all capabilities 和 no-new-privileges。API 镜像用户为 `kwzy`，Web 为 UID `101`。
 
@@ -169,7 +171,7 @@ KWZY_DATA_MIGRATION_REHEARSAL=CONDITIONAL_SYNTHETIC_ONLY
 | API/OpenAPI 漂移 | 已修复，11/11 契约与 YAML strict 通过 |
 | Application→ORM / Router 查 DB | 应收审查发现的 Application 直接构造 ORM 已下沉 repository factory；架构回归测试和人工检索未发现当前应收纵切违规 |
 | 默认管理员/开发免鉴权/弱 JWT | 生产/预发 fail-closed；本地测试账号只用于隔离验收 |
-| 密钥/Token/DB/PII | 应收 worktree tracked + untracked 904 文件扫描通过；既有 clean-SHA 证据继续有效；企业证件原文只做 SHA-256 指纹与掩码，应收账号只保留掩码，环境样例为非生产占位 |
+| 密钥/Token/DB/PII | 应收归档暂存树 tracked + untracked non-ignored 915 文件扫描通过、0 hits；既有 clean-SHA 证据继续有效；企业证件原文只做 SHA-256 指纹与掩码，应收账号只保留掩码，环境样例为非生产占位 |
 | 历史迁移/多 head | 未修改历史迁移；新增修复迁移；唯一 head |
 | 外部集成虚假完成 | 文档和运行时均区分 fake/local、fail-closed 与 live verified |
 

@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "acceptance_date": "2026-08-15",
+  "timezone": "Asia/Shanghai",
+  "scope": "receivables-collection-lifecycle",
+  "result": "IMPLEMENTED_AND_VERIFIED",
+  "full_product_result": "BLOCKED",
+  "git": {
+    "branch": "feat/full-rebuild-completion",
+    "exact_tested_sha": "1a11cfe08b8d2b800c7121d7462995ebb75eb75d",
+    "implementation_sha": "500efa538094ef1e759c316568656083b6b03c43",
+    "local_equals_origin_at_test_start": true,
+    "non_protected_dirty_files_at_test_start": 0,
+    "protected_user_modified_files_preserved": 11,
+    "force_push_used": false,
+    "main_modified": false
+  },
+  "database": {
+    "engine": "PostgreSQL 16",
+    "isolated": true,
+    "production_connected": false,
+    "alembic_head": "w9f57b2c4d31",
+    "current_equals_heads": true,
+    "fresh_upgrade_from_base": "PASS",
+    "downgrade_one_then_upgrade": "PASS",
+    "alembic_check": "PASS",
+    "create_all_used_for_acceptance": false,
+    "receivables_composite_tenant_foreign_keys": 16,
+    "core_constraint_contracts_checked": 21
+  },
+  "gates": {
+    "backend": {
+      "result": "PASS",
+      "passed": 335,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 363,
+      "duration_seconds": 151.64
+    },
+    "frontend_typecheck": "PASS",
+    "frontend_eslint": "PASS",
+    "frontend_vitest": {
+      "result": "PASS",
+      "files": 3,
+      "tests": 6
+    },
+    "frontend_production_build": {
+      "result": "PASS",
+      "modules": 141
+    },
+    "browser_e2e": {
+      "result": "PASS",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 23.0,
+      "stack": "PostgreSQL 16 + FastAPI real HTTP + production Vite preview"
+    },
+    "openapi_runtime_and_yaml_strict": "PASS",
+    "openspec_after_archive": {
+      "result": "PASS",
+      "passed": 85,
+      "failed": 0,
+      "archive": "2026-08-14-complete-receivables-collection-lifecycle",
+      "archive_tasks_complete": "45/45"
+    },
+    "python_dependency_audit": {
+      "result": "PASS",
+      "known_vulnerabilities": 0,
+      "note": "local kwzy-api package is not published on PyPI and was skipped by pip-audit"
+    },
+    "npm_dependency_audit": {
+      "result": "PASS",
+      "known_vulnerabilities": 0
+    },
+    "secrets_scan_after_archive": {
+      "result": "PASS",
+      "tracked_and_untracked_non_ignored_files": 915,
+      "hits": 0
+    },
+    "git_diff_check": "PASS"
+  },
+  "performance": {
+    "result": "PASS",
+    "requests": 1000,
+    "concurrency": 25,
+    "warmup": 40,
+    "endpoints": 8,
+    "failures": 0,
+    "p95_ms": 352.701,
+    "requests_per_second": 107.841,
+    "thresholds": {
+      "max_p95_ms": 500.0,
+      "max_error_rate_percent": 0.0,
+      "min_requests_per_second": 20.0
+    },
+    "evidence": "http-performance-clean-1a11cfe.json"
+  },
+  "retained_failures": [
+    {
+      "sha": "500efa538094ef1e759c316568656083b6b03c43",
+      "configuration": "DEBUG=true",
+      "p95_ms": 6756.641,
+      "classification": "real performance failure caused by SQL/debug logging amplification"
+    },
+    {
+      "sha": "500efa538094ef1e759c316568656083b6b03c43",
+      "configuration": "DEBUG=false before repair",
+      "p95_ms": 1896.077,
+      "classification": "real performance failure caused by two N+1 query paths"
+    }
+  ],
+  "migration_rehearsal": {
+    "synthetic_result": "PASS",
+    "dry_run": "PASS",
+    "interruption_rollback": "PASS",
+    "first_apply": "PASS",
+    "idempotent_reapply_added_rows": 0,
+    "source_amount": "1500.00",
+    "target_amount": "1500.00",
+    "mismatches": 0,
+    "orphans": 0,
+    "unmasked_accounts": 0,
+    "fake_external_delivery_claims": 0,
+    "schema_rollback": "PASS",
+    "real_legacy_data_result": "BLOCKED_PENDING_AUTHORIZED_SCHEMA_AND_DESENSITIZED_SAMPLE"
+  },
+  "backup_restore": {
+    "result": "PASS",
+    "dump_format": "pg_dump custom",
+    "dump_bytes": 630540,
+    "sha256": "acc85e479b310efd8b391251657ea85769cfcfb987ff9d4f87b4acd61bd1140a",
+    "source_signature": "alembic=w9f57b2c4d31,bills=20,receipts=5,payments=5,cases=5,adjustments=0",
+    "restored_signature": "alembic=w9f57b2c4d31,bills=20,receipts=5,payments=5,cases=5,adjustments=0",
+    "temporary_restore_database_removed": true
+  },
+  "restart_recovery": {
+    "result": "PASS",
+    "readiness_before": "ready/database up",
+    "readiness_after": "ready/database up",
+    "before_signature": "receipts=5,payments=5,cases=5",
+    "after_signature": "receipts=5,payments=5,cases=5"
+  },
+  "ui_evidence": {
+    "result": "PASS_IMPLEMENTED_PC_SCOPE",
+    "screenshots": [
+      "pc-desktop-payment-allocation.png",
+      "pc-desktop-collection-aging.png",
+      "pc-tablet-receipt-inbox.png",
+      "pc-mobile-receipt-inbox.png"
+    ],
+    "mobile_body_horizontal_overflow": false,
+    "fake_success_or_static_chart_found": false,
+    "sensitive_account_plaintext_found": false,
+    "employee_mobile": "MISSING",
+    "tenant_miniprogram": "MISSING"
+  },
+  "security_and_architecture_repairs": [
+    "reject foreign-tenant parks even for ALL-park-scope receipt import",
+    "enforce 16 database composite tenant foreign keys",
+    "reject duplicate query parameter names with DUPLICATE_QUERY_PARAMETER",
+    "remove Application-layer direct ORM construction through repository factories",
+    "batch billing conflict and payment allocation queries with query-count regression coverage"
+  ],
+  "open_findings": {
+    "p0": 0,
+    "p1_categories_full_product": 6,
+    "p2": 0,
+    "capability_matrix": {
+      "implemented_and_verified": 8,
+      "blocked": 1,
+      "missing": 11,
+      "approved_deferred": 0,
+      "approved_retired": 0
+    }
+  },
+  "external_integrations": {
+    "bank_payment_tax_finance_providers": "NOT_CONNECTED",
+    "production_deployment": "AWAITING_HUMAN_APPROVAL"
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-14T16:47:49.632484+00:00",
+  "exact_sha": "1a11cfe08b8d2b800c7121d7462995ebb75eb75d",
+  "target": "http://127.0.0.1:8010/api/v1",
+  "configuration": {
+    "app_env": "local",
+    "debug": false,
+    "database": "isolated localhost PostgreSQL 16",
+    "production_connected": false
+  },
+  "runtime": {
+    "requests": 1000,
+    "concurrency": 25,
+    "warmup": 40,
+    "endpoints": [
+      "GET /receipts?page=1&page_size=100",
+      "GET /receipts/capabilities",
+      "GET /payments?page=1&page_size=100",
+      "GET /bills?page=1&page_size=100",
+      "GET /collection/cases?page=1&page_size=100",
+      "GET /collection/runs/preview?as_of=2099-03-05",
+      "GET /receivable-adjustments",
+      "GET /billing/runs/preview?as_of=2099-03-05"
+    ]
+  },
+  "thresholds": {
+    "max_p95_ms": 500.0,
+    "max_error_rate_percent": 0.0,
+    "min_requests_per_second": 20.0
+  },
+  "aggregate": {
+    "requests": 1000,
+    "failures": 0,
+    "error_rate_percent": 0.0,
+    "elapsed_seconds": 9.273,
+    "requests_per_second": 107.841,
+    "mean_ms": 229.85,
+    "p50_ms": 210.743,
+    "p95_ms": 352.701,
+    "p99_ms": 381.21,
+    "max_ms": 424.518,
+    "by_endpoint": {
+      "GET /billing/runs/preview?as_of=2099-03-05": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 219.595,
+        "p95_ms": 352.592,
+        "p99_ms": 370.515,
+        "max_ms": 375.561
+      },
+      "GET /bills?page=1&page_size=100": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 230.747,
+        "p95_ms": 366.653,
+        "p99_ms": 414.799,
+        "max_ms": 424.518
+      },
+      "GET /collection/cases?page=1&page_size=100": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 227.302,
+        "p95_ms": 366.567,
+        "p99_ms": 392.946,
+        "max_ms": 399.26
+      },
+      "GET /collection/runs/preview?as_of=2099-03-05": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 192.624,
+        "p95_ms": 314.163,
+        "p99_ms": 352.536,
+        "max_ms": 353.911
+      },
+      "GET /payments?page=1&page_size=100": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 229.623,
+        "p95_ms": 363.313,
+        "p99_ms": 381.276,
+        "max_ms": 387.344
+      },
+      "GET /receipts/capabilities": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 183.337,
+        "p95_ms": 314.228,
+        "p99_ms": 339.904,
+        "max_ms": 347.619
+      },
+      "GET /receipts?page=1&page_size=100": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 202.089,
+        "p95_ms": 331.539,
+        "p99_ms": 347.637,
+        "max_ms": 352.477
+      },
+      "GET /receivable-adjustments": {
+        "requests": 125,
+        "failures": 0,
+        "p50_ms": 195.089,
+        "p95_ms": 325.979,
+        "p99_ms": 350.864,
+        "max_ms": 353.074
+      }
+    },
+    "failure_examples": []
+  },
+  "gate": {
+    "passed": true,
+    "failures": []
+  },
+  "retained_failures": [
+    {
+      "base_sha": "500efa538094ef1e759c316568656083b6b03c43",
+      "configuration": "DEBUG=true local development logging",
+      "p95_ms": 6756.641,
+      "reason": "performance contract requires DEBUG=false; 51 MB SQL/debug log amplified latency"
+    },
+    {
+      "base_sha": "500efa538094ef1e759c316568656083b6b03c43",
+      "configuration": "DEBUG=false before N+1 repair",
+      "p95_ms": 1896.077,
+      "reason": "schedule conflict and payment allocation N+1 queries"
+    }
+  ]
+}

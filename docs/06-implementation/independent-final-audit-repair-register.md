@@ -29,10 +29,10 @@
 | ASSET-002 | P1 | 提交前审查发现数据库可写入跨租户模板引用、显式模板可跨业态、几何可退化/自交且不可用单元误计挂牌潜力 | 不修改已应用 q3，新增 r4 复合租户外键；增加领域/API/PG 回归并修正空置口径；286 pytest、fresh/down-up 和 30/30 总门禁通过 | CLOSED |
 | PARTY-001 | P1 | Party 仅有基础主档，缺企业画像、关联企业、受控证件、来源标签、风险闭环及真实 PC 操作 | 新增 t6 前向迁移、纯领域规则、租户/园区/字段权限、指纹化证件、并发约束、真实 HTTP/PG/PC/ETL；clean-SHA 315 pytest、57 E2E 和 31/31 总门禁通过 | CLOSED_LOCAL_PRODUCT_SCOPE |
 | PERF-003 | P1 | Party 首轮 clean-SHA 企业目录逐行查询园区/风险形成 N+1，聚合 p95 535.126 ms 超过 500 ms 门槛 | 改为两个租户受限批量查询并增加查询数防回归；相同 1000/25 clean-SHA 门禁 p95 225.85 ms、172.617 RPS、0 错误 | CLOSED_LOCAL_GATE |
-| FIN-001 | P1 | 账收仅有基础登记/分配/简版案件，缺自动出账、到账单箱、可解释匹配、异常复核、多账单/预收核销和分级催缴 | 完成履约计划出账、到账/候选/财务确认/经理争议、多账单与未分配余额、L1-L4、调整双人审批及 PC 真栈；PG16、334 pytest、真实 HTTP、2 条 Playwright、合成 ETL、备份恢复通过 | CLOSED_LOCAL_PRODUCT_SCOPE |
+| FIN-001 | P1 | 账收仅有基础登记/分配/简版案件，缺自动出账、到账单箱、可解释匹配、异常复核、多账单/预收核销和分级催缴 | 完成履约计划出账、到账/候选/财务确认/经理争议、多账单与未分配余额、L1-L4、调整双人审批及 PC 真栈；PG16、335 pytest、真实 HTTP、2 条 Playwright、合成 ETL、备份恢复通过 | CLOSED_LOCAL_PRODUCT_SCOPE |
 | SEC-005 | P1 | 到账导入持有 ALL 园区范围时未验证传入园区属于当前租户；重复查询参数可造成参数污染；财务表缺数据库级复合租户外键 | 服务层验证租户园区归属；全局重复 query 参数 400 门禁；新增 w9 的 16 个复合租户外键和 IDOR/直写/参数污染回归 | CLOSED |
-| ARCH-001 | P1 | 应收 Application service 直接构造 SQLAlchemy ORM，违反分层依赖边界 | ORM 构造下沉 repository factory，Application 仅传领域数据；架构扫描与全量 334 pytest 通过 | CLOSED |
-| PERF-004 | P1 | 应收查询和批量预览缺真实 HTTP 性能基线 | 8 个端点、1000 请求、并发 25、0 错误，p95 151.678 ms、211.529 RPS；阈值 500 ms/20 RPS | CLOSED_LOCAL_GATE |
+| ARCH-001 | P1 | 应收 Application service 直接构造 SQLAlchemy ORM，违反分层依赖边界 | ORM 构造下沉 repository factory，Application 仅传领域数据；架构扫描与全量 335 pytest 通过 | CLOSED |
+| PERF-004 | P1 | 应收查询和批量预览缺真实 HTTP 性能基线；clean-SHA 前累积库复验先后暴露 DEBUG 日志放大和两个 N+1，p95 6756.641/1896.077 ms | 强制按生产契约 `DEBUG=false`；批量查询计划冲突和 Payment 分配余额并加入 SQL 查询数回归；精确 `1a11cfe` 8 端点、1000/25、0 错误，p95 352.701 ms、107.841 RPS，500 ms/20 RPS 门槛未降低 | CLOSED_LOCAL_GATE |
 
 ## 未关闭 P1
 

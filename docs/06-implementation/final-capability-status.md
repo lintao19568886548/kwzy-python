@@ -1,7 +1,7 @@
 # 瞰维智管 V2 当前能力状态
 
 > 更新时间：2026-08-15（Asia/Shanghai）
-> 最新已完成纵切：应收、到账、匹配、核销、欠费与催缴；本轮提交后补记精确实现 SHA
+> 最新已完成纵切：应收、到账、匹配、核销、欠费与催缴；clean-SHA `1a11cfe08b8d2b800c7121d7462995ebb75eb75d`
 > 完整报告：`independent-final-acceptance-report-20260814.md`
 > 能力权威表：`full-rebuild-traceability-matrix.md`
 
@@ -13,7 +13,7 @@
 - 安全加固：密码策略、JWT/会话撤销、附件归属、RBAC/tenant/park scope、CSRF/Host/安全头、生产 fail-closed。
 - 工程门禁：PG16 单 head 升降级、ORM/迁移契约、并发/回滚、OpenAPI、OpenSpec、依赖漏洞、容器、备份恢复和本地 HTTP 性能。
 
-应收当前代码已通过 334 pytest、真实 PG16、2 条专项 Playwright、1000 请求性能、合成 ETL、备份恢复和依赖审计；提交后 clean-SHA 机器证据将在 `evidence/receivables-collection-lifecycle/` 补记。既有精确 SHA 机器报告继续保留；所有证据只证明已实现范围。
+应收精确 SHA 已通过 335 pytest、真实 PG16、2 条专项 Playwright、1000/25 性能（p95 352.701 ms、107.841 RPS、0 错误）、合成 ETL、备份恢复和依赖审计；45/45 OpenSpec 任务已归档，归档后 strict 85/85、归档暂存树 915 文件 secrets scan 0 hits。综合机器证据为 `evidence/receivables-collection-lifecycle/acceptance-clean-1a11cfe.json`。既有精确 SHA 机器报告继续保留；所有证据只证明已实现范围。
 
 ## 不能外推为完成的范围
 

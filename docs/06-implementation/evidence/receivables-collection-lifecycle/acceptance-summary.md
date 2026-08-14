@@ -4,6 +4,7 @@
 > 范围结论：`IMPLEMENTED_AND_VERIFIED`
 > 全产品结论：`BLOCKED`
 > 生产连接/部署：未执行，仍需人工授权
+> clean-SHA：`1a11cfe08b8d2b800c7121d7462995ebb75eb75d`
 
 ## 已关闭业务范围
 
@@ -40,23 +41,25 @@ python -m pytest -q tests/test_receivables_postgres.py tests/test_receivables_et
 
 | 类别 | 结果 |
 | --- | --- |
-| 后端全量 | 334 passed，0 failed，150.88 s；363 条既有上游弃用 warning |
+| 后端全量 | 335 passed，0 failed，151.64 s；363 条既有上游弃用 warning |
 | 应收 PG/领域/API/权限/并发 | 全部通过；并发到账专项额外连续 5 轮通过 |
 | 前端类型 | `vue-tsc` PASS |
 | ESLint | PASS |
 | Vitest | 3 files / 6 tests PASS |
 | Production build | 141 modules PASS |
-| 浏览器 E2E | 2 passed，0 failed，24.1 s；真实 PG/FastAPI/production Vite |
+| 浏览器 E2E | 2 passed，0 failed，23.0 s；真实 PG/FastAPI/production Vite |
 | OpenAPI | runtime/YAML 契约与 YAML strict PASS |
-| OpenSpec | strict 78 passed，0 failed（归档前） |
+| OpenSpec | 45/45 任务完成；8 份 delta 已同步主规格并归档，归档后 strict 85 passed，0 failed |
 | Python 依赖 | `pip-audit --local`：0 known vulnerabilities；本地非 PyPI 包按预期跳过 |
 | 前端依赖 | `npm audit --audit-level=high`：0 vulnerabilities |
-| secrets | tracked + untracked 904 files PASS |
+| secrets | 归档暂存树 tracked + untracked non-ignored 915 files PASS，0 hits |
 | runtime stub/architecture | 无应收固定成功/stub；Application→ORM 已清零，router 无直查数据库 |
 
 ## HTTP、可靠性与备份恢复
 
-真实 loopback HTTP 使用登录令牌访问 8 个应收端点，1000 请求、并发 25、预热 40：失败 0，错误率 0%，p95 151.678 ms，吞吐 211.529 RPS，门槛 PASS。详见 `http-performance-20260814.json`。
+真实 loopback HTTP 使用登录令牌访问 8 个应收端点，1000 请求、并发 25、预热 40：失败 0，错误率 0%，p95 352.701 ms，吞吐 107.841 RPS，门槛 PASS。clean-SHA 性能报告为 `http-performance-clean-1a11cfe.json`，综合机器证据为 `acceptance-clean-1a11cfe.json`；早期小数据基线 `http-performance-20260814.json` 继续保留但不覆盖 clean-SHA 结果。
+
+clean-SHA 前复验保留两次真实失败：开发 `DEBUG=true` 导致 51 MB SQL/debug 日志和 p95 6756.641 ms；切换既定 `DEBUG=false` 后仍为 p95 1896.077 ms，定位为计划冲突逐行查询和 Payment 分配余额逐行查询两个 N+1。批量化并增加查询数回归后，在同一累积库、同一 500 ms 门槛下通过；门槛未降低、数据未清空。
 
 API 进程停止并确认端口关闭后重新启动；重启前后 readiness 均为 ready/database up，receipts/payments/cases 行签名均为 5/5/5。详见 `service-restart-recovery-20260814.json`。
 
@@ -89,7 +92,11 @@ API 进程停止并确认端口关闭后重新启动；重启前后 readiness �
 - `pc-tablet-receipt-inbox.png`
 - `pc-mobile-receipt-inbox.png`
 
-人工复核无假图表、假按钮、固定成功、乱码、敏感账号原文或页面级横向溢出；表格窄屏横向滚动限制在组件内。员工移动端和租户小程序不存在，不能由 PC 响应式截图替代验收。
+人工复核无假图表、假按钮、固定成功、乱码、敏感账号原文或页面级横向溢出；390px 到账列表使用完整字段卡片，金额、渠道、掩码账号、状态和复核操作均可读，E2E 同时断言 body/table 无横向溢出。员工移动端和租户小程序不存在，不能由 PC 响应式截图替代验收。
+
+## OpenSpec 关闭
+
+`complete-receivables-collection-lifecycle` 的 45/45 任务已完成，8 份 delta 已同步到主规格，并归档为 `openspec/changes/archive/2026-08-14-complete-receivables-collection-lifecycle/`。归档后执行 `openspec validate --all --strict --no-interactive`，结果为 85 passed、0 failed。
 
 ## 外部集成与最终边界
 

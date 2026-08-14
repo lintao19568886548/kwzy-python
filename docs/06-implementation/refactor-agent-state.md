@@ -7,12 +7,12 @@
 | 更新时间 | 2026-08-15（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | 应收闭环 worktree 门禁通过，待正常提交后的 clean-SHA 复验；上一 Party 精确提交 `36805823ad2e88311b9744e9e720b282b7cc74c8` 证据继续有效 |
-| 远程同步 | `feat/full-rebuild-completion` 远端当前到 Party 归档 `9ca0c88`；应收实现待本轮正常提交/推送，未 force、未触达 main |
-| 工作树 | 应收实现/测试/迁移/文档待提交；11 张既有审批、组织和资产视觉证据为用户修改，必须继续保持未暂存、不得删除或还原 |
+| 已验证 HEAD | 应收闭环精确提交 `1a11cfe08b8d2b800c7121d7462995ebb75eb75d` 的 335 后端、前端、2 浏览器和 1000/25 性能门禁通过 |
+| 远程同步 | 实现 `500efa5`、性能/UI 修复 `1a11cfe` 以及归档/证据提交均采用普通 push；续作前以 Git 复核本地与 `origin/feat/full-rebuild-completion` 同步，未 force、未触达 main |
+| 工作树 | 精确 SHA 验收开始时除 11 张受保护用户截图外无非保护修改；应收验收生成物已纳入证据提交，11 张既有审批、组织和资产视觉证据继续保持未暂存、不得删除或还原 |
 | Alembic | 唯一 head `w9f57b2c4d31`；PG16 fresh head、`current == heads`、`head→-1→head` 和 `alembic check` 通过，既有历史迁移未修改 |
 | 当前阶段 | 独立验收为 8 implemented / 1 blocked / 11 missing；组合能力 1–8 已关闭，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | `complete-receivables-collection-lifecycle` 的业务与验证任务完成，待 clean-SHA/提交/同步/归档；`complete-investment-crm-journey` 因任务 5.5 的审批 `revoked` 语义未定义而保持 active |
+| 当前 OpenSpec | 应收 45/45 任务完成，8 份 delta 已同步并归档为 `2026-08-14-complete-receivables-collection-lifecycle`，归档后 strict 85/85；`complete-investment-crm-journey` 因任务 5.5 的审批 `revoked` 语义未定义而保持 active |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
@@ -22,9 +22,12 @@
 - [x] 新增 `u7d35f0a2b19`、`v8e46a1b3c20`、`w9f57b2c4d31` 前向迁移；w9 的 16 个复合租户外键、21 项数据库约束和资金竞态回归通过。
 - [x] 关闭外租户园区导入、重复查询参数污染和 Application 直接构造 ORM 三项 P1；加入服务/数据库/中间件/架构防回归。
 - [x] 完成应收 PC 出账、到账、分配和催缴工作区；真实 PG/FastAPI/production Vite 的 2 条 Playwright 及桌面/平板/390×844 四张截图通过。
-- [x] worktree 全量 334 pytest、前端 lint/typecheck/6 Vitest/141 modules build、OpenAPI、OpenSpec 78/78、904 文件 secrets、Python/npm 已知漏洞 0 均通过。
-- [x] 真实 HTTP 1000/25 为 p95 151.678 ms、211.529 RPS、0 错误；API 重启前后 5/5/5 签名一致；PG dump/删除恢复签名精确一致。
+- [x] 精确 `1a11cfe` 全量 335 pytest、前端 lint/typecheck/6 Vitest/141 modules build、2 条真实浏览器和 OpenAPI 通过；OpenSpec/secrets/依赖门禁在证据归档前后复核。
+- [x] 精确 SHA 真实 HTTP 1000/25 为 p95 352.701 ms、107.841 RPS、0 错误；API 重启前后 5/5/5 签名一致；PG dump/删除恢复签名精确一致。
+- [x] clean-SHA 前保留 p95 6756.641（DEBUG 日志放大）和 1896.077 ms（计划冲突/Payment 余额 N+1）失败链；强制 `DEBUG=false`、批量查询和 SQL 查询数回归后在累积库通过，500 ms 门槛未降低。
+- [x] 将 390px 到账表格重排为字段完整的卡片列表，E2E 同时断言 table/body 无横向溢出；金额、掩码账号、渠道、状态和复核操作不再截断。
 - [x] 应收 synthetic ETL dry/interruption/apply/reapply/reconcile/rollback 通过；金额 1500.00 精确对账，真实旧 schema/脱敏快照仍保持 BLOCKED。
+- [x] 应收 45/45 OpenSpec 任务完成，8 份 delta 同步主规格并归档；归档后 strict 85/85、归档暂存树 915 文件 secrets scan 0 hits，综合机器证据为 `evidence/receivables-collection-lifecycle/acceptance-clean-1a11cfe.json`。
 
 - [x] 独立取证旧 rental tenant、Radar 企业画像和当前 Party 边界，发布字段映射与旧接口替代/保留/阻塞处置；个人身份材料、真实工商提供商和旧数据不被伪造为完成。
 - [x] 新增 `t6c24e9f1a08` 单一前向迁移、纯领域企业规则、租户安全仓储、严格 API/OpenAPI 与数据库派生的受控证件/风险权限。
@@ -106,9 +109,9 @@
 - [x] 将已落地基础合同 5 份 delta 同步主规格并归档 `2026-08-13-implement-lease-contract`，消除合同 V2 增量基线缺口。
 - [x] 完成 `implement-contract-lifecycle-v2` proposal/design、10 份 delta specs 和 102 项任务；change strict 与全量 OpenSpec 49/49 PASS。
 
-## 最新工作树证据（应收闭环，待 clean SHA 固化）
+## 最新机器证据（应收闭环 clean SHA）
 
-证据目录 `docs/06-implementation/evidence/receivables-collection-lifecycle/`：334 pytest；2 条应收 Playwright；HTTP 1000/25 p95 151.678 ms、211.529 RPS、0 错误；PG16 唯一 head `w9f57b2c4d31`；合成 ETL、API 重启和 630,540 bytes 备份删除恢复通过。提交后必须补记精确 SHA 并重跑关键门禁，不能把此段提前当 clean-SHA。
+证据目录 `docs/06-implementation/evidence/receivables-collection-lifecycle/`：精确 `1a11cfe08b8d2b800c7121d7462995ebb75eb75d` 的 335 pytest、2 条应收 Playwright、前端四门禁、HTTP 1000/25 p95 352.701 ms、107.841 RPS、0 错误；PG16 唯一 head `w9f57b2c4d31`；合成 ETL、API 重启和 630,540 bytes 备份删除恢复通过。
 
 ## 历史机器证据（Party 企业画像 clean SHA）
 
@@ -156,7 +159,7 @@
 
 ## 下一恢复点
 
-1. 正常提交/推送应收实现，在该精确 SHA 重跑关键门禁，补记机器证据，同步主规格并归档 `complete-receivables-collection-lifecycle`。
+1. 提交应收 clean-SHA 机器证据，同步主规格并归档 `complete-receivables-collection-lifecycle`，正常推送归档提交。
 2. 从能力矩阵第 9 项租户服务/工单/报价/验收/评价进入下一纵切，关闭剩余 11 个 `MISSING`。
 3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 
