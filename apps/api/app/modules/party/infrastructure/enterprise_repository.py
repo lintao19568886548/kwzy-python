@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections import defaultdict
 from collections.abc import Sequence
 from typing import Any
 
@@ -11,7 +12,12 @@ from sqlalchemy.orm import Session
 
 from app.infrastructure.database.base import utc_now
 from app.infrastructure.database.models.attachment import Attachment
-from app.infrastructure.database.models.party import Party, PartyAddress, PartyContact
+from app.infrastructure.database.models.party import (
+    Party,
+    PartyAddress,
+    PartyContact,
+    PartyParkRelation,
+)
 from app.infrastructure.database.models.party_enterprise import (
     PartyEnterpriseCredential,
     PartyEnterpriseProfile,
@@ -357,8 +363,6 @@ class PartyEnterpriseRepository:
         ).first()
 
     def party_active_park_ids(self, party_id: int) -> set[int]:
-        from app.infrastructure.database.models.party import PartyParkRelation
-
         return set(
             self.session.scalars(
                 select(PartyParkRelation.park_id).where(
@@ -369,6 +373,23 @@ class PartyEnterpriseRepository:
                 )
             ).all()
         )
+
+    def party_active_park_ids_many(self, party_ids: Sequence[int]) -> dict[int, set[int]]:
+        normalized_ids = sorted({int(party_id) for party_id in party_ids})
+        if not normalized_ids:
+            return {}
+        rows = self.session.execute(
+            select(PartyParkRelation.party_id, PartyParkRelation.park_id).where(
+                PartyParkRelation.tenant_id == self.tenant_id,
+                PartyParkRelation.party_id.in_(normalized_ids),
+                PartyParkRelation.status == "ACTIVE",
+                PartyParkRelation.deleted_at.is_(None),
+            )
+        ).all()
+        result: defaultdict[int, set[int]] = defaultdict(set)
+        for party_id, park_id in rows:
+            result[int(party_id)].add(int(park_id))
+        return dict(result)
 
     def credentials(self, party_id: int, *, include_archived: bool) -> Sequence[PartyEnterpriseCredential]:
         stmt = select(PartyEnterpriseCredential).where(
@@ -481,6 +502,34 @@ class PartyEnterpriseRepository:
                 .order_by(PartyEnterpriseRiskSignal.occurred_at.desc(), PartyEnterpriseRiskSignal.id.desc())
             ).all()
         )
+
+    def unresolved_risk_rows_many(
+        self, party_ids: Sequence[int]
+    ) -> dict[int, list[tuple[str, str]]]:
+        normalized_ids = sorted({int(party_id) for party_id in party_ids})
+        if not normalized_ids:
+            return {}
+        rows = self.session.execute(
+            select(
+                PartyEnterpriseRiskSignal.party_id,
+                PartyEnterpriseRiskSignal.severity,
+                PartyEnterpriseRiskSignal.category,
+            )
+            .outerjoin(
+                PartyEnterpriseRiskResolution,
+                (PartyEnterpriseRiskResolution.tenant_id == PartyEnterpriseRiskSignal.tenant_id)
+                & (PartyEnterpriseRiskResolution.signal_id == PartyEnterpriseRiskSignal.id),
+            )
+            .where(
+                PartyEnterpriseRiskSignal.tenant_id == self.tenant_id,
+                PartyEnterpriseRiskSignal.party_id.in_(normalized_ids),
+                PartyEnterpriseRiskResolution.id.is_(None),
+            )
+        ).all()
+        result: defaultdict[int, list[tuple[str, str]]] = defaultdict(list)
+        for party_id, severity, category in rows:
+            result[int(party_id)].append((str(severity), str(category)))
+        return dict(result)
 
     def resolution(self, signal_id: int) -> PartyEnterpriseRiskResolution | None:
         return self.session.scalars(

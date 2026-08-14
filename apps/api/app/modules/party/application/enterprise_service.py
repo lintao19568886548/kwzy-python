@@ -316,6 +316,12 @@ class PartyEnterpriseService:
             sort_by=sort_by,
             sort_order=sort_order,
         )
+        party_ids = [int(party.id) for party, _, _ in rows]
+        park_ids_by_party = self.repo.party_active_park_ids_many(party_ids)
+        can_read_risk = self.ctx.has_permission("party:risk_read")
+        risk_rows_by_party = (
+            self.repo.unresolved_risk_rows_many(party_ids) if can_read_risk else {}
+        )
         items = []
         for party, profile, score in rows:
             item = {
@@ -331,10 +337,12 @@ class PartyEnterpriseService:
                 "employee_size_band": profile.employee_size_band if profile else "UNKNOWN",
                 "provider_status": profile.provider_status if profile else "NOT_CONNECTED",
                 "completeness_score": score,
-                "park_ids": sorted(self.repo.party_active_park_ids(party.id)),
+                "park_ids": sorted(park_ids_by_party.get(int(party.id), set())),
             }
-            if self.ctx.has_permission("party:risk_read"):
-                item["local_risk"] = self._risk_summary(party.id)
+            if can_read_risk:
+                item["local_risk"] = enterprise_risk_summary(
+                    risk_rows_by_party.get(int(party.id), [])
+                )
             items.append(item)
         return {"total": total, "page": page, "page_size": page_size, "items": items}
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import base64
 
-from sqlalchemy import select
+from sqlalchemy import event, select
 from sqlalchemy.orm import Session
 
 from app.core.security import create_access_token
@@ -463,6 +463,39 @@ def test_enterprise_evidence_rejects_cross_tenant_and_wrong_park_attachments(
     )
     assert cross_tenant.status_code == 404, cross_tenant.text
     assert cross_tenant.json()["code"] == "ATTACHMENT_NOT_FOUND"
+
+
+def test_enterprise_directory_batches_child_queries(client, engine) -> None:
+    headers = _headers()
+    for index in range(8):
+        _party(client, headers, f"批量目录企业-{index}")
+
+    def select_count(page_size: int) -> int:
+        statements: list[str] = []
+
+        def capture(_connection, _cursor, statement, _parameters, _context, _executemany):
+            if statement.lstrip().upper().startswith("SELECT"):
+                statements.append(statement)
+
+        event.listen(engine, "before_cursor_execute", capture)
+        try:
+            response = client.get(
+                "/api/v1/enterprise-parties",
+                headers=headers,
+                params={"page": 1, "page_size": page_size},
+            )
+        finally:
+            event.remove(engine, "before_cursor_execute", capture)
+        assert response.status_code == 200, response.text
+        assert response.json()["data"]["total"] >= 8
+        return len(statements)
+
+    one_row_queries = select_count(1)
+    full_page_queries = select_count(50)
+    assert full_page_queries <= one_row_queries + 2, (
+        one_row_queries,
+        full_page_queries,
+    )
 
 
 def test_enterprise_child_ids_are_bound_to_the_party_path(client) -> None:
