@@ -8,8 +8,8 @@
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
 | 已验证 HEAD | 资产组合精确实现提交 `44ae618aa4b0a83bbb89eff2b040475bbfcb0479` 完成 30/30 clean-SHA 总门禁 |
-| 远程同步 | `feat/full-rebuild-completion` 与远端同步到 `44ae618`；实现提交已正常推送；本轮未 force、未触达 main |
-| 工作树 | 仅 clean-SHA 证据、滚动报告与 OpenSpec 同步/归档待提交；8 张既有审批/组织截图因二进制归属保护保持未暂存，未删除、未还原、未提交 |
+| 远程同步 | `feat/full-rebuild-completion` 与远端同步到归档提交 `ca08c33`；实现和闭环证据均已正常推送；本轮未 force、未触达 main |
+| 工作树 | 仅 8 张既有审批/组织截图因二进制归属保护保持未暂存，未删除、未还原、未提交 |
 | Alembic | 唯一 head `r4a02c7d9e86`；PG16 fresh q3→r4 与 `r4→q3→r4` 通过，已应用 q3 未修改 |
 | 当前阶段 | 独立验收为 5 implemented / 1 blocked / 14 missing；组合能力 1、2、3、6、7 已关闭，完整项目仍 `CONDITIONAL/BLOCKED` |
 | 当前 OpenSpec | `2026-08-14-complete-asset-portfolio-views` 已同步主规格并归档；Identity 真实旧数据任务继续外部门禁 |
@@ -124,7 +124,7 @@
 
 ## 下一恢复点
 
-1. 正常提交并推送资产模板/组合租控 clean-SHA 证据、主规格同步和 OpenSpec 归档。
+1. 从能力矩阵第 4 项开始，独立复核招商线索自动分配、意向审批和外部渠道缺口，按原始证据建立下一纵切并继续整改。
 2. 继续关闭能力矩阵剩余 14 个 `MISSING`，优先选择下一个能形成完整真实旅程的业务纵切。
 3. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 

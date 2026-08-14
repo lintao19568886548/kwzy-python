@@ -63,4 +63,4 @@
 - [x] 9.1 Run focused backend/frontend tests, Ruff, typecheck/build, strict OpenSpec and targeted stub/layer scans
 - [x] 9.2 Run full PG16 acceptance, backup/restore, performance and clean-SHA browser evidence
 - [x] 9.3 Update reports/matrix/roadmap/state, sync main specs and archive without force
-- [ ] 9.4 Normally commit and push closure evidence without force
+- [x] 9.4 Normally commit and push closure evidence without force

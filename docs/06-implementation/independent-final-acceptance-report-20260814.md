@@ -9,7 +9,7 @@
 
 ## 0. 最新闭环增量
 
-资产模板/组合租控精确实现提交 `44ae618` 的完整脚本 30/30 步 exit 0：PG16 fresh base→q3→唯一 head `r4a02c7d9e86`、严格 current=heads、r4 down 到 q3 后再 up、全仓 Ruff 错误级规则、286 后端测试、7 租户 worker、全套合成 ETL、三条真实 HTTP 旅程、1,000 请求性能、备份删除/恢复、前端门禁、52 条 Playwright、10 条 OpenAPI strict、67 项 OpenSpec strict、781 文件 secrets scan 和资源清理均通过。实现提交已正常推送；未 force、未触达 main、未连接生产。
+资产模板/组合租控精确实现提交 `44ae618` 的完整脚本 30/30 步 exit 0：PG16 fresh base→q3→唯一 head `r4a02c7d9e86`、严格 current=heads、r4 down 到 q3 后再 up、全仓 Ruff 错误级规则、286 后端测试、7 租户 worker、全套合成 ETL、三条真实 HTTP 旅程、1,000 请求性能、备份删除/恢复、前端门禁、52 条 Playwright、10 条 OpenAPI strict、67 项 OpenSpec strict、781 文件 secrets scan 和资源清理均通过。实现提交 `44ae618` 与主规格/归档提交 `ca08c33` 均已正常推送；未 force、未触达 main、未连接生产。
 
 本纵切新增七类版本化业态模板、受限动态字段、精确 Unit 模板版本历史、复合租户外键、合法 Point/简单 Polygon/CRS，以及矩阵/真实几何示意地图/列表/空置/到期/分析。三张新截图人工复核无假底图、错误口径或移动端横向溢出；资产 22 阶段真实 HTTP 旅程覆盖 403/404/409、跨租户 IDOR 和原始记录对账。clean-SHA 性能为 p95 268.361 ms、135.946 RPS、0 错误；商业 GIS/CAD/BIM 明确 `NOT_CONNECTED`。
 
