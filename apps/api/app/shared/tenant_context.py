@@ -99,6 +99,11 @@ class TenantContext:
                 "seal:",
                 "signature:",
                 "workforce:",
+                "supply:",
+                "supplier:",
+                "procurement:",
+                "inventory:",
+                "outsourcing:",
             )
         ) or permission_code in {
             "party:risk_read",

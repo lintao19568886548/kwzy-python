@@ -247,6 +247,11 @@ try {
     & $Py (Join-Path $Root "tools\etl\run_workforce_etl_drill.py") --database-url $pgUrl --out $workforceReport
   }
 
+  Step "supply_etl_acceptance" {
+    $supplyReport = Join-Path $ReportDir "supply_etl\supply-etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_supply_etl_drill.py") --database-url $pgUrl --out $supplyReport
+  }
+
   Step "http_performance_seed" {
     & $Py (Join-Path $Root "scripts\e2e_seed.py")
   }
@@ -312,6 +317,11 @@ try {
         --username "admin" --password $env:LOCAL_ADMIN_PASSWORD `
         --output (Join-Path $perfDir "workforce-http-journey.json")
       Assert-NativeSuccess "workforce HTTP journey"
+      & $Py (Join-Path $Root "scripts\supply_http_journey.py") `
+        --base-url "http://127.0.0.1:8010/api/v1" `
+        --username "admin" --password $env:LOCAL_ADMIN_PASSWORD `
+        --output (Join-Path $perfDir "supply-http-journey.json")
+      Assert-NativeSuccess "supply HTTP journey"
     } finally {
       Remove-Item Env:PERF_PASSWORD -ErrorAction SilentlyContinue
       if ($apiProc -and -not $apiProc.HasExited) {

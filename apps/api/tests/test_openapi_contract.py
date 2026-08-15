@@ -268,6 +268,123 @@ def test_workforce_openapi_matches_every_runtime_method_and_strict_command() -> 
     assert schemas["WorkforcePunchCreate"]["properties"]["latitude"]["writeOnly"]
 
 
+def test_supply_openapi_matches_every_runtime_method_and_strict_command() -> None:
+    """Supply stock-changing commands remain method-exact, strict and idempotent."""
+
+    from app.main import create_app
+
+    document = yaml.safe_load(OPENAPI_PATH.read_text(encoding="utf-8"))
+    paths = document["paths"]
+    runtime_paths = create_app().openapi()["paths"]
+    expected_methods = {
+        "/supply/overview": {"get"},
+        "/supply/suppliers": {"get", "post"},
+        "/supply/suppliers/{supplier_id}": {"get"},
+        "/supply/suppliers/{supplier_id}/status": {"post"},
+        "/supply/suppliers/{supplier_id}/scopes": {"post"},
+        "/supply/suppliers/{supplier_id}/qualifications": {"post"},
+        "/supply/suppliers/{supplier_id}/evaluations": {"post"},
+        "/supply/materials": {"get", "post"},
+        "/supply/warehouses": {"get", "post"},
+        "/supply/inventory/balances": {"get"},
+        "/supply/inventory/movements": {"get"},
+        "/supply/inventory/movements/{movement_id}/reverse": {"post"},
+        "/supply/procurement/requisitions": {"get", "post"},
+        "/supply/procurement/requisitions/{requisition_id}/draft": {"put"},
+        "/supply/procurement/requisitions/{requisition_id}/submit": {"post"},
+        "/supply/procurement/requisitions/{requisition_id}/cancel": {"post"},
+        "/supply/procurement/requisitions/{requisition_id}/sync": {"post"},
+        "/supply/procurement/orders": {"get", "post"},
+        "/supply/procurement/orders/{order_id}/acknowledge": {"post"},
+        "/supply/procurement/orders/{order_id}/receipts": {"post"},
+        "/supply/inventory/requisitions": {"get", "post"},
+        "/supply/inventory/requisitions/{requisition_id}/submit": {"post"},
+        "/supply/inventory/requisitions/{requisition_id}/sync": {"post"},
+        "/supply/inventory/requisitions/{requisition_id}/issue": {"post"},
+        "/supply/inventory/requisitions/{requisition_id}/return": {"post"},
+        "/supply/inventory/stocktakes": {"get", "post"},
+        "/supply/inventory/stocktakes/{stocktake_id}/submit": {"post"},
+        "/supply/inventory/stocktakes/{stocktake_id}/post": {"post"},
+        "/supply/outsourcing/orders": {"get", "post"},
+        "/supply/outsourcing/orders/{order_id}/submit": {"post"},
+        "/supply/outsourcing/orders/{order_id}/sync": {"post"},
+        "/supply/outsourcing/orders/{order_id}/events": {"post"},
+        "/supply/outsourcing/orders/{order_id}/acceptance": {"post"},
+    }
+    assert len(expected_methods) == 33
+    assert sum(len(methods) for methods in expected_methods.values()) == 41
+    for path, methods in expected_methods.items():
+        assert path in paths, path
+        assert methods == {
+            method.lower()
+            for method in paths[path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, path
+        runtime_path = "/api/v1" + path
+        assert runtime_path in runtime_paths, runtime_path
+        assert methods == {
+            method.lower()
+            for method in runtime_paths[runtime_path]
+            if method.lower() in {"get", "post", "put", "patch", "delete"}
+        }, runtime_path
+
+    schemas = document["components"]["schemas"]
+    strict_commands = {
+        "SupplierCreate",
+        "SupplierStatus",
+        "SupplierScopeCreate",
+        "SupplierQualificationCreate",
+        "SupplierEvaluationCreate",
+        "MaterialCreate",
+        "WarehouseCreate",
+        "ProcurementCreate",
+        "ProcurementDraftUpdate",
+        "ApprovalSubmit",
+        "SupplyExpectedReason",
+        "PurchaseOrderCreate",
+        "PurchaseOrderAcknowledge",
+        "app__modules__supply__interface__schemas__ReceiptCreate",
+        "InventoryRequisitionCreate",
+        "InventoryIssue",
+        "InventoryReturn",
+        "StocktakeCreate",
+        "MovementReverse",
+        "OutsourcingCreate",
+        "OutsourcingSubmit",
+        "OutsourcingEventCreate",
+        "OutsourcingAcceptance",
+    }
+    assert all(schemas[name]["additionalProperties"] is False for name in strict_commands)
+    assert schemas["SupplierQualificationCreate"]["properties"]["credential_number"]["writeOnly"]
+    idempotent_paths = {
+        "/supply/inventory/movements/{movement_id}/reverse",
+        "/supply/procurement/requisitions",
+        "/supply/procurement/requisitions/{requisition_id}/submit",
+        "/supply/procurement/requisitions/{requisition_id}/cancel",
+        "/supply/procurement/orders",
+        "/supply/procurement/orders/{order_id}/receipts",
+        "/supply/inventory/requisitions",
+        "/supply/inventory/requisitions/{requisition_id}/submit",
+        "/supply/inventory/requisitions/{requisition_id}/issue",
+        "/supply/inventory/requisitions/{requisition_id}/return",
+        "/supply/inventory/stocktakes",
+        "/supply/inventory/stocktakes/{stocktake_id}/submit",
+        "/supply/inventory/stocktakes/{stocktake_id}/post",
+        "/supply/outsourcing/orders",
+        "/supply/outsourcing/orders/{order_id}/submit",
+        "/supply/outsourcing/orders/{order_id}/events",
+        "/supply/outsourcing/orders/{order_id}/acceptance",
+    }
+    for path in idempotent_paths:
+        parameters = paths[path]["post"]["parameters"]
+        assert any(
+            parameter["in"] == "header"
+            and parameter["name"] == "Idempotency-Key"
+            and parameter["required"] is True
+            for parameter in parameters
+        ), path
+
+
 def test_receivables_openapi_matches_every_runtime_method_and_strict_command() -> None:
     """Every receivables write path is contract-controlled and rejects hidden fields."""
 

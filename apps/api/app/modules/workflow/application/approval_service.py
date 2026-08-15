@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime
 from typing import Any
 
@@ -16,6 +17,15 @@ from app.modules.lease.infrastructure.approval_adapter import LEASE_MANAGED_APPR
 from app.modules.workbench.application.automation_service import WorkbenchAutomationService
 from app.modules.workflow.infrastructure.approval_repository import ApprovalRepository
 from app.shared.tenant_context import TenantContext
+
+
+def bounded_idempotency_key(value: str, *, maximum: int = 64) -> str:
+    """Preserve short keys and deterministically fingerprint keys that exceed DB limits."""
+    normalized = value.strip()
+    if len(normalized) <= maximum:
+        return normalized
+    digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+    return f"h:{digest[: maximum - 2]}"
 
 
 class ApprovalService:
@@ -101,9 +111,10 @@ class ApprovalService:
         definition_code = str(data.get("definition_code") or "").strip().upper()
         if not definition_code:
             return self._create_legacy(data, biz_type=biz_type, biz_id=biz_id, title=title)
-        idempotency_key = str(data.get("idempotency_key") or "").strip()
-        if not idempotency_key:
+        supplied_idempotency_key = str(data.get("idempotency_key") or "").strip()
+        if not supplied_idempotency_key:
             raise AppError("幂等键必填", code="IDEMPOTENCY_KEY_REQUIRED", status_code=400)
+        idempotency_key = bounded_idempotency_key(supplied_idempotency_key)
         previous = self.repo.get_by_submission_key(idempotency_key)
         if previous is not None:
             if previous.biz_type == biz_type and previous.biz_id == biz_id:
@@ -160,7 +171,7 @@ class ApprovalService:
                 actor_user_id=self.ctx.user_id,
                 remark=data.get("remark"),
                 round_no=1,
-                idempotency_key=f"submit:{idempotency_key}",
+                idempotency_key=bounded_idempotency_key(f"submit:{idempotency_key}"),
                 detail_json={"definition_version_id": int(version.id)},
             )
             self.repo.open_step(model, 1)
@@ -439,6 +450,7 @@ class ApprovalService:
         if not self.ctx.has_permission("approval:write"):
             raise AppError("无审批撤回权限", code="PERMISSION_DENIED", status_code=403)
         if idempotency_key:
+            idempotency_key = bounded_idempotency_key(idempotency_key)
             previous = self.repo.event_by_key(idempotency_key)
             if previous is not None:
                 if int(previous.approval_id) != approval_id or previous.action != "WITHDRAW":
@@ -463,8 +475,7 @@ class ApprovalService:
         if expected_version is not None and int(model.lock_version) != int(expected_version):
             raise AppError("审批状态已变化，请刷新", code="VERSION_CONFLICT", status_code=409)
         if int(model.applicant_user_id or 0) != int(self.ctx.user_id or 0) and (
-            model.compatibility_mode == "NATIVE"
-            or not self.ctx.has_permission("approval:decide")
+            model.compatibility_mode == "NATIVE" or not self.ctx.has_permission("approval:decide")
         ):
             raise AppError("仅申请人可撤回", code="PERMISSION_DENIED", status_code=403)
         now = utc_now()

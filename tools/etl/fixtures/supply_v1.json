@@ -1,0 +1,97 @@
+{
+  "fixture_version": "supply-v1",
+  "contains_real_customer_data": false,
+  "authoritative_legacy_schema_present": false,
+  "authoritative_legacy_transactions_present": false,
+  "parks": [
+    {"source_id": "LEGACY-PARK-01", "target_ref": "target-park-1"}
+  ],
+  "suppliers": [
+    {
+      "source_id": "LEGACY-SUP-01",
+      "park_ref": "LEGACY-PARK-01",
+      "code": "SUP-001",
+      "display_name": "合成防水供应商",
+      "service_type": "GENERAL",
+      "credential_number": "SYNTHETIC-LICENSE-99887766",
+      "status": "ACTIVE"
+    },
+    {
+      "source_id": "LEGACY-SUP-ORPHAN",
+      "park_ref": "LEGACY-PARK-MISSING",
+      "code": "SUP-ORPHAN",
+      "display_name": "不可映射供应商",
+      "service_type": "GENERAL",
+      "credential_number": "SYNTHETIC-LICENSE-00000000",
+      "status": "ACTIVE"
+    }
+  ],
+  "materials": [
+    {
+      "source_id": "LEGACY-MAT-01",
+      "code": "MAT-001",
+      "name": "合成防水卷材",
+      "category": "维修耗材",
+      "unit": "箱"
+    },
+    {
+      "source_id": "LEGACY-MAT-02",
+      "code": "MAT-002",
+      "name": "合成密封胶",
+      "category": "维修耗材",
+      "unit": "支"
+    }
+  ],
+  "warehouses": [
+    {
+      "source_id": "LEGACY-WH-01",
+      "park_ref": "LEGACY-PARK-01",
+      "code": "WH-001",
+      "name": "合成维修主仓"
+    }
+  ],
+  "procurement_orders": [
+    {
+      "source_id": "LEGACY-PO-01",
+      "park_ref": "LEGACY-PARK-01",
+      "supplier_ref": "LEGACY-SUP-01",
+      "material_ref": "LEGACY-MAT-01",
+      "quantity": "10",
+      "unit_price": "35.50",
+      "legacy_status": "APPROVED"
+    }
+  ],
+  "stock_movements": [
+    {
+      "source_id": "LEGACY-MOVE-01",
+      "warehouse_ref": "LEGACY-WH-01",
+      "material_ref": "LEGACY-MAT-01",
+      "movement_type": "RECEIPT",
+      "quantity": "10"
+    },
+    {
+      "source_id": "LEGACY-MOVE-02",
+      "warehouse_ref": "LEGACY-WH-01",
+      "material_ref": "LEGACY-MAT-01",
+      "movement_type": "ISSUE",
+      "quantity": "-3"
+    },
+    {
+      "source_id": "LEGACY-MOVE-ORPHAN",
+      "warehouse_ref": "LEGACY-WH-01",
+      "material_ref": "LEGACY-MAT-MISSING",
+      "movement_type": "ISSUE",
+      "quantity": "-1"
+    }
+  ],
+  "outsourcing_orders": [
+    {
+      "source_id": "LEGACY-OUT-01",
+      "park_ref": "LEGACY-PARK-01",
+      "supplier_ref": "LEGACY-SUP-01",
+      "title": "合成屋面防水外包",
+      "amount": "3000.00",
+      "legacy_status": "PAID"
+    }
+  ]
+}

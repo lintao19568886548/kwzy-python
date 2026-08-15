@@ -1,0 +1,1 @@
+"""Supply persistence adapters."""

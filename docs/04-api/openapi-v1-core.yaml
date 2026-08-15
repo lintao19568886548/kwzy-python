@@ -12,6 +12,7 @@ servers:
   - url: http://localhost:8000/api/v1
     description: Local
 tags:
+  - name: Supply
   - name: Auth
   - name: Parks
   - name: Units
@@ -7359,6 +7360,1529 @@ paths:
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WorkforceQualificationSweep' } } } }
       responses: { '200': { description: Swept } }
 
+  /supply/overview:
+    get:
+      tags:
+      - Supply
+      summary: Overview
+      operationId: overview_api_v1_supply_overview_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Overview Api V1 Supply Overview Get
+      security:
+      - bearerAuth: []
+  /supply/suppliers:
+    get:
+      tags:
+      - Supply
+      summary: Suppliers
+      operationId: suppliers_api_v1_supply_suppliers_get
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+      - name: keyword
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 100
+          - type: 'null'
+          title: Keyword
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Suppliers Api V1 Supply Suppliers Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Supply
+      summary: Create Supplier
+      operationId: create_supplier_api_v1_supply_suppliers_post
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Create Supplier Api V1 Supply Suppliers Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/suppliers/{supplier_id}:
+    get:
+      tags:
+      - Supply
+      summary: Supplier Detail
+      operationId: supplier_detail_api_v1_supply_suppliers__supplier_id__get
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: supplier_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Supplier Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Supplier Detail Api V1 Supply Suppliers  Supplier Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/suppliers/{supplier_id}/status:
+    post:
+      tags:
+      - Supply
+      summary: Supplier Status
+      operationId: supplier_status_api_v1_supply_suppliers__supplier_id__status_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: supplier_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Supplier Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierStatus'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Supplier Status Api V1 Supply Suppliers  Supplier Id  Status
+                  Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/suppliers/{supplier_id}/scopes:
+    post:
+      tags:
+      - Supply
+      summary: Supplier Scope
+      operationId: supplier_scope_api_v1_supply_suppliers__supplier_id__scopes_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: supplier_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Supplier Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierScopeCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Supplier Scope Api V1 Supply Suppliers  Supplier Id  Scopes
+                  Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/suppliers/{supplier_id}/qualifications:
+    post:
+      tags:
+      - Supply
+      summary: Supplier Qualification
+      operationId: supplier_qualification_api_v1_supply_suppliers__supplier_id__qualifications_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: supplier_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Supplier Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierQualificationCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Supplier Qualification Api V1 Supply Suppliers  Supplier
+                  Id  Qualifications Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/suppliers/{supplier_id}/evaluations:
+    post:
+      tags:
+      - Supply
+      summary: Supplier Evaluation
+      operationId: supplier_evaluation_api_v1_supply_suppliers__supplier_id__evaluations_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: supplier_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Supplier Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierEvaluationCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Supplier Evaluation Api V1 Supply Suppliers  Supplier
+                  Id  Evaluations Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/materials:
+    get:
+      tags:
+      - Supply
+      summary: Materials
+      operationId: materials_api_v1_supply_materials_get
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 200
+          title: Page Size
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(ACTIVE|RETIRED)$
+          - type: 'null'
+          title: Status
+      - name: keyword
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 100
+          - type: 'null'
+          title: Keyword
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Materials Api V1 Supply Materials Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Supply
+      summary: Create Material
+      operationId: create_material_api_v1_supply_materials_post
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Create Material Api V1 Supply Materials Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/warehouses:
+    get:
+      tags:
+      - Supply
+      summary: Warehouses
+      operationId: warehouses_api_v1_supply_warehouses_get
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: park_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Park Id
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 200
+          title: Page Size
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(ACTIVE|RETIRED)$
+          - type: 'null'
+          title: Status
+      - name: keyword
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 100
+          - type: 'null'
+          title: Keyword
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Warehouses Api V1 Supply Warehouses Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Supply
+      summary: Create Warehouse
+      operationId: create_warehouse_api_v1_supply_warehouses_post
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Create Warehouse Api V1 Supply Warehouses Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/inventory/balances:
+    get:
+      tags:
+      - Supply
+      summary: Balances
+      operationId: balances_api_v1_supply_inventory_balances_get
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: park_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Park Id
+      - name: warehouse_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Warehouse Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Balances Api V1 Supply Inventory Balances Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/inventory/movements:
+    get:
+      tags:
+      - Supply
+      summary: Movements
+      operationId: movements_api_v1_supply_inventory_movements_get
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: balance_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Balance Id
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          default: 200
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Movements Api V1 Supply Inventory Movements Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/inventory/movements/{movement_id}/reverse:
+    post:
+      tags:
+      - Supply
+      summary: Reverse Movement
+      operationId: reverse_movement_api_v1_supply_inventory_movements__movement_id__reverse_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: movement_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Movement Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovementReverse'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Reverse Movement Api V1 Supply Inventory Movements  Movement
+                  Id  Reverse Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/procurement/requisitions:
+    get:
+      tags:
+      - Supply
+      summary: Requisitions
+      operationId: requisitions_api_v1_supply_procurement_requisitions_get
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Requisitions Api V1 Supply Procurement Requisitions
+                  Get
+    post:
+      tags:
+      - Supply
+      summary: Create Requisition
+      operationId: create_requisition_api_v1_supply_procurement_requisitions_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Create Requisition Api V1 Supply Procurement Requisitions
+                  Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/procurement/requisitions/{requisition_id}/draft:
+    put:
+      tags:
+      - Supply
+      summary: Update Requisition Draft
+      operationId: update_requisition_draft_api_v1_supply_procurement_requisitions__requisition_id__draft_put
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: requisition_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Requisition Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementDraftUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Update Requisition Draft Api V1 Supply Procurement Requisitions  Requisition
+                  Id  Draft Put
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/procurement/requisitions/{requisition_id}/submit:
+    post:
+      tags:
+      - Supply
+      summary: Submit Requisition
+      operationId: submit_requisition_api_v1_supply_procurement_requisitions__requisition_id__submit_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: requisition_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Requisition Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalSubmit'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Submit Requisition Api V1 Supply Procurement Requisitions  Requisition
+                  Id  Submit Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/procurement/requisitions/{requisition_id}/cancel:
+    post:
+      tags:
+      - Supply
+      summary: Cancel Requisition
+      operationId: cancel_requisition_api_v1_supply_procurement_requisitions__requisition_id__cancel_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: requisition_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Requisition Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplyExpectedReason'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Cancel Requisition Api V1 Supply Procurement Requisitions  Requisition
+                  Id  Cancel Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/procurement/requisitions/{requisition_id}/sync:
+    post:
+      tags:
+      - Supply
+      summary: Sync Requisition
+      operationId: sync_requisition_api_v1_supply_procurement_requisitions__requisition_id__sync_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: requisition_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Requisition Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Sync Requisition Api V1 Supply Procurement Requisitions  Requisition
+                  Id  Sync Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/procurement/orders:
+    get:
+      tags:
+      - Supply
+      summary: Orders
+      operationId: orders_api_v1_supply_procurement_orders_get
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Orders Api V1 Supply Procurement Orders Get
+    post:
+      tags:
+      - Supply
+      summary: Create Order
+      operationId: create_order_api_v1_supply_procurement_orders_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Create Order Api V1 Supply Procurement Orders Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/procurement/orders/{order_id}/acknowledge:
+    post:
+      tags:
+      - Supply
+      summary: Acknowledge Order
+      operationId: acknowledge_order_api_v1_supply_procurement_orders__order_id__acknowledge_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Order Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderAcknowledge'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Acknowledge Order Api V1 Supply Procurement Orders  Order
+                  Id  Acknowledge Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/procurement/orders/{order_id}/receipts:
+    post:
+      tags:
+      - Supply
+      summary: Receive Order
+      operationId: receive_order_api_v1_supply_procurement_orders__order_id__receipts_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Order Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__modules__supply__interface__schemas__ReceiptCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Receive Order Api V1 Supply Procurement Orders  Order
+                  Id  Receipts Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/inventory/requisitions:
+    get:
+      tags:
+      - Supply
+      summary: Inventory Requisitions
+      operationId: inventory_requisitions_api_v1_supply_inventory_requisitions_get
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Inventory Requisitions Api V1 Supply Inventory Requisitions
+                  Get
+    post:
+      tags:
+      - Supply
+      summary: Create Inventory Requisition
+      operationId: create_inventory_requisition_api_v1_supply_inventory_requisitions_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryRequisitionCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Create Inventory Requisition Api V1 Supply Inventory
+                  Requisitions Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/inventory/requisitions/{requisition_id}/submit:
+    post:
+      tags:
+      - Supply
+      summary: Submit Inventory
+      operationId: submit_inventory_api_v1_supply_inventory_requisitions__requisition_id__submit_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: requisition_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Requisition Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalSubmit'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Submit Inventory Api V1 Supply Inventory Requisitions  Requisition
+                  Id  Submit Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/inventory/requisitions/{requisition_id}/sync:
+    post:
+      tags:
+      - Supply
+      summary: Sync Inventory
+      operationId: sync_inventory_api_v1_supply_inventory_requisitions__requisition_id__sync_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: requisition_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Requisition Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Sync Inventory Api V1 Supply Inventory Requisitions  Requisition
+                  Id  Sync Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/inventory/requisitions/{requisition_id}/issue:
+    post:
+      tags:
+      - Supply
+      summary: Issue Inventory
+      operationId: issue_inventory_api_v1_supply_inventory_requisitions__requisition_id__issue_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: requisition_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Requisition Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryIssue'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Issue Inventory Api V1 Supply Inventory Requisitions  Requisition
+                  Id  Issue Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/inventory/requisitions/{requisition_id}/return:
+    post:
+      tags:
+      - Supply
+      summary: Return Inventory
+      operationId: return_inventory_api_v1_supply_inventory_requisitions__requisition_id__return_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: requisition_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Requisition Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryReturn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Return Inventory Api V1 Supply Inventory Requisitions  Requisition
+                  Id  Return Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/inventory/stocktakes:
+    get:
+      tags:
+      - Supply
+      summary: Stocktakes
+      operationId: stocktakes_api_v1_supply_inventory_stocktakes_get
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Stocktakes Api V1 Supply Inventory Stocktakes Get
+    post:
+      tags:
+      - Supply
+      summary: Create Stocktake
+      operationId: create_stocktake_api_v1_supply_inventory_stocktakes_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StocktakeCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Create Stocktake Api V1 Supply Inventory Stocktakes
+                  Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/inventory/stocktakes/{stocktake_id}/submit:
+    post:
+      tags:
+      - Supply
+      summary: Submit Stocktake
+      operationId: submit_stocktake_api_v1_supply_inventory_stocktakes__stocktake_id__submit_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: stocktake_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Stocktake Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalSubmit'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Submit Stocktake Api V1 Supply Inventory Stocktakes  Stocktake
+                  Id  Submit Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/inventory/stocktakes/{stocktake_id}/post:
+    post:
+      tags:
+      - Supply
+      summary: Post Stocktake
+      operationId: post_stocktake_api_v1_supply_inventory_stocktakes__stocktake_id__post_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: stocktake_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Stocktake Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Post Stocktake Api V1 Supply Inventory Stocktakes  Stocktake
+                  Id  Post Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/outsourcing/orders:
+    get:
+      tags:
+      - Supply
+      summary: Outsourcing Orders
+      operationId: outsourcing_orders_api_v1_supply_outsourcing_orders_get
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Outsourcing Orders Api V1 Supply Outsourcing Orders
+                  Get
+    post:
+      tags:
+      - Supply
+      summary: Create Outsourcing
+      operationId: create_outsourcing_api_v1_supply_outsourcing_orders_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OutsourcingCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Create Outsourcing Api V1 Supply Outsourcing Orders
+                  Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/outsourcing/orders/{order_id}/submit:
+    post:
+      tags:
+      - Supply
+      summary: Submit Outsourcing
+      operationId: submit_outsourcing_api_v1_supply_outsourcing_orders__order_id__submit_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Order Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OutsourcingSubmit'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Submit Outsourcing Api V1 Supply Outsourcing Orders  Order
+                  Id  Submit Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/outsourcing/orders/{order_id}/sync:
+    post:
+      tags:
+      - Supply
+      summary: Sync Outsourcing
+      operationId: sync_outsourcing_api_v1_supply_outsourcing_orders__order_id__sync_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Order Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Sync Outsourcing Api V1 Supply Outsourcing Orders  Order
+                  Id  Sync Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/outsourcing/orders/{order_id}/events:
+    post:
+      tags:
+      - Supply
+      summary: Outsourcing Event
+      operationId: outsourcing_event_api_v1_supply_outsourcing_orders__order_id__events_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Order Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OutsourcingEventCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Outsourcing Event Api V1 Supply Outsourcing Orders  Order
+                  Id  Events Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /supply/outsourcing/orders/{order_id}/acceptance:
+    post:
+      tags:
+      - Supply
+      summary: Accept Outsourcing
+      operationId: accept_outsourcing_api_v1_supply_outsourcing_orders__order_id__acceptance_post
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Order Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OutsourcingAcceptance'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Accept Outsourcing Api V1 Supply Outsourcing Orders  Order
+                  Id  Acceptance Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -7524,6 +9048,811 @@ components:
           schema: { $ref: '#/components/schemas/ErrorResponse' }
 
   schemas:
+    ProcurementDraftUpdate:
+      properties:
+        park_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Park Id
+        purpose:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Purpose
+        lines:
+          items:
+            $ref: '#/components/schemas/ProcurementLineCreate'
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Lines
+        expected_version:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Expected Version
+      additionalProperties: false
+      type: object
+      required:
+      - park_id
+      - purpose
+      - lines
+      - expected_version
+      title: ProcurementDraftUpdate
+
+    SupplyExpectedReason:
+      properties:
+        expected_version:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Expected Version
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Reason
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - reason
+      title: SupplyExpectedReason
+
+    ApprovalSubmit:
+      properties:
+        expected_version:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Expected Version
+        definition_code:
+          type: string
+          maxLength: 64
+          minLength: 2
+          title: Definition Code
+        priority:
+          type: string
+          enum:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - URGENT
+          title: Priority
+          default: MEDIUM
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - definition_code
+      title: ApprovalSubmit
+    DeliverableCreate:
+      properties:
+        code:
+          type: string
+          maxLength: 32
+          minLength: 2
+          title: Code
+        name:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Name
+        required:
+          type: boolean
+          title: Required
+          default: true
+      additionalProperties: false
+      type: object
+      required:
+      - code
+      - name
+      title: DeliverableCreate
+    EvidenceItem:
+      properties:
+        type:
+          type: string
+          maxLength: 32
+          minLength: 1
+          title: Type
+        reference:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Reference
+      additionalProperties: false
+      type: object
+      required:
+      - type
+      - reference
+      title: EvidenceItem
+    InventoryIssue:
+      properties:
+        lines:
+          items:
+            $ref: '#/components/schemas/InventoryIssueLine'
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Lines
+      additionalProperties: false
+      type: object
+      required:
+      - lines
+      title: InventoryIssue
+    InventoryIssueLine:
+      properties:
+        line_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Line Id
+        quantity:
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,14}|(?=[\d.]{1,19}0*$)\d{0,14}\.\d{0,4}0*$)
+          title: Quantity
+      additionalProperties: false
+      type: object
+      required:
+      - line_id
+      - quantity
+      title: InventoryIssueLine
+    InventoryLineCreate:
+      properties:
+        warehouse_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Warehouse Id
+        material_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Material Id
+        quantity:
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,14}|(?=[\d.]{1,19}0*$)\d{0,14}\.\d{0,4}0*$)
+          title: Quantity
+      additionalProperties: false
+      type: object
+      required:
+      - warehouse_id
+      - material_id
+      - quantity
+      title: InventoryLineCreate
+    InventoryRequisitionCreate:
+      properties:
+        park_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Park Id
+        purpose:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Purpose
+        work_order_id:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Work Order Id
+        lines:
+          items:
+            $ref: '#/components/schemas/InventoryLineCreate'
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Lines
+      additionalProperties: false
+      type: object
+      required:
+      - park_id
+      - purpose
+      - lines
+      title: InventoryRequisitionCreate
+    InventoryReturn:
+      properties:
+        line_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Line Id
+        quantity:
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,14}|(?=[\d.]{1,19}0*$)\d{0,14}\.\d{0,4}0*$)
+          title: Quantity
+      additionalProperties: false
+      type: object
+      required:
+      - line_id
+      - quantity
+      title: InventoryReturn
+    MaterialCreate:
+      properties:
+        code:
+          type: string
+          maxLength: 32
+          minLength: 2
+          title: Code
+        name:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Name
+        category:
+          type: string
+          maxLength: 64
+          minLength: 1
+          title: Category
+        unit:
+          type: string
+          maxLength: 16
+          minLength: 1
+          title: Unit
+        reorder_point:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,14}|(?=[\d.]{1,19}0*$)\d{0,14}\.\d{0,4}0*$)
+          title: Reorder Point
+          default: '0'
+      additionalProperties: false
+      type: object
+      required:
+      - code
+      - name
+      - category
+      - unit
+      title: MaterialCreate
+    MovementReverse:
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Reason
+      additionalProperties: false
+      type: object
+      required:
+      - reason
+      title: MovementReverse
+    OutsourcingAcceptance:
+      properties:
+        accepted:
+          type: boolean
+          title: Accepted
+        reason:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Reason
+        score:
+          anyOf:
+          - type: integer
+            maximum: 5.0
+            minimum: 1.0
+          - type: 'null'
+          title: Score
+        comment:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Comment
+      additionalProperties: false
+      type: object
+      required:
+      - accepted
+      title: OutsourcingAcceptance
+    OutsourcingCreate:
+      properties:
+        park_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Park Id
+        supplier_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Supplier Id
+        work_order_id:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Work Order Id
+        title:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Title
+        deliverables:
+          items:
+            $ref: '#/components/schemas/DeliverableCreate'
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Deliverables
+        sla_due_at:
+          type: string
+          format: date-time
+          title: Sla Due At
+        amount:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,16}|(?=[\d.]{1,19}0*$)\d{0,16}\.\d{0,2}0*$)
+          title: Amount
+        required_qualification:
+          anyOf:
+          - type: string
+            maxLength: 32
+          - type: 'null'
+          title: Required Qualification
+      additionalProperties: false
+      type: object
+      required:
+      - park_id
+      - supplier_id
+      - title
+      - deliverables
+      - sla_due_at
+      - amount
+      title: OutsourcingCreate
+    OutsourcingEventCreate:
+      properties:
+        event_type:
+          type: string
+          enum:
+          - STARTED
+          - PROGRESS
+          - COMPLETED
+          - CANCELLED
+          title: Event Type
+        note:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Note
+        evidence:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/EvidenceItem'
+            type: array
+            maxItems: 100
+          - type: 'null'
+          title: Evidence
+      additionalProperties: false
+      type: object
+      required:
+      - event_type
+      title: OutsourcingEventCreate
+    OutsourcingSubmit:
+      properties:
+        expected_version:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Expected Version
+        definition_code:
+          type: string
+          maxLength: 64
+          minLength: 2
+          title: Definition Code
+        priority:
+          type: string
+          enum:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - URGENT
+          title: Priority
+          default: MEDIUM
+        required_qualification:
+          anyOf:
+          - type: string
+            maxLength: 32
+          - type: 'null'
+          title: Required Qualification
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - definition_code
+      title: OutsourcingSubmit
+    ProcurementCreate:
+      properties:
+        park_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Park Id
+        purpose:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Purpose
+        lines:
+          items:
+            $ref: '#/components/schemas/ProcurementLineCreate'
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Lines
+      additionalProperties: false
+      type: object
+      required:
+      - park_id
+      - purpose
+      - lines
+      title: ProcurementCreate
+    ProcurementLineCreate:
+      properties:
+        material_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Material Id
+        quantity:
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,14}|(?=[\d.]{1,19}0*$)\d{0,14}\.\d{0,4}0*$)
+          title: Quantity
+        estimated_unit_price:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,14}|(?=[\d.]{1,19}0*$)\d{0,14}\.\d{0,4}0*$)
+          title: Estimated Unit Price
+          default: '0'
+        purpose:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Purpose
+      additionalProperties: false
+      type: object
+      required:
+      - material_id
+      - quantity
+      title: ProcurementLineCreate
+    PurchaseOrderAcknowledge:
+      properties:
+        expected_version:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Expected Version
+        accepted:
+          type: boolean
+          title: Accepted
+        reason:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Reason
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - accepted
+      title: PurchaseOrderAcknowledge
+    PurchaseOrderCreate:
+      properties:
+        requisition_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Requisition Id
+        supplier_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Supplier Id
+        currency:
+          type: string
+          maxLength: 3
+          minLength: 3
+          title: Currency
+          default: CNY
+        truth_mode:
+          type: string
+          enum:
+          - LOCAL
+          - EXTERNAL_PENDING
+          title: Truth Mode
+          default: LOCAL
+        required_qualification:
+          anyOf:
+          - type: string
+            maxLength: 32
+          - type: 'null'
+          title: Required Qualification
+        lines:
+          items:
+            $ref: '#/components/schemas/PurchaseOrderPrice'
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Lines
+      additionalProperties: false
+      type: object
+      required:
+      - requisition_id
+      - supplier_id
+      - lines
+      title: PurchaseOrderCreate
+    PurchaseOrderPrice:
+      properties:
+        requisition_line_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Requisition Line Id
+        unit_price:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,14}|(?=[\d.]{1,19}0*$)\d{0,14}\.\d{0,4}0*$)
+          title: Unit Price
+      additionalProperties: false
+      type: object
+      required:
+      - requisition_line_id
+      - unit_price
+      title: PurchaseOrderPrice
+    ReceiptLineCreate:
+      properties:
+        order_line_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Order Line Id
+        quantity:
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,14}|(?=[\d.]{1,19}0*$)\d{0,14}\.\d{0,4}0*$)
+          title: Quantity
+        batch_no:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+          title: Batch No
+      additionalProperties: false
+      type: object
+      required:
+      - order_line_id
+      - quantity
+      title: ReceiptLineCreate
+    StocktakeCount:
+      properties:
+        material_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Material Id
+        counted_qty:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,14}|(?=[\d.]{1,19}0*$)\d{0,14}\.\d{0,4}0*$)
+          title: Counted Qty
+      additionalProperties: false
+      type: object
+      required:
+      - material_id
+      - counted_qty
+      title: StocktakeCount
+    StocktakeCreate:
+      properties:
+        warehouse_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Warehouse Id
+        lines:
+          items:
+            $ref: '#/components/schemas/StocktakeCount'
+          type: array
+          maxItems: 500
+          minItems: 1
+          title: Lines
+      additionalProperties: false
+      type: object
+      required:
+      - warehouse_id
+      - lines
+      title: StocktakeCreate
+    SupplierCreate:
+      properties:
+        party_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Party Id
+        code:
+          type: string
+          maxLength: 32
+          minLength: 2
+          title: Code
+        display_name:
+          anyOf:
+          - type: string
+            maxLength: 128
+          - type: 'null'
+          title: Display Name
+      additionalProperties: false
+      type: object
+      required:
+      - party_id
+      - code
+      title: SupplierCreate
+    SupplierEvaluationCreate:
+      properties:
+        park_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Park Id
+        source_type:
+          type: string
+          maxLength: 32
+          minLength: 2
+          title: Source Type
+        source_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Source Id
+        score:
+          type: integer
+          maximum: 5.0
+          minimum: 1.0
+          title: Score
+        comment:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Comment
+      additionalProperties: false
+      type: object
+      required:
+      - park_id
+      - source_type
+      - source_id
+      - score
+      title: SupplierEvaluationCreate
+    SupplierQualificationCreate:
+      properties:
+        qualification_type:
+          type: string
+          maxLength: 32
+          minLength: 2
+          title: Qualification Type
+        credential_number:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Credential Number
+          writeOnly: true
+        issuer:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Issuer
+        effective_on:
+          type: string
+          format: date
+          title: Effective On
+        expires_on:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Expires On
+        attachment_id:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Attachment Id
+      additionalProperties: false
+      type: object
+      required:
+      - qualification_type
+      - credential_number
+      - issuer
+      - effective_on
+      title: SupplierQualificationCreate
+    SupplierScopeCreate:
+      properties:
+        park_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Park Id
+        service_type:
+          type: string
+          maxLength: 32
+          minLength: 2
+          title: Service Type
+          default: GENERAL
+      additionalProperties: false
+      type: object
+      required:
+      - park_id
+      title: SupplierScopeCreate
+    SupplierStatus:
+      properties:
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - SUSPENDED
+          - RETIRED
+          title: Status
+        expected_version:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Expected Version
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Reason
+      additionalProperties: false
+      type: object
+      required:
+      - status
+      - expected_version
+      - reason
+      title: SupplierStatus
+    WarehouseCreate:
+      properties:
+        park_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Park Id
+        code:
+          type: string
+          maxLength: 32
+          minLength: 2
+          title: Code
+        name:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Name
+      additionalProperties: false
+      type: object
+      required:
+      - park_id
+      - code
+      - name
+      title: WarehouseCreate
+    app__modules__supply__interface__schemas__ReceiptCreate:
+      properties:
+        warehouse_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Warehouse Id
+        lines:
+          items:
+            $ref: '#/components/schemas/ReceiptLineCreate'
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Lines
+      additionalProperties: false
+      type: object
+      required:
+      - warehouse_id
+      - lines
+      title: ReceiptCreate
+
     WorkOrderCreate:
       type: object
       additionalProperties: false

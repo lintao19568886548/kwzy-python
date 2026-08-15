@@ -39,6 +39,7 @@ from app.modules.party.interface.api import router as party_router
 from app.modules.party.interface.enterprise_api import router as party_enterprise_router
 from app.modules.platform_integrations.interface.api import router as integrations_router
 from app.modules.records_seal.interface.api import router as records_seal_router
+from app.modules.supply.interface.api import router as supply_router
 from app.modules.workbench.interface.api import router as workbench_router
 from app.modules.workflow.interface.api import router as workflow_router
 from app.modules.workforce.interface.api import router as workforce_router
@@ -109,6 +110,7 @@ def create_app() -> FastAPI:
     app.include_router(facility_management_router, prefix=prefix)
     app.include_router(records_seal_router, prefix=prefix)
     app.include_router(workforce_router, prefix=prefix)
+    app.include_router(supply_router, prefix=prefix)
     app.include_router(integrations_router, prefix=prefix)
     app.include_router(workflow_router, prefix=prefix)
     app.include_router(attachments_router, prefix=prefix)
@@ -124,7 +126,7 @@ def create_app() -> FastAPI:
         db = SessionLocal()
         try:
             db.execute(text("SELECT 1"))
-        except Exception:  # readiness must fail closed without leaking driver details
+        except Exception:  # noqa: BLE001 -- readiness must fail closed for every driver failure
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
             return {"status": "not_ready", "database": "down"}
         finally:

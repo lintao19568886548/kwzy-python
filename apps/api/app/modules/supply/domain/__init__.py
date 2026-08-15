@@ -1,0 +1,1 @@
+"""Pure supply domain rules."""

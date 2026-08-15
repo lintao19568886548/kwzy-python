@@ -20,6 +20,7 @@ import ForbiddenView from "@/views/ForbiddenView.vue";
 import FacilityOperationsView from "@/views/FacilityOperationsView.vue";
 import RecordsSealView from "@/views/RecordsSealView.vue";
 import WorkforceView from "@/views/WorkforceView.vue";
+import SupplyView from "@/views/SupplyView.vue";
 
 const routes: RouteRecordRaw[] = [
   { path: "/login", name: "login", component: LoginView, meta: { public: true } },
@@ -125,6 +126,22 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        path: "supply",
+        name: "supply",
+        component: SupplyView,
+        meta: {
+          permissionAny: [
+            "supply:read",
+            "supplier:manage",
+            "procurement:request",
+            "procurement:order",
+            "inventory:manage",
+            "inventory:issue",
+            "outsourcing:manage",
+          ],
+        },
+      },
+      {
         path: "rent-control",
         name: "rent-control",
         component: RentControlView,
@@ -191,6 +208,7 @@ router.beforeEach(async (to) => {
     if (auth.can("tenant_service:read_own")) return { name: "work-orders" };
     if (auth.can("record:read")) return { name: "records-seal" };
     if (auth.can("workforce:read")) return { name: "workforce" };
+    if (auth.can("supply:read")) return { name: "supply" };
     if (auth.can("party:read")) return { name: "parties" };
     return { name: "forbidden" };
   }
