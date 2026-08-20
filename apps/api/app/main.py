@@ -23,6 +23,7 @@ from app.modules.attachments.interface.api import router as attachments_router
 from app.modules.billing.interface.api import router as billing_router
 from app.modules.collection.interface.api import router as collection_router
 from app.modules.collection.interface.receivables_api import router as receivables_router
+from app.modules.engagement.interface.api import router as engagement_router
 from app.modules.facility_ops.interface.api import router as facility_ops_router
 from app.modules.facility_ops.interface.facility_management_api import (
     router as facility_management_router,
@@ -111,6 +112,7 @@ def create_app() -> FastAPI:
     app.include_router(records_seal_router, prefix=prefix)
     app.include_router(workforce_router, prefix=prefix)
     app.include_router(supply_router, prefix=prefix)
+    app.include_router(engagement_router, prefix=prefix)
     app.include_router(integrations_router, prefix=prefix)
     app.include_router(workflow_router, prefix=prefix)
     app.include_router(attachments_router, prefix=prefix)

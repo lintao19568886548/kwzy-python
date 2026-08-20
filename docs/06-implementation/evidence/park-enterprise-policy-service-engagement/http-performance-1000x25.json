@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-20T05:38:16.475086+00:00",
+  "target": "http://127.0.0.1:8010/api/v1",
+  "runtime": {
+    "requests": 1000,
+    "concurrency": 25,
+    "warmup": 40,
+    "endpoints": [
+      "GET /engagement/overview",
+      "GET /engagement/staff/policies",
+      "GET /engagement/staff/services",
+      "GET /engagement/staff/service-cases",
+      "GET /engagement/staff/activities",
+      "GET /engagement/staff/activity-registrations",
+      "GET /engagement/staff/announcements"
+    ]
+  },
+  "thresholds": {
+    "max_p95_ms": 500.0,
+    "max_error_rate_percent": 0.0,
+    "min_requests_per_second": 20.0
+  },
+  "aggregate": {
+    "requests": 1000,
+    "failures": 0,
+    "error_rate_percent": 0.0,
+    "elapsed_seconds": 5.537,
+    "requests_per_second": 180.597,
+    "mean_ms": 137.179,
+    "p50_ms": 132.366,
+    "p95_ms": 164.911,
+    "p99_ms": 324.369,
+    "max_ms": 344.177,
+    "by_endpoint": {
+      "GET /engagement/overview": {
+        "requests": 143,
+        "failures": 0,
+        "p50_ms": 146.685,
+        "p95_ms": 171.857,
+        "p99_ms": 334.359,
+        "max_ms": 344.177
+      },
+      "GET /engagement/staff/activities": {
+        "requests": 143,
+        "failures": 0,
+        "p50_ms": 128.439,
+        "p95_ms": 153.819,
+        "p99_ms": 319.226,
+        "max_ms": 338.337
+      },
+      "GET /engagement/staff/activity-registrations": {
+        "requests": 143,
+        "failures": 0,
+        "p50_ms": 121.594,
+        "p95_ms": 143.646,
+        "p99_ms": 312.018,
+        "max_ms": 324.366
+      },
+      "GET /engagement/staff/announcements": {
+        "requests": 142,
+        "failures": 0,
+        "p50_ms": 133.926,
+        "p95_ms": 163.197,
+        "p99_ms": 327.568,
+        "max_ms": 342.475
+      },
+      "GET /engagement/staff/policies": {
+        "requests": 143,
+        "failures": 0,
+        "p50_ms": 142.96,
+        "p95_ms": 170.358,
+        "p99_ms": 331.802,
+        "max_ms": 339.519
+      },
+      "GET /engagement/staff/service-cases": {
+        "requests": 143,
+        "failures": 0,
+        "p50_ms": 127.624,
+        "p95_ms": 146.385,
+        "p99_ms": 305.087,
+        "max_ms": 324.668
+      },
+      "GET /engagement/staff/services": {
+        "requests": 143,
+        "failures": 0,
+        "p50_ms": 132.302,
+        "p95_ms": 160.694,
+        "p99_ms": 318.259,
+        "max_ms": 327.465
+      }
+    },
+    "failure_examples": []
+  },
+  "gate": {
+    "passed": true,
+    "failures": []
+  }
+}

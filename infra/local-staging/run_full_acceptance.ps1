@@ -252,6 +252,11 @@ try {
     & $Py (Join-Path $Root "tools\etl\run_supply_etl_drill.py") --database-url $pgUrl --out $supplyReport
   }
 
+  Step "engagement_etl_acceptance" {
+    $engagementReport = Join-Path $ReportDir "engagement_etl\engagement-etl.json"
+    & $Py (Join-Path $Root "tools\etl\run_engagement_etl_drill.py") --database-url $pgUrl --out $engagementReport
+  }
+
   Step "http_performance_seed" {
     & $Py (Join-Path $Root "scripts\e2e_seed.py")
   }
@@ -334,7 +339,7 @@ try {
     $bakDir = Join-Path $ReportDir "backup"
     New-Item -ItemType Directory -Force -Path $bakDir | Out-Null
     $dump = Join-Path $bakDir "kwzy_party_test.dump"
-    docker exec kwzy_party_test_pg pg_dump -U kwzy_party_test -d kwzy_party_test -Fc -f /tmp/kwzy.dump
+    docker exec kwzy_party_test_pg pg_dump -U $pgUser -d $pgDatabase -Fc -f /tmp/kwzy.dump
     Assert-NativeSuccess "pg_dump"
     docker cp kwzy_party_test_pg:/tmp/kwzy.dump $dump
     Assert-NativeSuccess "docker copy dump"
@@ -342,18 +347,18 @@ try {
     $size = (Get-Item $dump).Length
     if ($size -lt 1000) { throw "dump too small: $size" }
     # restore into a temp database
-    docker exec kwzy_party_test_pg psql -U kwzy_party_test -d postgres -c "DROP DATABASE IF EXISTS kwzy_restore_check;"
+    docker exec kwzy_party_test_pg psql -U $pgUser -d postgres -c "DROP DATABASE IF EXISTS kwzy_restore_check;"
     Assert-NativeSuccess "drop restore database"
-    docker exec kwzy_party_test_pg psql -U kwzy_party_test -d postgres -c "CREATE DATABASE kwzy_restore_check OWNER kwzy_party_test;"
+    docker exec kwzy_party_test_pg psql -U $pgUser -d postgres -c "CREATE DATABASE kwzy_restore_check OWNER $pgUser;"
     Assert-NativeSuccess "create restore database"
     docker cp $dump kwzy_party_test_pg:/tmp/kwzy_restore.dump
     Assert-NativeSuccess "docker copy restore dump"
-    docker exec kwzy_party_test_pg pg_restore -U kwzy_party_test -d kwzy_restore_check --clean --if-exists /tmp/kwzy_restore.dump
+    docker exec kwzy_party_test_pg pg_restore -U $pgUser -d kwzy_restore_check --clean --if-exists /tmp/kwzy_restore.dump
     Assert-NativeSuccess "pg_restore"
-    $cnt = docker exec kwzy_party_test_pg psql -U kwzy_party_test -d kwzy_restore_check -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';"
+    $cnt = docker exec kwzy_party_test_pg psql -U $pgUser -d kwzy_restore_check -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';"
     Assert-NativeSuccess "restore verification query"
     if ([int]$cnt -lt 5) { throw "restore table count too low: $cnt" }
-    docker exec kwzy_party_test_pg psql -U kwzy_party_test -d postgres -c "DROP DATABASE IF EXISTS kwzy_restore_check;"
+    docker exec kwzy_party_test_pg psql -U $pgUser -d postgres -c "DROP DATABASE IF EXISTS kwzy_restore_check;"
     "BACKUP_RESTORE=PASS dump_bytes=$size restored_tables=$cnt"
   }
 
@@ -493,6 +498,7 @@ $summary = [ordered]@{
   facility_device_etl = (Join-Path $ReportDir "facility_device_etl\facility-device-etl.json")
   records_seal_etl = (Join-Path $ReportDir "records_seal_etl\records-seal-etl.json")
   workforce_etl = (Join-Path $ReportDir "workforce_etl\workforce-etl.json")
+  engagement_etl = (Join-Path $ReportDir "engagement_etl\engagement-etl.json")
   http_performance = (Join-Path $ReportDir "performance\http-performance.json")
   approval_audit_http = (Join-Path $ReportDir "performance\approval-audit-http-journey.json")
   workbench_automation_http = (Join-Path $ReportDir "performance\workbench-automation-http-journey.json")

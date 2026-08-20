@@ -1,0 +1,153 @@
+{
+  "fixture_version": "engagement-v1",
+  "contains_real_customer_data": false,
+  "authoritative_legacy_schema_present": false,
+  "authorized_legacy_exports_present": false,
+  "parks": [
+    {"source_id": "LEGACY-PARK-01", "target_ref": "target-park-1"}
+  ],
+  "parties": [
+    {"source_id": "LEGACY-PARTY-01", "target_ref": "target-party-1"},
+    {"source_id": "LEGACY-PARTY-02", "target_ref": "target-party-2"}
+  ],
+  "policies": [
+    {
+      "source_id": "LEGACY-POLICY-01",
+      "park_ref": "LEGACY-PARK-01",
+      "title": "合成园区产业政策指引",
+      "content_text": "仅用于本地迁移演练，不构成政府资格认定。",
+      "source_type": "LOCAL_NOTICE",
+      "source_publisher": "合成园区服务中心",
+      "source_identifier": "SYNTHETIC-NOTICE-001",
+      "effective_at": "2026-01-01T00:00:00Z",
+      "expires_at": "2027-01-01T00:00:00Z"
+    },
+    {
+      "source_id": "LEGACY-POLICY-UNAUTHORIZED",
+      "park_ref": "LEGACY-PARK-01",
+      "title": "不可导入的政府政策声明",
+      "content_text": "缺少授权导出和来源证明。",
+      "source_type": "GOVERNMENT_OFFICIAL",
+      "source_publisher": "未知",
+      "source_identifier": "UNVERIFIED-GOV-001",
+      "effective_at": "2026-01-01T00:00:00Z",
+      "expires_at": "2027-01-01T00:00:00Z"
+    }
+  ],
+  "services": [
+    {
+      "source_id": "LEGACY-SERVICE-01",
+      "park_ref": "LEGACY-PARK-01",
+      "title": "合成企业咨询服务",
+      "provider_type": "INTERNAL",
+      "provider_name": "合成园区服务中心",
+      "provider_state": "LOCAL",
+      "sla_hours": 24
+    },
+    {
+      "source_id": "LEGACY-SERVICE-EXTERNAL",
+      "park_ref": "LEGACY-PARK-01",
+      "title": "不可导入的外部服务",
+      "provider_type": "EXTERNAL",
+      "provider_name": "未知外部服务商",
+      "provider_state": "CONNECTED",
+      "sla_hours": 12
+    }
+  ],
+  "service_cases": [
+    {
+      "source_id": "LEGACY-CASE-01",
+      "service_ref": "LEGACY-SERVICE-01",
+      "party_ref": "LEGACY-PARTY-01",
+      "park_ref": "LEGACY-PARK-01",
+      "subject": "合成咨询申请",
+      "source_status": "OPEN",
+      "created_at": "2026-03-01T08:00:00Z"
+    },
+    {
+      "source_id": "LEGACY-CASE-ORPHAN",
+      "service_ref": "LEGACY-SERVICE-01",
+      "party_ref": "LEGACY-PARTY-MISSING",
+      "park_ref": "LEGACY-PARK-01",
+      "subject": "主体不可映射申请",
+      "source_status": "OPEN",
+      "created_at": "2026-03-02T08:00:00Z"
+    }
+  ],
+  "activities": [
+    {
+      "source_id": "LEGACY-ACTIVITY-01",
+      "park_ref": "LEGACY-PARK-01",
+      "title": "合成园区说明会",
+      "location": "合成会议中心",
+      "capacity": 1,
+      "registration_opens_at": "2026-04-01T00:00:00Z",
+      "registration_closes_at": "2026-04-10T00:00:00Z",
+      "starts_at": "2026-04-11T01:00:00Z",
+      "ends_at": "2026-04-11T03:00:00Z"
+    }
+  ],
+  "registrations": [
+    {
+      "source_id": "LEGACY-REG-01",
+      "activity_ref": "LEGACY-ACTIVITY-01",
+      "party_ref": "LEGACY-PARTY-01",
+      "source_status": "CONFIRMED",
+      "attendee_count": 1
+    },
+    {
+      "source_id": "LEGACY-REG-02",
+      "activity_ref": "LEGACY-ACTIVITY-01",
+      "party_ref": "LEGACY-PARTY-02",
+      "source_status": "WAITLISTED",
+      "attendee_count": 1
+    },
+    {
+      "source_id": "LEGACY-REG-ORPHAN",
+      "activity_ref": "LEGACY-ACTIVITY-MISSING",
+      "party_ref": "LEGACY-PARTY-01",
+      "source_status": "CONFIRMED",
+      "attendee_count": 1
+    }
+  ],
+  "announcements": [
+    {
+      "source_id": "LEGACY-ANNOUNCEMENT-01",
+      "park_ref": "LEGACY-PARK-01",
+      "title": "合成园区服务公告",
+      "content_text": "仅用于站内信迁移演练。",
+      "publish_at": "2026-05-01T00:00:00Z",
+      "expires_at": "2026-06-01T00:00:00Z",
+      "audience_party_refs": ["LEGACY-PARTY-01", "LEGACY-PARTY-02"]
+    }
+  ],
+  "deliveries": [
+    {
+      "source_id": "LEGACY-DELIVERY-01",
+      "announcement_ref": "LEGACY-ANNOUNCEMENT-01",
+      "party_ref": "LEGACY-PARTY-01",
+      "channel": "IN_APP",
+      "source_status": "DELIVERED",
+      "delivered_at": "2026-05-01T00:01:00Z",
+      "read_at": null
+    },
+    {
+      "source_id": "LEGACY-DELIVERY-02",
+      "announcement_ref": "LEGACY-ANNOUNCEMENT-01",
+      "party_ref": "LEGACY-PARTY-02",
+      "channel": "IN_APP",
+      "source_status": "READ",
+      "delivered_at": "2026-05-01T00:01:00Z",
+      "read_at": "2026-05-01T01:00:00Z"
+    },
+    {
+      "source_id": "LEGACY-DELIVERY-EXTERNAL",
+      "announcement_ref": "LEGACY-ANNOUNCEMENT-01",
+      "party_ref": "LEGACY-PARTY-01",
+      "channel": "SMS",
+      "source_status": "DELIVERED",
+      "delivered_at": "2026-05-01T00:01:00Z",
+      "read_at": null
+    }
+  ]
+}

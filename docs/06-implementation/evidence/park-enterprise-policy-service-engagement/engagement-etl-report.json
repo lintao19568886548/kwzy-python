@@ -1,0 +1,247 @@
+{
+  "generated_at": "2026-08-20T05:34:40.148185+00:00",
+  "result": "PASS",
+  "schema": "etl_engagement_fixture",
+  "run_id": "engagement-synthetic-v1",
+  "synthetic_only": true,
+  "contains_real_customer_data": false,
+  "live_legacy_verified": false,
+  "authoritative_legacy_schema_present": false,
+  "authorized_legacy_exports_present": false,
+  "real_legacy_readiness": "BLOCKED_PENDING_AUTHORIZED_NOTICE_EXPORTS_KEYMAPS_AND_SIGNED_RECONCILIATION",
+  "fixture_sha256": "f8d926eb7f5024af40db1a3aa7f2eeafa9ed69f417c69c11152fda6437bd8408",
+  "stages": {
+    "dry_run": {
+      "passed": true,
+      "source_counts": {
+        "parks": 1,
+        "parties": 2,
+        "policies": 2,
+        "services": 2,
+        "service_cases": 2,
+        "activities": 1,
+        "registrations": 3,
+        "announcements": 1,
+        "deliveries": 3
+      },
+      "mapped_counts": {
+        "policies": 1,
+        "policy_versions": 1,
+        "service_catalogs": 1,
+        "service_cases": 1,
+        "activities": 1,
+        "activity_versions": 1,
+        "registrations": 2,
+        "announcements": 1,
+        "announcement_versions": 1,
+        "announcement_targets": 2,
+        "announcement_deliveries": 2,
+        "quarantine": 5
+      }
+    },
+    "interruption_recovery": {
+      "passed": true,
+      "partial_rows_after_rollback": 0
+    },
+    "checkpoint_resume": {
+      "passed": true,
+      "checkpoint": "service_cases",
+      "checkpoint_inserted": {
+        "policies": 1,
+        "policy_versions": 1,
+        "service_catalogs": 1,
+        "service_cases": 1,
+        "activities": 0,
+        "activity_versions": 0,
+        "registrations": 0,
+        "announcements": 0,
+        "announcement_versions": 0,
+        "announcement_targets": 0,
+        "announcement_deliveries": 0,
+        "quarantine": 0
+      },
+      "committed_counts_before_resume": {
+        "policies": 1,
+        "policy_versions": 1,
+        "service_catalogs": 1,
+        "service_cases": 1,
+        "activities": 0,
+        "activity_versions": 0,
+        "registrations": 0,
+        "announcements": 0,
+        "announcement_versions": 0,
+        "announcement_targets": 0,
+        "announcement_deliveries": 0,
+        "quarantine": 0
+      },
+      "resume_inserted": {
+        "policies": 0,
+        "policy_versions": 0,
+        "service_catalogs": 0,
+        "service_cases": 0,
+        "activities": 1,
+        "activity_versions": 1,
+        "registrations": 2,
+        "announcements": 1,
+        "announcement_versions": 1,
+        "announcement_targets": 2,
+        "announcement_deliveries": 2,
+        "quarantine": 5
+      }
+    },
+    "first_apply": {
+      "passed": true,
+      "inserted": {
+        "policies": 1,
+        "policy_versions": 1,
+        "service_catalogs": 1,
+        "service_cases": 1,
+        "activities": 1,
+        "activity_versions": 1,
+        "registrations": 2,
+        "announcements": 1,
+        "announcement_versions": 1,
+        "announcement_targets": 2,
+        "announcement_deliveries": 2,
+        "quarantine": 5
+      }
+    },
+    "idempotent_reapply": {
+      "passed": true,
+      "inserted": {
+        "policies": 0,
+        "policy_versions": 0,
+        "service_catalogs": 0,
+        "service_cases": 0,
+        "activities": 0,
+        "activity_versions": 0,
+        "registrations": 0,
+        "announcements": 0,
+        "announcement_versions": 0,
+        "announcement_targets": 0,
+        "announcement_deliveries": 0,
+        "quarantine": 0
+      }
+    },
+    "reconciliation": {
+      "passed": true,
+      "expected_counts": {
+        "policies": 1,
+        "policy_versions": 1,
+        "service_catalogs": 1,
+        "service_cases": 1,
+        "activities": 1,
+        "activity_versions": 1,
+        "registrations": 2,
+        "announcements": 1,
+        "announcement_versions": 1,
+        "announcement_targets": 2,
+        "announcement_deliveries": 2,
+        "quarantine": 5
+      },
+      "target_counts": {
+        "policies": 1,
+        "policy_versions": 1,
+        "service_catalogs": 1,
+        "service_cases": 1,
+        "activities": 1,
+        "activity_versions": 1,
+        "registrations": 2,
+        "announcements": 1,
+        "announcement_versions": 1,
+        "announcement_targets": 2,
+        "announcement_deliveries": 2,
+        "quarantine": 5
+      },
+      "version_mismatches": 0,
+      "invalid_active_windows": 0,
+      "orphan_service_cases": 0,
+      "capacity_or_registration_mismatches": 0,
+      "orphan_registrations": 0,
+      "audience_target_mismatches": 0,
+      "delivery_or_read_mismatches": 0,
+      "false_external_deliveries": 0,
+      "fabricated_approved_or_published_state": 0,
+      "raw_sensitive_columns": 0,
+      "quarantine_reasons": {
+        "EXTERNAL_CHANNEL_UNVERIFIED": 1,
+        "EXTERNAL_PROVIDER_EVIDENCE_MISSING": 1,
+        "ACTIVITY_REFERENCE_UNMAPPED": 1,
+        "OFFICIAL_SOURCE_UNAUTHORIZED": 1,
+        "PARTY_KEY_UNMAPPED": 1
+      }
+    },
+    "run_scoped_rollback": {
+      "passed": true,
+      "target_rows_after_run_delete": 0,
+      "unrelated_run_preserved": true
+    },
+    "backup_delete_restore": {
+      "passed": true,
+      "backup_manifest": {
+        "counts": {
+          "policies": 1,
+          "policy_versions": 1,
+          "service_catalogs": 1,
+          "service_cases": 1,
+          "activities": 1,
+          "activity_versions": 1,
+          "registrations": 2,
+          "announcements": 1,
+          "announcement_versions": 1,
+          "announcement_targets": 2,
+          "announcement_deliveries": 2,
+          "quarantine": 5
+        },
+        "source_key_hashes": {
+          "policies": "9085aed8efa4920f91202716bdf69e5a6a4aeb2c888ffcb62c296f89b7bdb840",
+          "policy_versions": "a4b8fc701fe5579b6841161b133b6f89365ebebc135ac5eacbd9eb8571c1334b",
+          "service_catalogs": "b9da9fa5241ab8640ecae0eb70430394e11a575a72688ab990842c014058165f",
+          "service_cases": "3912a9ef22d1f8c7a631d29b6da83ae3d8e43feb014539b152e40b9b074d90fd",
+          "activities": "1582a4beb4d9e8aa88413f957e20e9d00398c8e6504e1d7cb3430346e9182181",
+          "activity_versions": "2a155e444fd3b051a2a499db6446323830c387179654bd3fcf9086deb6dea0d1",
+          "registrations": "b155cceabd0325c1187db8d99c92fbf1cbdb30b793bb93ebfd2708274008ef26",
+          "announcements": "736b7b1328edf3bd9608d71b0c5250e9a259e45696bef5296100f8302fbb4b43",
+          "announcement_versions": "1fa359f965a235c01d7b611bd9555a99cd0901b1a2d741f191d6a079ffa15286",
+          "announcement_targets": "dc0a4506eacb9c9c5c48b09ba19ecf74d9a0aed16889424cd97195eec4b685b9",
+          "announcement_deliveries": "3f2b914bfef6e113667631be9488937074945342fc05182161a5fa04dbbf5cb3",
+          "quarantine": "972606103017450dd6d17351f5cc41f7847be0f1b54c496871aa7f3d067bc36e"
+        }
+      },
+      "restored_inserted": {
+        "policies": 1,
+        "policy_versions": 1,
+        "service_catalogs": 1,
+        "service_cases": 1,
+        "activities": 1,
+        "activity_versions": 1,
+        "registrations": 2,
+        "announcements": 1,
+        "announcement_versions": 1,
+        "announcement_targets": 2,
+        "announcement_deliveries": 2,
+        "quarantine": 5
+      },
+      "restored_manifest_matches": true
+    },
+    "schema_rollback": {
+      "passed": true,
+      "schema_exists_after": false,
+      "authorization_rows_unchanged": true
+    }
+  },
+  "blockers": [
+    "authorized standalone notice/policy/service/activity schema exports and row-count watermarks not supplied",
+    "desensitized snapshots plus park/Party/user/attachment key maps not supplied",
+    "native approval evidence and authoritative source provenance for legacy published records not supplied",
+    "external government feed, service provider and notification delivery contracts/evidence not supplied",
+    "production freeze, backup, cutover, deletion and rollback authorization not granted"
+  ],
+  "external_integrations": {
+    "government_policy_feed": "NOT_CONNECTED",
+    "external_service_provider": "NOT_CONNECTED",
+    "external_notification": "NOT_CONNECTED"
+  },
+  "production_contacted": false,
+  "production_authorized": false
+}

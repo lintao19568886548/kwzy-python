@@ -21,6 +21,7 @@ import FacilityOperationsView from "@/views/FacilityOperationsView.vue";
 import RecordsSealView from "@/views/RecordsSealView.vue";
 import WorkforceView from "@/views/WorkforceView.vue";
 import SupplyView from "@/views/SupplyView.vue";
+import EngagementView from "@/views/EngagementView.vue";
 
 const routes: RouteRecordRaw[] = [
   { path: "/login", name: "login", component: LoginView, meta: { public: true } },
@@ -126,6 +127,22 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        path: "engagement",
+        name: "engagement",
+        component: EngagementView,
+        meta: {
+          permissionAny: [
+            "engagement:read",
+            "engagement:policy_manage",
+            "engagement:service_manage",
+            "engagement:service_request",
+            "engagement:activity_manage",
+            "engagement:activity_register",
+            "engagement:announcement_manage",
+          ],
+        },
+      },
+      {
         path: "supply",
         name: "supply",
         component: SupplyView,
@@ -209,6 +226,7 @@ router.beforeEach(async (to) => {
     if (auth.can("record:read")) return { name: "records-seal" };
     if (auth.can("workforce:read")) return { name: "workforce" };
     if (auth.can("supply:read")) return { name: "supply" };
+    if (auth.can("engagement:read")) return { name: "engagement" };
     if (auth.can("party:read")) return { name: "parties" };
     return { name: "forbidden" };
   }

@@ -18,6 +18,7 @@ function firstAllowedPath(): string {
     { path: "/rent-control", perm: "unit:read" },
     { path: "/records-seal", perm: "record:read" },
     { path: "/workforce", perm: "workforce:read" },
+    { path: "/engagement", perm: "engagement:read" },
     { path: "/parks", perm: "park:read" },
     { path: "/todos", perm: "work_item:read" },
     { path: "/leads", perm: "lead:read" },

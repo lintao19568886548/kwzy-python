@@ -64,6 +64,20 @@ const allNav: NavItem[] = [
     ],
   },
   {
+    to: "/engagement",
+    label: "企业参与",
+    testid: "nav-engagement",
+    permissionAny: [
+      "engagement:read",
+      "engagement:policy_manage",
+      "engagement:service_manage",
+      "engagement:service_request",
+      "engagement:activity_manage",
+      "engagement:activity_register",
+      "engagement:announcement_manage",
+    ],
+  },
+  {
     to: "/supply",
     label: "供应链",
     testid: "nav-supply",

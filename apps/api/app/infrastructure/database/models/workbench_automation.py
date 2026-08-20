@@ -26,6 +26,7 @@ class BusinessEvent(Base, PrimaryKeyMixin, TimestampMixin):
     __tablename__ = "business_events"
     __table_args__ = (
         UniqueConstraint("tenant_id", "idempotency_key", name="uk_business_event_idempotency"),
+        UniqueConstraint("tenant_id", "id", name="uk_business_event_tenant_id"),
         Index("ix_business_event_dispatch", "tenant_id", "occurred_at", "id"),
     )
 
@@ -120,9 +121,7 @@ class AutomationRuleVersion(Base, PrimaryKeyMixin, TimestampMixin):
             "status IN ('DRAFT','PUBLISHED','RETIRED')",
             name="ck_automation_rule_version_status",
         ),
-        CheckConstraint(
-            "priority BETWEEN 0 AND 1000", name="ck_automation_rule_priority"
-        ),
+        CheckConstraint("priority BETWEEN 0 AND 1000", name="ck_automation_rule_priority"),
         Index("ix_automation_rule_match", "tenant_id", "event_type", "status"),
         Index(
             "uk_automation_rule_one_draft",
@@ -182,9 +181,8 @@ class AutomationExecution(Base, PrimaryKeyMixin, TimestampMixin):
 class InAppNotification(Base, PrimaryKeyMixin, TimestampMixin):
     __tablename__ = "in_app_notifications"
     __table_args__ = (
-        UniqueConstraint(
-            "tenant_id", "idempotency_key", name="uk_in_app_notification_idempotency"
-        ),
+        UniqueConstraint("tenant_id", "idempotency_key", name="uk_in_app_notification_idempotency"),
+        UniqueConstraint("tenant_id", "id", name="uk_in_app_notification_tenant_id"),
         CheckConstraint(
             "status IN ('UNREAD','READ','ARCHIVED')", name="ck_in_app_notification_status"
         ),
@@ -229,9 +227,7 @@ class SchedulerDefinition(Base, PrimaryKeyMixin, TimestampMixin):
         CheckConstraint(
             "concurrency_policy IN ('FORBID','ALLOW')", name="ck_scheduler_concurrency_policy"
         ),
-        CheckConstraint(
-            "cadence_seconds BETWEEN 10 AND 2678400", name="ck_scheduler_cadence"
-        ),
+        CheckConstraint("cadence_seconds BETWEEN 10 AND 2678400", name="ck_scheduler_cadence"),
         CheckConstraint(
             "timeout_seconds BETWEEN 10 AND 86400 AND max_attempts BETWEEN 1 AND 10",
             name="ck_scheduler_limits",
@@ -299,9 +295,7 @@ class WorkbenchLayout(Base, PrimaryKeyMixin, TimestampMixin):
             "(owner_user_id IS NULL AND role_id IS NOT NULL))",
             name="ck_workbench_layout_owner",
         ),
-        CheckConstraint(
-            "priority BETWEEN 0 AND 1000", name="ck_workbench_layout_priority"
-        ),
+        CheckConstraint("priority BETWEEN 0 AND 1000", name="ck_workbench_layout_priority"),
     )
 
     tenant_id: Mapped[int] = mapped_column(

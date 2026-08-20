@@ -8883,6 +8883,1741 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
 
+  /engagement/overview:
+    get:
+      tags:
+      - Engagement
+      summary: Overview
+      operationId: overview_api_v1_engagement_overview_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Overview Api V1 Engagement Overview Get
+      security:
+      - HTTPBearer: []
+  /engagement/staff/activities:
+    get:
+      tags:
+      - Engagement
+      summary: Staff Activities
+      operationId: staff_activities_api_v1_engagement_staff_activities_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Staff Activities Api V1 Engagement Staff Activities
+                  Get
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - Engagement
+      summary: Create Activity
+      operationId: create_activity_api_v1_engagement_staff_activities_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Create Activity Api V1 Engagement Staff Activities Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /engagement/staff/activities/{activity_id}/draft:
+    put:
+      tags:
+      - Engagement
+      summary: Revise Activity
+      operationId: revise_activity_api_v1_engagement_staff_activities__activity_id__draft_put
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: activity_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Activity Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityRevision'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Revise Activity Api V1 Engagement Staff Activities  Activity
+                  Id  Draft Put
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/activities/{activity_id}/publish:
+    post:
+      tags:
+      - Engagement
+      summary: Publish Activity
+      operationId: publish_activity_api_v1_engagement_staff_activities__activity_id__publish_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: activity_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Activity Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__modules__engagement__interface__schemas__ExpectedVersion'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Publish Activity Api V1 Engagement Staff Activities  Activity
+                  Id  Publish Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/activities/{activity_id}/submit:
+    post:
+      tags:
+      - Engagement
+      summary: Submit Activity
+      operationId: submit_activity_api_v1_engagement_staff_activities__activity_id__submit_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: activity_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Activity Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__modules__engagement__interface__schemas__ApprovalSubmit'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Submit Activity Api V1 Engagement Staff Activities  Activity
+                  Id  Submit Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/activities/{activity_id}/transition:
+    post:
+      tags:
+      - Engagement
+      summary: Transition Activity
+      operationId: transition_activity_api_v1_engagement_staff_activities__activity_id__transition_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: activity_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Activity Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityLifecycle'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Transition Activity Api V1 Engagement Staff Activities  Activity
+                  Id  Transition Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/activity-registrations:
+    get:
+      tags:
+      - Engagement
+      summary: Staff Registrations
+      operationId: staff_registrations_api_v1_engagement_staff_activity_registrations_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Staff Registrations Api V1 Engagement Staff Activity
+                  Registrations Get
+      security:
+      - HTTPBearer: []
+  /engagement/staff/activity-registrations/{registration_id}/check-in:
+    post:
+      tags:
+      - Engagement
+      summary: Check In
+      operationId: check_in_api_v1_engagement_staff_activity_registrations__registration_id__check_in_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: registration_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Registration Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Check In Api V1 Engagement Staff Activity Registrations  Registration
+                  Id  Check In Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/announcements:
+    get:
+      tags:
+      - Engagement
+      summary: Staff Announcements
+      operationId: staff_announcements_api_v1_engagement_staff_announcements_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Staff Announcements Api V1 Engagement Staff Announcements
+                  Get
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - Engagement
+      summary: Create Announcement
+      operationId: create_announcement_api_v1_engagement_staff_announcements_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnouncementCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Create Announcement Api V1 Engagement Staff Announcements
+                  Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /engagement/staff/announcements/fanout:
+    post:
+      tags:
+      - Engagement
+      summary: Fanout
+      operationId: fanout_api_v1_engagement_staff_announcements_fanout_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FanoutRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Fanout Api V1 Engagement Staff Announcements Fanout
+                  Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /engagement/staff/announcements/process-due:
+    post:
+      tags:
+      - Engagement
+      summary: Process Due Announcements
+      operationId: process_due_announcements_api_v1_engagement_staff_announcements_process_due_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationalSweep'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Process Due Announcements Api V1 Engagement Staff Announcements
+                  Process Due Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /engagement/staff/announcements/{announcement_id}/draft:
+    put:
+      tags:
+      - Engagement
+      summary: Revise Announcement
+      operationId: revise_announcement_api_v1_engagement_staff_announcements__announcement_id__draft_put
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: announcement_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Announcement Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnouncementRevision'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Revise Announcement Api V1 Engagement Staff Announcements  Announcement
+                  Id  Draft Put
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/announcements/{announcement_id}/publish:
+    post:
+      tags:
+      - Engagement
+      summary: Publish Announcement
+      operationId: publish_announcement_api_v1_engagement_staff_announcements__announcement_id__publish_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: announcement_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Announcement Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__modules__engagement__interface__schemas__ExpectedVersion'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Publish Announcement Api V1 Engagement Staff Announcements  Announcement
+                  Id  Publish Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/announcements/{announcement_id}/submit:
+    post:
+      tags:
+      - Engagement
+      summary: Submit Announcement
+      operationId: submit_announcement_api_v1_engagement_staff_announcements__announcement_id__submit_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: announcement_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Announcement Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__modules__engagement__interface__schemas__ApprovalSubmit'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Submit Announcement Api V1 Engagement Staff Announcements  Announcement
+                  Id  Submit Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/announcements/{announcement_id}/withdraw:
+    post:
+      tags:
+      - Engagement
+      summary: Withdraw Announcement
+      operationId: withdraw_announcement_api_v1_engagement_staff_announcements__announcement_id__withdraw_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: announcement_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Announcement Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LifecycleAction'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Withdraw Announcement Api V1 Engagement Staff Announcements  Announcement
+                  Id  Withdraw Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/policies:
+    get:
+      tags:
+      - Engagement
+      summary: Staff Policies
+      operationId: staff_policies_api_v1_engagement_staff_policies_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Staff Policies Api V1 Engagement Staff Policies Get
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - Engagement
+      summary: Create Policy
+      operationId: create_policy_api_v1_engagement_staff_policies_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__modules__engagement__interface__schemas__PolicyCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Create Policy Api V1 Engagement Staff Policies Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /engagement/staff/policies/expire-due:
+    post:
+      tags:
+      - Engagement
+      summary: Expire Policies
+      operationId: expire_policies_api_v1_engagement_staff_policies_expire_due_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyExpirySweep'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Expire Policies Api V1 Engagement Staff Policies Expire
+                  Due Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /engagement/staff/policies/{policy_id}:
+    get:
+      tags:
+      - Engagement
+      summary: Staff Policy
+      operationId: staff_policy_api_v1_engagement_staff_policies__policy_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: policy_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Policy Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Staff Policy Api V1 Engagement Staff Policies  Policy
+                  Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/policies/{policy_id}/draft:
+    put:
+      tags:
+      - Engagement
+      summary: Revise Policy
+      operationId: revise_policy_api_v1_engagement_staff_policies__policy_id__draft_put
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: policy_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Policy Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyRevision'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Revise Policy Api V1 Engagement Staff Policies  Policy
+                  Id  Draft Put
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/policies/{policy_id}/publish:
+    post:
+      tags:
+      - Engagement
+      summary: Publish Policy
+      operationId: publish_policy_api_v1_engagement_staff_policies__policy_id__publish_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: policy_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Policy Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__modules__engagement__interface__schemas__ExpectedVersion'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Publish Policy Api V1 Engagement Staff Policies  Policy
+                  Id  Publish Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/policies/{policy_id}/submit:
+    post:
+      tags:
+      - Engagement
+      summary: Submit Policy
+      operationId: submit_policy_api_v1_engagement_staff_policies__policy_id__submit_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: policy_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Policy Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__modules__engagement__interface__schemas__ApprovalSubmit'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Submit Policy Api V1 Engagement Staff Policies  Policy
+                  Id  Submit Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/policies/{policy_id}/withdraw:
+    post:
+      tags:
+      - Engagement
+      summary: Withdraw Policy
+      operationId: withdraw_policy_api_v1_engagement_staff_policies__policy_id__withdraw_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: policy_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Policy Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LifecycleAction'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Withdraw Policy Api V1 Engagement Staff Policies  Policy
+                  Id  Withdraw Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/service-cases:
+    get:
+      tags:
+      - Engagement
+      summary: Staff Cases
+      operationId: staff_cases_api_v1_engagement_staff_service_cases_get
+      security:
+      - HTTPBearer: []
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Staff Cases Api V1 Engagement Staff Service Cases Get
+    post:
+      tags:
+      - Engagement
+      summary: Create Case On Behalf
+      operationId: create_case_on_behalf_api_v1_engagement_staff_service_cases_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StaffServiceCaseCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Create Case On Behalf Api V1 Engagement Staff Service
+                  Cases Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/service-cases/escalate-sla:
+    post:
+      tags:
+      - Engagement
+      summary: Escalate Service Sla
+      operationId: escalate_service_sla_api_v1_engagement_staff_service_cases_escalate_sla_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationalSweep'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Escalate Service Sla Api V1 Engagement Staff Service
+                  Cases Escalate Sla Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /engagement/staff/service-cases/{case_id}/transition:
+    post:
+      tags:
+      - Engagement
+      summary: Transition Staff Case
+      operationId: transition_staff_case_api_v1_engagement_staff_service_cases__case_id__transition_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Case Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCaseTransition'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Transition Staff Case Api V1 Engagement Staff Service
+                  Cases  Case Id  Transition Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/services:
+    get:
+      tags:
+      - Engagement
+      summary: Staff Services
+      operationId: staff_services_api_v1_engagement_staff_services_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Staff Services Api V1 Engagement Staff Services Get
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - Engagement
+      summary: Create Service
+      operationId: create_service_api_v1_engagement_staff_services_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Create Service Api V1 Engagement Staff Services Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /engagement/staff/services/{catalog_id}/draft:
+    put:
+      tags:
+      - Engagement
+      summary: Revise Service
+      operationId: revise_service_api_v1_engagement_staff_services__catalog_id__draft_put
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: catalog_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Catalog Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRevision'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Revise Service Api V1 Engagement Staff Services  Catalog
+                  Id  Draft Put
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/services/{catalog_id}/publish:
+    post:
+      tags:
+      - Engagement
+      summary: Publish Service
+      operationId: publish_service_api_v1_engagement_staff_services__catalog_id__publish_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: catalog_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Catalog Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__modules__engagement__interface__schemas__ExpectedVersion'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Publish Service Api V1 Engagement Staff Services  Catalog
+                  Id  Publish Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/staff/services/{catalog_id}/submit:
+    post:
+      tags:
+      - Engagement
+      summary: Submit Service
+      operationId: submit_service_api_v1_engagement_staff_services__catalog_id__submit_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: catalog_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Catalog Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__modules__engagement__interface__schemas__ApprovalSubmit'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Submit Service Api V1 Engagement Staff Services  Catalog
+                  Id  Submit Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/tenant/activities:
+    get:
+      tags:
+      - Engagement
+      summary: Tenant Activities
+      operationId: tenant_activities_api_v1_engagement_tenant_activities_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Tenant Activities Api V1 Engagement Tenant Activities
+                  Get
+      security:
+      - HTTPBearer: []
+  /engagement/tenant/activities/{activity_id}/registrations:
+    post:
+      tags:
+      - Engagement
+      summary: Register Activity
+      operationId: register_activity_api_v1_engagement_tenant_activities__activity_id__registrations_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: activity_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Activity Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Register Activity Api V1 Engagement Tenant Activities  Activity
+                  Id  Registrations Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/tenant/activity-registrations:
+    get:
+      tags:
+      - Engagement
+      summary: Tenant Registrations
+      operationId: tenant_registrations_api_v1_engagement_tenant_activity_registrations_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Tenant Registrations Api V1 Engagement Tenant Activity
+                  Registrations Get
+      security:
+      - HTTPBearer: []
+  /engagement/tenant/activity-registrations/{registration_id}/cancel:
+    post:
+      tags:
+      - Engagement
+      summary: Cancel Registration
+      operationId: cancel_registration_api_v1_engagement_tenant_activity_registrations__registration_id__cancel_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: registration_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Registration Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationCancel'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Cancel Registration Api V1 Engagement Tenant Activity
+                  Registrations  Registration Id  Cancel Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/tenant/activity-registrations/{registration_id}/feedback:
+    post:
+      tags:
+      - Engagement
+      summary: Feedback Activity
+      operationId: feedback_activity_api_v1_engagement_tenant_activity_registrations__registration_id__feedback_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: registration_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Registration Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Feedback Activity Api V1 Engagement Tenant Activity
+                  Registrations  Registration Id  Feedback Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/tenant/announcement-inbox:
+    get:
+      tags:
+      - Engagement
+      summary: Announcement Inbox
+      operationId: announcement_inbox_api_v1_engagement_tenant_announcement_inbox_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Announcement Inbox Api V1 Engagement Tenant Announcement
+                  Inbox Get
+      security:
+      - HTTPBearer: []
+  /engagement/tenant/announcement-inbox/{delivery_id}/read:
+    post:
+      tags:
+      - Engagement
+      summary: Read Announcement
+      operationId: read_announcement_api_v1_engagement_tenant_announcement_inbox__delivery_id__read_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: delivery_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Delivery Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Read Announcement Api V1 Engagement Tenant Announcement
+                  Inbox  Delivery Id  Read Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/tenant/announcements:
+    get:
+      tags:
+      - Engagement
+      summary: Tenant Announcements
+      operationId: tenant_announcements_api_v1_engagement_tenant_announcements_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Tenant Announcements Api V1 Engagement Tenant Announcements
+                  Get
+      security:
+      - HTTPBearer: []
+  /engagement/tenant/policies:
+    get:
+      tags:
+      - Engagement
+      summary: Tenant Policies
+      operationId: tenant_policies_api_v1_engagement_tenant_policies_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Tenant Policies Api V1 Engagement Tenant Policies Get
+      security:
+      - HTTPBearer: []
+  /engagement/tenant/policies/{policy_id}:
+    get:
+      tags:
+      - Engagement
+      summary: Tenant Policy
+      operationId: tenant_policy_api_v1_engagement_tenant_policies__policy_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: policy_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Policy Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Tenant Policy Api V1 Engagement Tenant Policies  Policy
+                  Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/tenant/policies/{policy_id}/consultations:
+    post:
+      tags:
+      - Engagement
+      summary: Create Consultation
+      operationId: create_consultation_api_v1_engagement_tenant_policies__policy_id__consultations_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: policy_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Policy Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyConsultationCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Create Consultation Api V1 Engagement Tenant Policies  Policy
+                  Id  Consultations Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/tenant/policies/{policy_id}/follow:
+    post:
+      tags:
+      - Engagement
+      summary: Follow Policy
+      operationId: follow_policy_api_v1_engagement_tenant_policies__policy_id__follow_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: policy_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Policy Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Follow Policy Api V1 Engagement Tenant Policies  Policy
+                  Id  Follow Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/tenant/policies/{policy_id}/match:
+    post:
+      tags:
+      - Engagement
+      summary: Match Policy
+      operationId: match_policy_api_v1_engagement_tenant_policies__policy_id__match_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: policy_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Policy Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Match Policy Api V1 Engagement Tenant Policies  Policy
+                  Id  Match Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/tenant/policies/{policy_id}/unfollow:
+    post:
+      tags:
+      - Engagement
+      summary: Unfollow Policy
+      operationId: unfollow_policy_api_v1_engagement_tenant_policies__policy_id__unfollow_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: policy_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Policy Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Unfollow Policy Api V1 Engagement Tenant Policies  Policy
+                  Id  Unfollow Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/tenant/service-cases:
+    get:
+      tags:
+      - Engagement
+      summary: Tenant Cases
+      operationId: tenant_cases_api_v1_engagement_tenant_service_cases_get
+      security:
+      - HTTPBearer: []
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Tenant Cases Api V1 Engagement Tenant Service Cases
+                  Get
+    post:
+      tags:
+      - Engagement
+      summary: Create Case
+      operationId: create_case_api_v1_engagement_tenant_service_cases_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCaseCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Create Case Api V1 Engagement Tenant Service Cases Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/tenant/service-cases/{case_id}/feedback:
+    post:
+      tags:
+      - Engagement
+      summary: Feedback Case
+      operationId: feedback_case_api_v1_engagement_tenant_service_cases__case_id__feedback_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Case Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Feedback Case Api V1 Engagement Tenant Service Cases  Case
+                  Id  Feedback Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/tenant/service-cases/{case_id}/transition:
+    post:
+      tags:
+      - Engagement
+      summary: Transition Tenant Case
+      operationId: transition_tenant_case_api_v1_engagement_tenant_service_cases__case_id__transition_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: case_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Case Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCaseTransition'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Transition Tenant Case Api V1 Engagement Tenant Service
+                  Cases  Case Id  Transition Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /engagement/tenant/services:
+    get:
+      tags:
+      - Engagement
+      summary: Tenant Services
+      operationId: tenant_services_api_v1_engagement_tenant_services_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Tenant Services Api V1 Engagement Tenant Services Get
+      security:
+      - HTTPBearer: []
 components:
   securitySchemes:
     bearerAuth:
@@ -13268,3 +15003,1153 @@ components:
       required: [due_on]
       properties:
         due_on: { type: string, format: date }
+    ActivityCreate:
+      properties:
+        park_id:
+          type: integer
+          minimum: 1.0
+          title: Park Id
+        code:
+          type: string
+          maxLength: 48
+          minLength: 2
+          title: Code
+        title:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Title
+        description:
+          type: string
+          maxLength: 50000
+          minLength: 1
+          title: Description
+        location:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Location
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+        ends_at:
+          type: string
+          format: date-time
+          title: Ends At
+        registration_opens_at:
+          type: string
+          format: date-time
+          title: Registration Opens At
+        registration_closes_at:
+          type: string
+          format: date-time
+          title: Registration Closes At
+        capacity:
+          type: integer
+          maximum: 100000.0
+          minimum: 1.0
+          title: Capacity
+        attendee_rules:
+          items:
+            $ref: '#/components/schemas/ApplicabilityRule'
+          type: array
+          maxItems: 32
+          title: Attendee Rules
+        audience:
+          items:
+            $ref: '#/components/schemas/ApplicabilityRule'
+          type: array
+          maxItems: 32
+          title: Audience
+        attachment_ids:
+          items:
+            type: integer
+          type: array
+          maxItems: 32
+          title: Attachment Ids
+        cancellation_terms:
+          type: string
+          maxLength: 1000
+          minLength: 1
+          title: Cancellation Terms
+      additionalProperties: false
+      type: object
+      required:
+      - park_id
+      - code
+      - title
+      - description
+      - location
+      - starts_at
+      - ends_at
+      - registration_opens_at
+      - registration_closes_at
+      - capacity
+      - cancellation_terms
+      title: ActivityCreate
+    ActivityLifecycle:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        reason:
+          type: string
+          maxLength: 1000
+          minLength: 1
+          title: Reason
+        target_status:
+          type: string
+          enum:
+          - REGISTRATION_CLOSED
+          - IN_PROGRESS
+          - COMPLETED
+          - CANCELLED
+          title: Target Status
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - reason
+      - target_status
+      title: ActivityLifecycle
+    ActivityRevision:
+      properties:
+        park_id:
+          type: integer
+          minimum: 1.0
+          title: Park Id
+        code:
+          type: string
+          maxLength: 48
+          minLength: 2
+          title: Code
+        title:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Title
+        description:
+          type: string
+          maxLength: 50000
+          minLength: 1
+          title: Description
+        location:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Location
+        starts_at:
+          type: string
+          format: date-time
+          title: Starts At
+        ends_at:
+          type: string
+          format: date-time
+          title: Ends At
+        registration_opens_at:
+          type: string
+          format: date-time
+          title: Registration Opens At
+        registration_closes_at:
+          type: string
+          format: date-time
+          title: Registration Closes At
+        capacity:
+          type: integer
+          maximum: 100000.0
+          minimum: 1.0
+          title: Capacity
+        attendee_rules:
+          items:
+            $ref: '#/components/schemas/ApplicabilityRule'
+          type: array
+          maxItems: 32
+          title: Attendee Rules
+        audience:
+          items:
+            $ref: '#/components/schemas/ApplicabilityRule'
+          type: array
+          maxItems: 32
+          title: Audience
+        attachment_ids:
+          items:
+            type: integer
+          type: array
+          maxItems: 32
+          title: Attachment Ids
+        cancellation_terms:
+          type: string
+          maxLength: 1000
+          minLength: 1
+          title: Cancellation Terms
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+      additionalProperties: false
+      type: object
+      required:
+      - park_id
+      - code
+      - title
+      - description
+      - location
+      - starts_at
+      - ends_at
+      - registration_opens_at
+      - registration_closes_at
+      - capacity
+      - cancellation_terms
+      - expected_version
+      title: ActivityRevision
+    AnnouncementCreate:
+      properties:
+        park_id:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Park Id
+        code:
+          type: string
+          maxLength: 48
+          minLength: 2
+          title: Code
+        title:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Title
+        content_text:
+          type: string
+          maxLength: 50000
+          minLength: 1
+          title: Content Text
+        priority:
+          type: string
+          enum:
+          - NORMAL
+          - IMPORTANT
+          - URGENT
+          title: Priority
+          default: NORMAL
+        pin_from:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Pin From
+        pin_to:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Pin To
+        publish_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Publish At
+        expires_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Expires At
+        attachment_ids:
+          items:
+            type: integer
+          type: array
+          maxItems: 32
+          title: Attachment Ids
+        audience:
+          items:
+            $ref: '#/components/schemas/AudienceRule'
+          type: array
+          maxItems: 32
+          minItems: 1
+          title: Audience
+      additionalProperties: false
+      type: object
+      required:
+      - code
+      - title
+      - content_text
+      - audience
+      title: AnnouncementCreate
+    AnnouncementRevision:
+      properties:
+        park_id:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Park Id
+        code:
+          type: string
+          maxLength: 48
+          minLength: 2
+          title: Code
+        title:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Title
+        content_text:
+          type: string
+          maxLength: 50000
+          minLength: 1
+          title: Content Text
+        priority:
+          type: string
+          enum:
+          - NORMAL
+          - IMPORTANT
+          - URGENT
+          title: Priority
+          default: NORMAL
+        pin_from:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Pin From
+        pin_to:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Pin To
+        publish_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Publish At
+        expires_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Expires At
+        attachment_ids:
+          items:
+            type: integer
+          type: array
+          maxItems: 32
+          title: Attachment Ids
+        audience:
+          items:
+            $ref: '#/components/schemas/AudienceRule'
+          type: array
+          maxItems: 32
+          minItems: 1
+          title: Audience
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+      additionalProperties: false
+      type: object
+      required:
+      - code
+      - title
+      - content_text
+      - audience
+      - expected_version
+      title: AnnouncementRevision
+    ApplicabilityRule:
+      properties:
+        field:
+          type: string
+          enum:
+          - park_id
+          - region_code
+          - party_role
+          - industry_code
+          - enterprise_scale
+          - tag_code
+          title: Field
+        operator:
+          type: string
+          enum:
+          - EQ
+          - IN
+          - CONTAINS_ANY
+          title: Operator
+        values:
+          items:
+            type: string
+          type: array
+          maxItems: 64
+          minItems: 1
+          title: Values
+      additionalProperties: false
+      type: object
+      required:
+      - field
+      - operator
+      - values
+      title: ApplicabilityRule
+    AudienceRule:
+      properties:
+        type:
+          type: string
+          enum:
+          - USER
+          - ROLE
+          - PARTY
+          - PARK
+          - TENANT_PRINCIPAL
+          title: Type
+        ids:
+          items:
+            type: integer
+          type: array
+          maxItems: 1000
+          title: Ids
+        codes:
+          items:
+            type: string
+          type: array
+          maxItems: 100
+          title: Codes
+      additionalProperties: false
+      type: object
+      required:
+      - type
+      title: AudienceRule
+    CheckIn:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        evidence_note:
+          type: string
+          maxLength: 1000
+          minLength: 1
+          title: Evidence Note
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - evidence_note
+      title: CheckIn
+    FanoutRequest:
+      properties:
+        limit:
+          type: integer
+          maximum: 1000.0
+          minimum: 1.0
+          title: Limit
+          default: 200
+      additionalProperties: false
+      type: object
+      title: FanoutRequest
+    FeedbackCreate:
+      properties:
+        score:
+          type: integer
+          maximum: 5.0
+          minimum: 1.0
+          title: Score
+        comment:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Comment
+      additionalProperties: false
+      type: object
+      required:
+      - score
+      title: FeedbackCreate
+    LifecycleAction:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        reason:
+          type: string
+          maxLength: 1000
+          minLength: 1
+          title: Reason
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - reason
+      title: LifecycleAction
+    OperationalSweep:
+      properties:
+        due_at:
+          type: string
+          format: date-time
+          title: Due At
+        limit:
+          type: integer
+          maximum: 1000.0
+          minimum: 1.0
+          title: Limit
+          default: 200
+      additionalProperties: false
+      type: object
+      required:
+      - due_at
+      title: OperationalSweep
+    PolicyConsultationCreate:
+      properties:
+        park_id:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Park Id
+        subject:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Subject
+        question:
+          type: string
+          maxLength: 5000
+          minLength: 1
+          title: Question
+      additionalProperties: false
+      type: object
+      required:
+      - subject
+      - question
+      title: PolicyConsultationCreate
+    PolicyExpirySweep:
+      properties:
+        due_on:
+          type: string
+          format: date
+          title: Due On
+        limit:
+          type: integer
+          maximum: 1000.0
+          minimum: 1.0
+          title: Limit
+          default: 200
+      additionalProperties: false
+      type: object
+      required:
+      - due_on
+      title: PolicyExpirySweep
+    PolicyRevision:
+      properties:
+        park_id:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Park Id
+        code:
+          type: string
+          maxLength: 48
+          minLength: 2
+          title: Code
+        title:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Title
+        summary:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Summary
+        content_text:
+          type: string
+          maxLength: 50000
+          minLength: 1
+          title: Content Text
+        category:
+          type: string
+          maxLength: 48
+          minLength: 2
+          title: Category
+        region_code:
+          anyOf:
+          - type: string
+            maxLength: 32
+          - type: 'null'
+          title: Region Code
+        source_type:
+          type: string
+          enum:
+          - LOCAL
+          - LEGACY
+          - EXTERNAL
+          title: Source Type
+        source_system:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+          title: Source System
+        source_identifier:
+          anyOf:
+          - type: string
+            maxLength: 128
+          - type: 'null'
+          title: Source Identifier
+        source_publisher:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Source Publisher
+        source_url:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Source Url
+        allowed_hosts:
+          items:
+            type: string
+          type: array
+          maxItems: 32
+          title: Allowed Hosts
+        source_published_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Source Published At
+        effective_on:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Effective On
+        expires_on:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Expires On
+        attachment_ids:
+          items:
+            type: integer
+          type: array
+          maxItems: 32
+          title: Attachment Ids
+        applicability:
+          items:
+            $ref: '#/components/schemas/ApplicabilityRule'
+          type: array
+          maxItems: 32
+          title: Applicability
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+      additionalProperties: false
+      type: object
+      required:
+      - code
+      - title
+      - content_text
+      - category
+      - source_type
+      - source_publisher
+      - expected_version
+      title: PolicyRevision
+    RegistrationCancel:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        reason:
+          type: string
+          maxLength: 1000
+          minLength: 1
+          title: Reason
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - reason
+      title: RegistrationCancel
+    RegistrationCreate:
+      properties:
+        attendee_count:
+          type: integer
+          maximum: 100.0
+          minimum: 1.0
+          title: Attendee Count
+          default: 1
+      additionalProperties: false
+      type: object
+      title: RegistrationCreate
+    ServiceCaseCreate:
+      properties:
+        catalog_id:
+          type: integer
+          minimum: 1.0
+          title: Catalog Id
+        priority:
+          type: string
+          enum:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - URGENT
+          title: Priority
+          default: MEDIUM
+        subject:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Subject
+        description:
+          type: string
+          maxLength: 10000
+          minLength: 1
+          title: Description
+        contact_last4:
+          anyOf:
+          - type: string
+            pattern: ^[0-9]{4}$
+          - type: 'null'
+          title: Contact Last4
+      additionalProperties: false
+      type: object
+      required:
+      - catalog_id
+      - subject
+      - description
+      title: ServiceCaseCreate
+    ServiceCaseTransition:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        target_status:
+          type: string
+          enum:
+          - ACCEPTED
+          - ASSIGNED
+          - APPOINTED
+          - IN_PROGRESS
+          - RESULT_READY
+          - DISPUTED
+          - CONFIRMED
+          - CANCELLED
+          title: Target Status
+        assigned_to:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Assigned To
+        appointment_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Appointment At
+        result_summary:
+          anyOf:
+          - type: string
+            maxLength: 10000
+          - type: 'null'
+          title: Result Summary
+        work_order_id:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Work Order Id
+        note:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Note
+        evidence:
+          anyOf:
+          - items:
+              additionalProperties:
+                type: string
+              type: object
+            type: array
+            maxItems: 32
+          - type: 'null'
+          title: Evidence
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - target_status
+      title: ServiceCaseTransition
+    ServiceCreate:
+      properties:
+        park_id:
+          type: integer
+          minimum: 1.0
+          title: Park Id
+        code:
+          type: string
+          maxLength: 48
+          minLength: 2
+          title: Code
+        title:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Title
+        description:
+          type: string
+          maxLength: 50000
+          minLength: 1
+          title: Description
+        category:
+          type: string
+          maxLength: 48
+          minLength: 2
+          title: Category
+        provider_type:
+          type: string
+          enum:
+          - INTERNAL
+          - EXTERNAL
+          title: Provider Type
+        provider_name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Provider Name
+        provider_state:
+          type: string
+          enum:
+          - LOCAL
+          - NOT_CONNECTED
+          title: Provider State
+        sla_hours:
+          type: integer
+          maximum: 8760.0
+          minimum: 1.0
+          title: Sla Hours
+        appointment_required:
+          type: boolean
+          title: Appointment Required
+          default: false
+        eligibility:
+          items:
+            $ref: '#/components/schemas/ApplicabilityRule'
+          type: array
+          maxItems: 32
+          title: Eligibility
+        evidence_rules:
+          items:
+            additionalProperties:
+              type: string
+            type: object
+          type: array
+          maxItems: 32
+          title: Evidence Rules
+        price_amount:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,16}|(?=[\d.]{1,19}0*$)\d{0,16}\.\d{0,2}0*$)
+          - type: 'null'
+          title: Price Amount
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+          title: Currency
+          default: CNY
+      additionalProperties: false
+      type: object
+      required:
+      - park_id
+      - code
+      - title
+      - description
+      - category
+      - provider_type
+      - provider_name
+      - provider_state
+      - sla_hours
+      title: ServiceCreate
+    ServiceRevision:
+      properties:
+        park_id:
+          type: integer
+          minimum: 1.0
+          title: Park Id
+        code:
+          type: string
+          maxLength: 48
+          minLength: 2
+          title: Code
+        title:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Title
+        description:
+          type: string
+          maxLength: 50000
+          minLength: 1
+          title: Description
+        category:
+          type: string
+          maxLength: 48
+          minLength: 2
+          title: Category
+        provider_type:
+          type: string
+          enum:
+          - INTERNAL
+          - EXTERNAL
+          title: Provider Type
+        provider_name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Provider Name
+        provider_state:
+          type: string
+          enum:
+          - LOCAL
+          - NOT_CONNECTED
+          title: Provider State
+        sla_hours:
+          type: integer
+          maximum: 8760.0
+          minimum: 1.0
+          title: Sla Hours
+        appointment_required:
+          type: boolean
+          title: Appointment Required
+          default: false
+        eligibility:
+          items:
+            $ref: '#/components/schemas/ApplicabilityRule'
+          type: array
+          maxItems: 32
+          title: Eligibility
+        evidence_rules:
+          items:
+            additionalProperties:
+              type: string
+            type: object
+          type: array
+          maxItems: 32
+          title: Evidence Rules
+        price_amount:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,16}|(?=[\d.]{1,19}0*$)\d{0,16}\.\d{0,2}0*$)
+          - type: 'null'
+          title: Price Amount
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+          title: Currency
+          default: CNY
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+      additionalProperties: false
+      type: object
+      required:
+      - park_id
+      - code
+      - title
+      - description
+      - category
+      - provider_type
+      - provider_name
+      - provider_state
+      - sla_hours
+      - expected_version
+      title: ServiceRevision
+    StaffServiceCaseCreate:
+      properties:
+        catalog_id:
+          type: integer
+          minimum: 1.0
+          title: Catalog Id
+        priority:
+          type: string
+          enum:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - URGENT
+          title: Priority
+          default: MEDIUM
+        subject:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Subject
+        description:
+          type: string
+          maxLength: 10000
+          minLength: 1
+          title: Description
+        contact_last4:
+          anyOf:
+          - type: string
+            pattern: ^[0-9]{4}$
+          - type: 'null'
+          title: Contact Last4
+        party_id:
+          type: integer
+          minimum: 1.0
+          title: Party Id
+      additionalProperties: false
+      type: object
+      required:
+      - catalog_id
+      - subject
+      - description
+      - party_id
+      title: StaffServiceCaseCreate
+    app__modules__engagement__interface__schemas__ExpectedVersion:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      title: ExpectedVersion
+    app__modules__engagement__interface__schemas__PolicyCreate:
+      properties:
+        park_id:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Park Id
+        code:
+          type: string
+          maxLength: 48
+          minLength: 2
+          title: Code
+        title:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Title
+        summary:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Summary
+        content_text:
+          type: string
+          maxLength: 50000
+          minLength: 1
+          title: Content Text
+        category:
+          type: string
+          maxLength: 48
+          minLength: 2
+          title: Category
+        region_code:
+          anyOf:
+          - type: string
+            maxLength: 32
+          - type: 'null'
+          title: Region Code
+        source_type:
+          type: string
+          enum:
+          - LOCAL
+          - LEGACY
+          - EXTERNAL
+          title: Source Type
+        source_system:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+          title: Source System
+        source_identifier:
+          anyOf:
+          - type: string
+            maxLength: 128
+          - type: 'null'
+          title: Source Identifier
+        source_publisher:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Source Publisher
+        source_url:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Source Url
+        allowed_hosts:
+          items:
+            type: string
+          type: array
+          maxItems: 32
+          title: Allowed Hosts
+        source_published_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Source Published At
+        effective_on:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Effective On
+        expires_on:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Expires On
+        attachment_ids:
+          items:
+            type: integer
+          type: array
+          maxItems: 32
+          title: Attachment Ids
+        applicability:
+          items:
+            $ref: '#/components/schemas/ApplicabilityRule'
+          type: array
+          maxItems: 32
+          title: Applicability
+      additionalProperties: false
+      type: object
+      required:
+      - code
+      - title
+      - content_text
+      - category
+      - source_type
+      - source_publisher
+      title: PolicyCreate

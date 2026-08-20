@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-08-20T13:39:44.5686308+08:00",
+  "result": "PASS",
+  "scope": "isolated localhost PostgreSQL 16 acceptance database",
+  "production_connected": false,
+  "backup": {
+    "format": "pg_dump custom",
+    "container_path": "/tmp/kwzy_engagement_acceptance.dump",
+    "size_bytes": 1257743,
+    "sha256": "7667e4f2867f4a77cb8f1f3df0d7f0e4bf07ce1111ddb9a911d52a7948e5d784"
+  },
+  "restore_database": "kwzy_engagement_restore_test",
+  "source_signature": "alembic=e7b24f0a1c09,engagement_tables=20,policies=3,services=4,cases=3,activities=3,registrations=3,announcements=1,deliveries=2",
+  "restored_signature": "alembic=e7b24f0a1c09,engagement_tables=20,policies=3,services=4,cases=3,activities=3,registrations=3,announcements=1,deliveries=2",
+  "signatures_match": true,
+  "restore_database_dropped_after_verification": true,
+  "limitations": [
+    "Synthetic/local acceptance data only",
+    "No production backup, deletion or restore was authorized or attempted",
+    "Real RPO/RTO remains blocked until an authorized staging-scale snapshot is supplied"
+  ]
+}

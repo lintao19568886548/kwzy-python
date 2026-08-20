@@ -104,6 +104,7 @@ class TenantContext:
                 "procurement:",
                 "inventory:",
                 "outsourcing:",
+                "engagement:",
             )
         ) or permission_code in {
             "party:risk_read",
