@@ -4,18 +4,26 @@
 
 | 字段 | 当前值 |
 | --- | --- |
-| 更新时间 | 2026-08-15（Asia/Shanghai） |
+| 更新时间 | 2026-08-20（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | `5577509a6ca2a473107038be1316a0ea9252fc8d`：HR/排班/考勤/绩效/资质 37/37 精确提交全验收，380 后端、62 浏览器、前端四门禁、36 阶段真实 HTTP、OpenAPI/OpenSpec、1000/25 性能、备份恢复和合成迁移通过 |
-| 远程同步 | HR 实现 `370c7f8`、验收工具 `5577509` 与证据 `11d29d8` 已正常推送；主规格同步/归档在本提交后继续正常推送；未 force、未触达 main |
-| 工作树 | 本轮只允许提交 HR 三张新视觉证据、机器报告、总控文档和 OpenSpec 收尾；全量 Playwright 重生成的其他纵切 27 张截图保持未暂存，不得删除、还原或混入本轮提交 |
-| Alembic | 唯一 head `c5f02d8e9c87`；PG16 fresh head、`current == heads`、`c5→b4→c5`、162 表备份删除恢复通过；既有已应用 `b4ea2c7d8f86` 未修改，HR 使用单一前向 `c5` |
-| 当前阶段 | 独立验收为 12 implemented / 1 blocked / 7 missing；组合能力 1–10、13–14 已关闭本地产品范围，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | HR 36/36 任务、9 份主规格已同步并归档为 `2026-08-14-complete-workforce-scheduling-attendance-performance`，归档后 strict 119/119；档案/签章/印章已归档。CRM `revoked` 语义冲突仍保持 active |
+| 已验证 HEAD | `3e3c815285025e0462122cbc845c447995c28aaf`：供应商/采购/库存/领用/外包 38/38 精确提交全验收，390 后端、63 浏览器、前端四门禁、56 阶段真实 HTTP、OpenAPI/OpenSpec、1000/25 性能、备份恢复和合成迁移通过 |
+| 远程同步 | 供应链实现 `3e3c815` 已正常推送到 `origin/feat/full-rebuild-completion`；精确 SHA 证据、总控文档和 OpenSpec 收尾已在本轮完成并按正常流程推送；未 force、未触达 main |
+| 工作树 | 本轮只允许提交供应链三张精确 SHA 视觉证据、机器报告、总控文档和 OpenSpec 收尾；全量 Playwright 重生成的其他纵切 30 张截图保持未暂存，不得删除、还原或混入本轮提交 |
+| Alembic | 唯一 head `d6a13e9f0b98`；PG16 fresh head、`current == heads`、`d6→c5→d6`、182 表备份删除恢复通过；既有已应用 `c5f02d8e9c87` 未修改，供应链使用单一前向 `d6` |
+| 当前阶段 | 独立验收为 13 implemented / 1 blocked / 6 missing；组合能力 1–10、13–15 已关闭本地产品范围，完整项目仍 `CONDITIONAL/BLOCKED` |
+| 当前 OpenSpec | 供应链 40/40 已完成，10 份 delta 已同步主规格并归档为 `2026-08-20-complete-supply-procurement-inventory-outsourcing`；CRM `revoked` 语义冲突仍保持 active |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
+
+- [x] 独立取证蓝图、两份旧 Java/前端和旧 SQL，确认 Party 的 `SUPPLIER` 角色与工单成本只是边界，现仓原无权威供应链聚合，未把旧按钮或局部字段计为完成。
+- [x] 新增单一前向 `d6a13e9f0b98` 与 20 张供应链表，完成供应商园区范围/资质掩码指纹/状态评价、物料仓库目录、采购原生审批/取消撤回/订单/收货、库存流水/余额/领退/盘点/冲正和外包返工验收。
+- [x] 完成数据库派生的 11 项权限、tenant/park 404、未知字段/重复参数、命令指纹幂等、复合租户外键、行锁并发唯一赢家与不可变库存证据；长幂等键统一约束到 ApprovalEvent 的 64 字符边界。
+- [x] 重建 PC 供应链工作区，覆盖供应商/采购/库存/外包真实操作，以及桌面、820px 平板、390px 离线/重试；三张精确 SHA 截图逐张人工复核，无页面级横向溢出、重叠或乱码。
+- [x] 精确 `3e3c815` 全门禁 38/38：PG16 fresh/down-up/唯一 head，390 pytest，63 Playwright，前端 lint/typecheck/6 Vitest/build，17 OpenAPI+YAML strict，120 OpenSpec，56/56 供应链真实 HTTP，1000/25 p95 297.794 ms/139.457 RPS/0 错误，1,830,705 bytes/182 表备份恢复，1,142 文件 secrets scan；供应链合成 ETL 断点恢复、重跑零新增、7.0000 账实对账、4 条隔离和回滚通过。
+- [x] ERP/WMS/供应商门户保持 `NOT_CONNECTED`、外包结算保持 `NOT_INTEGRATED`；缺少权威旧 schema/export/snapshot/key map 的真实迁移继续 `BLOCKED`，未接触生产。
+- [x] 在 `3e3c815` 当前代码 HEAD 重做 Step1 基础回归：PostgreSQL 16.14 空库先升旧 Step1 `9f17fd2e9180`，再升当前唯一 head `d6a13e9f0b98`，RBAC/园区授权/异常/request_id/日志/审计/生产保护/Park-Unit 权限共 39 passed；未使用 `kwzy_step1.db` 历史文字作证据，未修改历史 migration。
 
 - [x] 独立取证旧 HR Java/前端与数据库证据，明确轨迹、固定办公点、工资摘要、绩效/资质旧聚合和真实设备协议的证据边界，没有把旧 CRUD 或页面按钮当完整业务。
 - [x] 新增单一前向 `c5f02d8e9c87` 与 16 张 workforce 表，完成 PII 最小化员工档案、身份绑定、不变班次版本/排班、考勤策略/地点引用、打卡/汇总/调整和请假原生 Approval。
@@ -138,7 +146,17 @@
 - [x] 将已落地基础合同 5 份 delta 同步主规格并归档 `2026-08-13-implement-lease-contract`，消除合同 V2 增量基线缺口。
 - [x] 完成 `implement-contract-lifecycle-v2` proposal/design、10 份 delta specs 和 102 项任务；change strict 与全量 OpenSpec 49/49 PASS。
 
-## 最新机器证据（HR/排班/考勤/绩效/资质精确 SHA）
+## 最新机器证据（供应商/采购/库存/领用/外包精确 SHA）
+
+版本化报告 `docs/06-implementation/evidence/supply-procurement-inventory-outsourcing/acceptance-clean-3e3c815.json` 精确对应 `3e3c815285025e0462122cbc845c447995c28aaf`：38/38 步、786,776 ms、0 failed；PG16 唯一 head `d6a13e9f0b98`、390 pytest、63 Playwright、41 个供应链 runtime/YAML 方法、前端四门禁、56/56 真实 HTTP、1000/25 p95 297.794 ms/139.457 RPS/0 错误、供应链合成 ETL、1,830,705 bytes/182 表备份恢复、120 OpenSpec 和 1,142 文件 secrets scan 通过。
+
+供应链 OpenSpec 40/40 已完成；10 份 delta 已同步主规格并归档为 `2026-08-20-complete-supply-procurement-inventory-outsourcing`，归档前全量 strict 130/130。真实 ERP/WMS/供应商门户与旧数据迁移仍保持 `NOT_CONNECTED/BLOCKED`。
+
+## Step1 当前 HEAD 回归（非全量完成证据）
+
+版本化记录 `docs/06-implementation/evidence/step1-foundation-current-head-regression-2026-08-20.md` 对应 `3e3c815285025e0462122cbc845c447995c28aaf`：PostgreSQL 16.14 空库先升到旧 Step1 revision `9f17fd2e9180`，再升到唯一当前 head `d6a13e9f0b98`；RBAC、园区授权、统一异常、request_id、结构化日志、成功审计、生产保护和 Park/Unit 权限定向回归 39/39。没有重跑历史 change、没有修改历史 migration，也没有把 Step1 或 `kwzy_step1.db` 历史文字当作 Party/Lease/Bill/Payment 或全量重构完成证据。
+
+## 历史机器证据（HR/排班/考勤/绩效/资质精确 SHA）
 
 版本化报告 `docs/06-implementation/evidence/workforce-scheduling-attendance-performance/acceptance-clean-5577509.json` 精确对应 `5577509a6ca2a473107038be1316a0ea9252fc8d`：37/37 步、656,601 ms、0 failed；PG16 唯一 head `c5f02d8e9c87`、380 pytest、62 Playwright、28 个 workforce 路径、前端四门禁、36/36 真实 HTTP、1000/25 p95 264.836 ms/145.596 RPS/0 错误、HR 合成 ETL、1,697,402 bytes/162 表备份恢复、111 OpenSpec 和 1,091 文件 secrets scan 通过。
 
@@ -199,14 +217,14 @@ HR 36/36 OpenSpec 任务全部关闭，9 份 delta 同步主规格并归档；�
 - `apps/tenant-miniprogram` 不存在；租户微信小程序未实现。
 - `analytics`、`ai_assist`、旧 `tenant_ops` 仍是未挂载的空响应或 stub，不能计为驾驶舱、AI 或旧模块完成；租户服务已由受控 `facility_ops` 纵切闭合，但员工移动端、租户小程序和外部通知/对象存储仍未完成。
 - 资产模板与组合租控本地产品范围已闭合；集团/区域/园区归属治理已闭合；商业 GIS/CAD/BIM 和真实旧坐标迁移未获合同/数据，保持 NOT_CONNECTED/BLOCKED_EXTERNAL。
-- CRM/锁房、合同 V2、Party 企业画像、应收、工单、设施/巡检/IoT、档案/签章/印章及 HR 本地产品范围已形成代码和机器证据；外部工商/银行/支付/IoT/合法电子签/考勤设备提供商、真实外部渠道、企微回调/自动触达、AI 评分、供应链、完整驾驶舱和真实旧数据迁移仍未完成。
+- CRM/锁房、合同 V2、Party 企业画像、应收、工单、设施/巡检/IoT、档案/签章/印章、HR 及供应链本地产品范围已形成代码和机器证据；政策/园企服务/活动/公告、完整驾驶舱、AI、外部工商/银行/支付/IoT/合法电子签/考勤/ERP/WMS/供应商门户、真实外部渠道、企微回调/自动触达和真实旧数据迁移仍未完成。
 - 外部短信/微信/邮件/OSS/支付/签章/发票/IoT 无真实凭据，生产联调均 `NOT_LIVE`。
 - ETL 只验证合成 fixture；缺少经授权的脱敏旧库快照、字段闭合签字和新旧结果对账。
 - 无登记的远程预发环境；性能基线、容灾/监控/告警和生产 Runbook 尚未完成。
 
 ## 下一恢复点
 
-1. 从能力矩阵第 15 项供应商、采购、库存、领用和外包进入下一纵切，继续关闭剩余 7 个 `MISSING`。
+1. 从能力矩阵第 16 项政策、园企服务、活动和公告进入下一纵切，继续关闭剩余 6 个 `MISSING`。
 2. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 
 ## 不可变安全约束

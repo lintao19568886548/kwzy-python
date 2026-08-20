@@ -66,6 +66,6 @@
 - [x] 10.1 Run backend/unit/integration/security/concurrency suites.
 - [x] 10.2 Run PostgreSQL 16, real HTTP, performance, and worker checks.
 - [x] 10.3 Run PC lint, typecheck, unit, production build, and browser E2E.
-- [ ] 10.4 Run OpenAPI, OpenSpec, secret, dependency, and final-quality gates at one exact SHA.
-- [ ] 10.5 Update capability matrix, findings, evidence index, and status without overstating real migration/integrations.
-- [ ] 10.6 Commit, push normally, sync/archive specs only after exact-SHA acceptance, and do not merge main before all global gates close.
+- [x] 10.4 Run OpenAPI, OpenSpec, secret, dependency, and final-quality gates at one exact SHA.
+- [x] 10.5 Update capability matrix, findings, evidence index, and status without overstating real migration/integrations.
+- [x] 10.6 Commit, push normally, sync/archive specs only after exact-SHA acceptance, and do not merge main before all global gates close.
