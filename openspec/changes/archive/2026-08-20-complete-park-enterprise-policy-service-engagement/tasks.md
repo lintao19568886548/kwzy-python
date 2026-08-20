@@ -65,6 +65,6 @@
 - [x] 10.1 Run backend unit, integration, security, isolation, idempotency, and concurrency suites.
 - [x] 10.2 Run PostgreSQL 16, Alembic, ORM/schema, real HTTP, worker, performance, and backup/restore gates.
 - [x] 10.3 Run PC lint, typecheck, unit, production build, and browser E2E at desktop/tablet/390px.
-- [ ] 10.4 Run OpenAPI, OpenSpec strict, secret, dependency, architecture, stub/fake, and final-quality gates at one exact SHA.
-- [ ] 10.5 Update capability matrix, findings, evidence index, migration truth, and status without overstating external providers, mini-program, production, or real legacy migration.
-- [ ] 10.6 Commit and push normally, sync/archive specs only after exact-SHA acceptance, and do not merge main before every remaining global gate closes.
+- [x] 10.4 Run OpenAPI, OpenSpec strict, secret, dependency, architecture, stub/fake, and final-quality gates at one exact SHA.
+- [x] 10.5 Update capability matrix, findings, evidence index, migration truth, and status without overstating external providers, mini-program, production, or real legacy migration.
+- [x] 10.6 Commit and push normally, sync/archive specs only after exact-SHA acceptance, and do not merge main before every remaining global gate closes.

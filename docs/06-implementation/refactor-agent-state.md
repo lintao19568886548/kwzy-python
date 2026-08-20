@@ -7,16 +7,21 @@
 | 更新时间 | 2026-08-20（Asia/Shanghai） |
 | 仓库 | `D:\重构python\kwzy-python` |
 | 分支 | `feat/full-rebuild-completion`（从 repair `37d7cf7da768eef8d7bcc743635117b8f34c7bbb` 创建） |
-| 已验证 HEAD | `3e3c815285025e0462122cbc845c447995c28aaf`：供应商/采购/库存/领用/外包 38/38 精确提交全验收，390 后端、63 浏览器、前端四门禁、56 阶段真实 HTTP、OpenAPI/OpenSpec、1000/25 性能、备份恢复和合成迁移通过 |
-| 远程同步 | 供应链实现 `3e3c815` 已正常推送到 `origin/feat/full-rebuild-completion`；精确 SHA 证据、总控文档和 OpenSpec 收尾已在本轮完成并按正常流程推送；未 force、未触达 main |
-| 工作树 | 本轮只允许提交供应链三张精确 SHA 视觉证据、机器报告、总控文档和 OpenSpec 收尾；全量 Playwright 重生成的其他纵切 30 张截图保持未暂存，不得删除、还原或混入本轮提交 |
-| Alembic | 唯一 head `d6a13e9f0b98`；PG16 fresh head、`current == heads`、`d6→c5→d6`、182 表备份删除恢复通过；既有已应用 `c5f02d8e9c87` 未修改，供应链使用单一前向 `d6` |
-| 当前阶段 | 独立验收为 13 implemented / 1 blocked / 6 missing；组合能力 1–10、13–15 已关闭本地产品范围，完整项目仍 `CONDITIONAL/BLOCKED` |
-| 当前 OpenSpec | 供应链 40/40 已完成，10 份 delta 已同步主规格并归档为 `2026-08-20-complete-supply-procurement-inventory-outsourcing`；CRM `revoked` 语义冲突仍保持 active |
+| 已验证 HEAD | `27215ceb1bf0b39cf50a11019c861682254da086`：政策/园企服务/活动/公告 39/39 精确提交全验收，416 后端、64 浏览器、前端四门禁、OpenAPI/OpenSpec、1000/25 性能、备份恢复和合成迁移通过 |
+| 远程同步 | engagement 实现 `27215ce` 已正常推送到 `origin/feat/full-rebuild-completion`；精确 SHA 证据、总控文档和 OpenSpec 以独立正常提交收尾；未 force、未触达 main |
+| 工作树 | 本轮只允许提交 engagement 三张精确 SHA 视觉证据、机器报告、总控文档和 OpenSpec 收尾；全量 Playwright 重生成的其他纵切截图与两个 `_inspect_db.py` 保持未暂存，不得删除、还原或混入 |
+| Alembic | 唯一 head `e7b24f0a1c09`；PG16 fresh head、`current == heads`、`e7→d6→e7`、202 表备份恢复通过；既有已应用 migration 未修改，engagement 使用单一前向 `e7` |
+| 当前阶段 | 独立验收为 14 implemented / 1 blocked / 5 missing；组合能力 1–10、13–16 已关闭本地产品范围，完整项目仍 `CONDITIONAL/BLOCKED` |
+| 当前 OpenSpec | engagement 41/41 完成，7 份 delta 已同步主规格并归档为 `2026-08-20-complete-park-enterprise-policy-service-engagement`，归档后 strict 136/136；CRM `revoked` 语义冲突仍保持 active |
 | 生产部署/迁移 | `NOT_EXECUTED`，保持人工授权门禁 |
 
 ## 本轮已完成
 
+- [x] 独立取证政策/通知/企业服务/活动旧证据，明确 Party、WorkOrder、站内信和外部 notice 只是来源/边界，不把旧字段或外部系统文字计为完成。
+- [x] 新增单一前向 `e7b24f0a1c09` 与 20 张 engagement 表，完成版本化政策/服务/活动/公告、原生审批、Party-bound 咨询/服务单/报名、串行容量/候补、冻结受众和站内 fan-out/read。
+- [x] 重建 PC 企业参与工作区，覆盖员工与独立 tenant-principal、桌面/820px/390px、权限/冲突/离线/重试；三张精确 SHA 截图逐张人工复核。
+- [x] 精确 `27215ce` 全门禁 39/39：PG16 fresh/down-up/唯一 head，416 pytest，64 Playwright，前端 lint/typecheck/9 Vitest/build，17 OpenAPI+YAML strict，130 OpenSpec，1000/25 p95 316.95 ms/118.28 RPS/0 错误，1,976,440 bytes/202 表备份恢复，1,200 文件 secrets scan；依赖 0 已知漏洞。
+- [x] engagement 合成 ETL 8 阶段通过，5 条不可信记录隔离且不伪造官方资格、外部提供商或通知；真实旧数据、外部集成与生产仍 `BLOCKED/NOT_CONNECTED/NOT_EXECUTED`。
 - [x] 独立取证蓝图、两份旧 Java/前端和旧 SQL，确认 Party 的 `SUPPLIER` 角色与工单成本只是边界，现仓原无权威供应链聚合，未把旧按钮或局部字段计为完成。
 - [x] 新增单一前向 `d6a13e9f0b98` 与 20 张供应链表，完成供应商园区范围/资质掩码指纹/状态评价、物料仓库目录、采购原生审批/取消撤回/订单/收货、库存流水/余额/领退/盘点/冲正和外包返工验收。
 - [x] 完成数据库派生的 11 项权限、tenant/park 404、未知字段/重复参数、命令指纹幂等、复合租户外键、行锁并发唯一赢家与不可变库存证据；长幂等键统一约束到 ApprovalEvent 的 64 字符边界。
@@ -146,7 +151,15 @@
 - [x] 将已落地基础合同 5 份 delta 同步主规格并归档 `2026-08-13-implement-lease-contract`，消除合同 V2 增量基线缺口。
 - [x] 完成 `implement-contract-lifecycle-v2` proposal/design、10 份 delta specs 和 102 项任务；change strict 与全量 OpenSpec 49/49 PASS。
 
-## 最新机器证据（供应商/采购/库存/领用/外包精确 SHA）
+## 最新机器证据（政策/园企服务/活动/公告精确 SHA）
+
+版本化报告 `docs/06-implementation/evidence/park-enterprise-policy-service-engagement/acceptance-clean-27215ce.json` 精确对应 `27215ceb1bf0b39cf50a11019c861682254da086`：39/39 步、918,676 ms、0 failed；PG16 唯一 head `e7b24f0a1c09`、416 pytest、64 Playwright、前端四门禁、1000/25 p95 316.95 ms/118.28 RPS/0 错误、engagement 合成 ETL、1,976,440 bytes/202 表备份恢复、130 OpenSpec 和 1,200 文件 secrets scan 通过。报告 SHA-256 为 `D7AE8EA9D882F691A57D8260805A54C2E0C7BA0936611B6080DBD58C4DBCB1E0`。
+
+真实独立 notice/政策/服务/活动导出、政府 feed、外部服务商和通知凭据未获得，分别保持 `BLOCKED_PENDING_AUTHORIZED_NOTICE_EXPORTS_KEYMAPS_AND_SIGNED_RECONCILIATION` 与 `NOT_CONNECTED`。
+
+engagement OpenSpec 41/41 任务全部关闭，7 份 delta 同步主规格并归档；归档后全量 strict 136/136。
+
+## 历史机器证据（供应商/采购/库存/领用/外包精确 SHA）
 
 版本化报告 `docs/06-implementation/evidence/supply-procurement-inventory-outsourcing/acceptance-clean-3e3c815.json` 精确对应 `3e3c815285025e0462122cbc845c447995c28aaf`：38/38 步、786,776 ms、0 failed；PG16 唯一 head `d6a13e9f0b98`、390 pytest、63 Playwright、41 个供应链 runtime/YAML 方法、前端四门禁、56/56 真实 HTTP、1000/25 p95 297.794 ms/139.457 RPS/0 错误、供应链合成 ETL、1,830,705 bytes/182 表备份恢复、120 OpenSpec 和 1,142 文件 secrets scan 通过。
 
@@ -217,14 +230,14 @@ HR 36/36 OpenSpec 任务全部关闭，9 份 delta 同步主规格并归档；�
 - `apps/tenant-miniprogram` 不存在；租户微信小程序未实现。
 - `analytics`、`ai_assist`、旧 `tenant_ops` 仍是未挂载的空响应或 stub，不能计为驾驶舱、AI 或旧模块完成；租户服务已由受控 `facility_ops` 纵切闭合，但员工移动端、租户小程序和外部通知/对象存储仍未完成。
 - 资产模板与组合租控本地产品范围已闭合；集团/区域/园区归属治理已闭合；商业 GIS/CAD/BIM 和真实旧坐标迁移未获合同/数据，保持 NOT_CONNECTED/BLOCKED_EXTERNAL。
-- CRM/锁房、合同 V2、Party 企业画像、应收、工单、设施/巡检/IoT、档案/签章/印章、HR 及供应链本地产品范围已形成代码和机器证据；政策/园企服务/活动/公告、完整驾驶舱、AI、外部工商/银行/支付/IoT/合法电子签/考勤/ERP/WMS/供应商门户、真实外部渠道、企微回调/自动触达和真实旧数据迁移仍未完成。
+- CRM/锁房、合同 V2、Party 企业画像、应收、工单、设施/巡检/IoT、档案/签章/印章、HR、供应链及政策/园企服务/活动/公告本地产品范围已形成代码和机器证据；完整驾驶舱、AI、外部工商/银行/支付/IoT/合法电子签/考勤/ERP/WMS/供应商门户/政府 feed/服务商/真实通知、企微回调/自动触达和真实旧数据迁移仍未完成。
 - 外部短信/微信/邮件/OSS/支付/签章/发票/IoT 无真实凭据，生产联调均 `NOT_LIVE`。
 - ETL 只验证合成 fixture；缺少经授权的脱敏旧库快照、字段闭合签字和新旧结果对账。
 - 无登记的远程预发环境；性能基线、容灾/监控/告警和生产 Runbook 尚未完成。
 
 ## 下一恢复点
 
-1. 从能力矩阵第 16 项政策、园企服务、活动和公告进入下一纵切，继续关闭剩余 6 个 `MISSING`。
+1. 从能力矩阵第 17 项驾驶舱、指标下钻和多园区比较进入下一纵切，继续关闭剩余 5 个 `MISSING`。
 2. `complete-identity-system-admin` 保持 active：真实 schema dump 和旧密码样本为 `BLOCKED_EXTERNAL`，不得用合成 fixture 冒充或错误归档；生产部署仍须单独人工授权。
 
 ## 不可变安全约束

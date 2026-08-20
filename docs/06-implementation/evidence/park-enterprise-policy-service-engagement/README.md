@@ -2,7 +2,7 @@
 
 > 日期：2026-08-20（Asia/Shanghai）
 > 分支：`feat/full-rebuild-completion`
-> 状态：工作树专项验收通过；精确 SHA 全量门禁待最终提交后重跑
+> 状态：精确 SHA `27215ceb1bf0b39cf50a11019c861682254da086` 的 39/39 全量门禁通过
 
 ## 当前判定
 
@@ -15,18 +15,21 @@
 - 真实独立 notice/政策/服务/活动迁移仍为 `BLOCKED_PENDING_AUTHORIZED_NOTICE_EXPORTS_KEYMAPS_AND_SIGNED_RECONCILIATION`。
 - 本轮没有重新 propose/apply 历史 `harden-step1-foundation`，也没有修改历史 migration。
 
-## 已完成的工作树专项门禁
+## 精确 SHA 与专项门禁
 
 | 门禁 | 结果 |
 | --- | --- |
+| 精确提交总验收 | [acceptance-clean-27215ce.json](acceptance-clean-27215ce.json)：39/39、918,676 ms、0 failed；报告 SHA-256 `D7AE8EA9D882F691A57D8260805A54C2E0C7BA0936611B6080DBD58C4DBCB1E0` |
 | Alembic / PG16 | `e7 → d6 → e7` 通过；当前唯一 head `e7b24f0a1c09` |
 | ORM drift | `all_diffs=0`, `engagement_diffs=0` |
-| 后端集中回归 | domain/application/HTTP/PG16/ETL/OpenAPI/architecture：46 passed，0 failed |
+| 后端回归 | 全量 416 passed；专项 domain/application/HTTP/PG16/ETL/OpenAPI/architecture 46 passed；补充架构/元数据 8 passed |
 | Synthetic ETL | 5 tests passed；8 阶段均 PASS，中断后 0 残留、重放 0 新增、run rollback 与 backup/delete/restore 通过 |
-| 性能 | 1,000 请求、并发 25、0 错误、p95 164.911 ms、180.597 RPS；门槛 p95≤500 ms / 错误率 0% / RPS≥20 |
+| 性能 | 精确提交聚合 1,000/25、0 错误、p95 316.95 ms、118.28 RPS；engagement 专项 p95 164.911 ms、180.597 RPS |
 | 前端 | lint、typecheck、4 files / 9 Vitest、production build 通过 |
-| 浏览器 | 真实 PG16 + FastAPI + production Vite engagement E2E：1 passed；覆盖 staff 与独立 tenant-principal |
-| PG 备份恢复 | custom dump 1,257,743 bytes；恢复签名一致，临时恢复库已删除 |
+| 浏览器 | 真实 PG16 + FastAPI + production Vite 全量 64 passed；engagement 专项覆盖 staff 与独立 tenant-principal |
+| PG 备份恢复 | 精确提交 custom dump 1,976,440 bytes / 202 表；专项核心签名恢复一致 |
+| 契约与安全 | OpenAPI 17、OpenSpec 130、1,200 文件 secrets scan、Python/Web 0 已知漏洞、stub/fake 0 命中 |
+| OpenSpec 收尾 | 41/41 任务、7 份主规格同步，归档后 strict 136/136 |
 
 ## 业务与安全覆盖
 
@@ -51,4 +54,4 @@
 
 Desktop 显示工作人员公告发布与站内分发真值；Tablet 820px 显示 Party-bound 报名与容量；Mobile 390×844 显示公告已读和离线命令阻断，浏览器断言均无 body 横向溢出。三张截图均已在 loading 消失后生成并人工复核。
 
-运行、worker、迁移与回滚步骤见 [park-enterprise-engagement-runbook.md](../../park-enterprise-engagement-runbook.md)。在最终精确 SHA 全量门禁、文档同步和归档前，禁止把本 README 当成全项目完成证明。
+运行、worker、迁移与回滚步骤见 [park-enterprise-engagement-runbook.md](../../park-enterprise-engagement-runbook.md)。本 README 只关闭该纵切的本地产品范围，禁止把它当成全项目、真实旧数据迁移、外部平台联调、两端应用或生产完成证明。
